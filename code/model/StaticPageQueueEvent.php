@@ -5,7 +5,7 @@
  * and notice eventlisteners about events.
  * 
  */
-class Event {
+class StaticPageQueueEvent {
 
 	/**
 	 *
@@ -29,7 +29,7 @@ class Event {
 	}
 
 	/**
-	 * Example usage: Event::register_event('BallotUpdateEvent', BallotUpdateEventListener')
+	 * Example usage: Event::register_event('MyEvent', MyEventListener')
 	 * 
 	 * @param string $eventClass
 	 * @param string $listenerMarker 
@@ -37,17 +37,17 @@ class Event {
 	public static function register_event($eventClass, $listenerMarker) {
 
 		if (!ClassInfo::exists($eventClass)) {
-			throw new Event_Exception('Can\'t find class "'.$eventClass.'" for event handling.');
+			throw new StaticPageQueueEvent_Exception('Can\'t find class "'.$eventClass.'" for event handling.');
 		}
 
 		if (!ClassInfo::exists($listenerMarker)) {
-			throw new Event_Exception('Can\'t find interface "'.$listenerMarker.'" for event handling.');
+			throw new StaticPageQueueEvent_Exception('Can\'t find interface "'.$listenerMarker.'" for event handling.');
 		}
 
 		$implementors = ClassInfo::implementorsOf($listenerMarker);
 
 		if (!$implementors) {
-			throw new Event_Exception('Can\'t find implementators of "'.$listenerMarker.'"');
+			throw new StaticPageQueueEvent_Exception('Can\'t find implementators of "'.$listenerMarker.'"');
 		}
 		self::$events[$eventClass] = $listenerMarker;
 	}
@@ -66,7 +66,7 @@ class Event {
 		$eventClassName = get_class($eventClass);
 
 		if (!array_key_exists($eventClassName, self::$events)) {
-			throw new Event_Exception('The event "'.$eventClassName.'" has not yet been registered and therefore can\'t be triggered.');
+			throw new StaticPageQueueEvent_Exception('The event "'.$eventClassName.'" has not yet been registered and therefore can\'t be triggered.');
 		}
 
 		$interfaceName = self::$events[$eventClassName];
@@ -92,6 +92,6 @@ class Event {
 	}
 }
 
-class Event_Exception extends Exception {
+class StaticPageQueueEvent_Exception extends Exception {
 	
 }

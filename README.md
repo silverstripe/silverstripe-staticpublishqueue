@@ -13,24 +13,24 @@ All core code relevant to this system is located in mysite/code/caching
 The system is configured in the _config.php with registrering events with
 event listeners.
 
-    Event::register_event('BallotUpdateEvent', 'BallotUpdateEventListener'):
+    StaticPageQueueEvent::register_event('MyEvent', 'MyEventListener'):
 
-This means that the event BallotUpdateEvent gets triggered, it will notify all
-objects that implements the interface BallotUpdateEventListener.
+This means that the event MyEvent gets triggered, it will notify all
+objects that implements the interface MyEventListener.
 
 The events most likely triggered in a onAfterWrite or onBeforeDelete. This is
-how a class would trigger a BallotUpdateEvent:
+how a class would trigger a MyEvent:
 
     public function onAfterWrite() {
         parent::onAfterWrite();
-        Event::fire_event(new BallotUpdateEvent($this));
+        StaticPageQueueEvent::fire_event(new MyEvent($this));
     }
 
-The BallotUpdateEvent takes an reference to the DataObject that triggers this
+The MyEvent takes an reference to the DataObject that triggers this
 event.
 
-The Event system then calls every implementator of the BallotUpdateEventListener
-with the method Object#ballotUpdateEvent(Event $event). This gives the
+The Event system then calls every implementator of the MyEventListener
+with the method Object#MyEvent(Event $event). This gives the
 implementator a reference to the original triggerer.
 
 The listener (implementor) takes care of collecting a list of URLs that needs to
