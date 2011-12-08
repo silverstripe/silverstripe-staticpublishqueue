@@ -105,7 +105,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		while(self::$current_url = StaticPagesQueue::get_next_url()) {
 			$this->updatePid();
 			$prePublishTime = microtime(true);
-			$this->crateCachedFiles(array(self::$current_url));
+			$this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
 				$this->printPublishingMetrics($published++, $prePublishTime, self::$current_url);
 			}
@@ -125,8 +125,11 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 *
 	 * @param array $URLSegments
 	 */
-	protected function crateCachedFiles(array $URLSegments) {
+	protected function createCachedFiles(array $URLSegments) {
+		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
 		singleton("Page")->publishPages($URLSegments);
+
+		// Create stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
 		$paths = $publisher->urlsToPaths($URLSegments);
 		foreach($paths as $filepath) {
