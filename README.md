@@ -13,7 +13,7 @@ All core code relevant to this system is located in mysite/code/caching
 The system is configured in the _config.php with registrering events with
 event listeners.
 
-    StaticPageQueueEvent::register_event('MyEvent', 'MyEventListener'):
+    StaticPagesQueueEvent::register_event('MyEvent', 'MyEventListener'):
 
 This means that the event MyEvent gets triggered, it will notify all
 objects that implements the interface MyEventListener.
@@ -23,7 +23,7 @@ how a class would trigger a MyEvent:
 
     public function onAfterWrite() {
         parent::onAfterWrite();
-        StaticPageQueueEvent::fire_event(new MyEvent($this));
+        StaticPagesQueueEvent::fire_event(new MyEvent($this));
     }
 
 The MyEvent takes an reference to the DataObject that triggers this

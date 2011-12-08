@@ -5,7 +5,7 @@
  * and notice eventlisteners about events.
  * 
  */
-class StaticPageQueueEvent {
+class StaticPagesQueueEvent {
 
 	/**
 	 *
@@ -37,28 +37,28 @@ class StaticPageQueueEvent {
 	public static function register_event($eventClass, $listenerMarker) {
 
 		if (!ClassInfo::exists($eventClass)) {
-			throw new StaticPageQueueEvent_Exception('Can\'t find class "'.$eventClass.'" for event handling.');
+			throw new StaticPagesQueueEvent_Exception('Can\'t find class "'.$eventClass.'" for event handling.');
 		}
 
 		if (!ClassInfo::exists($listenerMarker)) {
-			throw new StaticPageQueueEvent_Exception('Can\'t find interface "'.$listenerMarker.'" for event handling.');
+			throw new StaticPagesQueueEvent_Exception('Can\'t find interface "'.$listenerMarker.'" for event handling.');
 		}
 
 		$implementors = ClassInfo::implementorsOf($listenerMarker);
 
 		if (!$implementors) {
-			throw new StaticPageQueueEvent_Exception('Can\'t find implementators of "'.$listenerMarker.'"');
+			throw new StaticPagesQueueEvent_Exception('Can\'t find implementators of "'.$listenerMarker.'"');
 		}
 		self::$events[$eventClass] = $listenerMarker;
 	}
 
 	/**
 	 *
-	 * @param Event $eventClass
+	 * @param StaticPagesQueue $eventClass
 	 * @return bool - if the event was fired or not
 	 * @throws Exception 
 	 */
-	public static function fire_event(Event $eventClass) {
+	public static function fire_event(StaticPagesQueueEvent $eventClass) {
 		if (class_exists('SapphireTest') && SapphireTest::is_running_test() && !self::$fire_test_events) {
 			return false;
 		}
@@ -66,7 +66,7 @@ class StaticPageQueueEvent {
 		$eventClassName = get_class($eventClass);
 
 		if (!array_key_exists($eventClassName, self::$events)) {
-			throw new StaticPageQueueEvent_Exception('The event "'.$eventClassName.'" has not yet been registered and therefore can\'t be triggered.');
+			throw new StaticPagesQueueEvent_Exception('The event "'.$eventClassName.'" has not yet been registered and therefore can\'t be triggered.');
 		}
 
 		$interfaceName = self::$events[$eventClassName];
@@ -92,6 +92,6 @@ class StaticPageQueueEvent {
 	}
 }
 
-class StaticPageQueueEvent_Exception extends Exception {
+class StaticPagesQueueEvent_Exception extends Exception {
 	
 }

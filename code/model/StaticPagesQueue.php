@@ -109,7 +109,7 @@ class StaticPagesQueue extends DataObject {
      * @return void
      */
     public static function push_urls_to_db() {
-        $insertSQL = 'INSERT /*DELAYED*/ INTO "StaticPagesQueue" ("Created", "LastEdited", "Priority", "URLSegment") VALUES';
+        $insertSQL = 'INSERT INTO "StaticPagesQueue" ("Created", "LastEdited", "Priority", "URLSegment") VALUES';
 
         if(!count(self::$insert_statements)) {
             return;
