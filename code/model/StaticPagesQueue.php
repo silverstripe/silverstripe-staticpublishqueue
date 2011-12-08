@@ -172,11 +172,20 @@ class StaticPagesQueue extends DataObject {
 			);
 		} elseif(DB::getConn() instanceof SQLite3Database) {
 			$interval = sprintf(
-				'"LastEdited" < datetime(\'%s\', \'-%date(format) MINUTE\')',
+				'"LastEdited" < datetime(\'%s\', \'-%d minutes\')',
 				$now,
 				self::$minutes_until_force_regeneration
 			);
 		}
+
+		 // Find URLs that has been stuck in regeneration
+		$object = DataObject::get_one(__CLASS__, '"Freshness" = \'regenerating\' AND ' . $interval, false, $sortOrder);
+		if($object) {
+			self::remove_duplicates($object->ID);
+			self::mark_as_regenerating( $object );
+			return $object->URLSegment;
+		}
+
 		// Find URLs that is erronous and might work now (flush issues etc)
 		$object = DataObject::get_one(__CLASS__, '"Freshness" = \'error\' AND ' . $interval, false, $sortOrder);
 		if($object) {
@@ -221,8 +230,12 @@ class StaticPagesQueue extends DataObject {
 	 * @param int $ID - ID of the object whose duplicates we want to remove
 	 * @return int - how many duplicates that was removed
 	 */
-	protected static function remove_duplicates( $ID ) {
-		$result = DB::query('DELETE FROM "StaticPagesQueue" WHERE "ID" NOT IN (SELECT MIN("ID") FROM "StaticPagesQueue" GROUP BY "URLSegment","ID")');
+	static function remove_duplicates( $ID ) {
+		$obj = DataObject::get_by_id('StaticPagesQueue', $ID);
+		if(!$obj) return 0;
+		DB::query(
+			sprintf('DELETE FROM "StaticPagesQueue" WHERE "URLSegment" = \'%s\' AND "ID" != %d', $obj->URLSegment, (int)$ID)
+		);
 		if(!$total = DB::affectedRows()) {
 			return 0;
 		}

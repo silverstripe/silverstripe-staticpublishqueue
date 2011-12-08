@@ -97,6 +97,43 @@ class StaticPagesQueueTest extends SapphireTest {
 		$this->assertEquals( 'should/be/next', StaticPagesQueue::get_next_url());
 	}
 
+	public function testRemoveDuplicates() {
+		URLArrayObject::add_urls(array(
+			'test1' => 1 ,
+			'test2' => 1,
+			'test3' => 1
+		));
+		URLArrayObject::add_urls(array(
+			'test2' => 2, // duplicate
+			'test3' => 2, // duplicate
+		));
+		URLArrayObject::add_urls(array(
+			'test2' => 3, // duplicate
+		));
+		$test1Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test1\'');
+		$test2Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test2\'');
+		$test3Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test3\'');
+		$this->assertEquals(1, $test1Objs->Count());
+		$this->assertEquals(3, $test2Objs->Count());
+		$this->assertEquals(2, $test3Objs->Count());
+
+		StaticPagesQueue::remove_duplicates($test1Objs->First()->ID);
+		$test1Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test1\'');
+		$test2Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test2\'');
+		$test3Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test3\'');
+		$this->assertEquals(1, $test1Objs->Count(), 'Keeps original instance without any duplicates found');
+		$this->assertEquals(3, $test2Objs->Count(), 'Doesnt remove unrelated duplicates');
+		$this->assertEquals(2, $test3Objs->Count(), 'Doesnt remove unrelated duplicates');
+
+		StaticPagesQueue::remove_duplicates($test2Objs->First()->ID);
+		$test2Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test2\'');
+		$this->assertEquals(1, $test2Objs->Count(), 'Removing a single duplicate');
+		
+		StaticPagesQueue::remove_duplicates($test3Objs->First()->ID);
+		$test3Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test3\'');
+		$this->assertEquals(1, $test3Objs->Count(), 'Removing multiple duplicates');
+	}
+
 	/**
 	 * 
 	 * Test takes about 22sec on my local environment
