@@ -18,7 +18,7 @@ class StaticPagesQueueReport extends SS_Report {
 	 *
 	 * @return string
 	 */
-    public function title() {
+	public function title() {
 		return 'Stale pages in queue';
 	}
 
@@ -89,10 +89,10 @@ class StaticPagesQueueReport extends SS_Report {
 	 */
 	public function columns() {
 		return array(
-            "Priority" => array ("Priority" => "Priority"),
+			"Priority" => array ("Priority" => "Priority"),
 			"URLSegment" => array("URLSegment" => "URLSegment"),
-            "Created" => array ("Created" => "Created"),
-            "Freshness" => array ("Freshness" => "Freshness"),
+			"Created" => array ("Created" => "Created"),
+			"Freshness" => array ("Freshness" => "Freshness"),
 		);
 	}
 }

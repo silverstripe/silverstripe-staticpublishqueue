@@ -26,9 +26,9 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	/**
 	 * Should be self exploratory. Note: needs to public due to error handling
 	 *
-     * @var string
-     */
-    public static $current_url = '';
+	 * @var string
+	 */
+	public static $current_url = '';
 
 	/**
 	 *
@@ -63,12 +63,12 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 */
 	protected $summaryObject = null;
 
-    /**
-     * Starts the republishing of pages in the StaticPagesQueue
+	/**
+	 * Starts the republishing of pages in the StaticPagesQueue
 	 *
 	 * @var $request SS_HTTPRequest
-     */
-    public function run($request) {
+	 */
+	public function run($request) {
 		if($request->getVar('verbose')) {
 			$this->verbose = true;
 		}
@@ -92,7 +92,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				$this->removePid();
 			}
 		}
-    }
+	}
 	
 	/**
 	 *
@@ -102,7 +102,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		$this->updatePid();
 		$this->load_error_handlers();
 		$published = 0;
-        while(self::$current_url = StaticPagesQueue::get_next_url()) {
+		while(self::$current_url = StaticPagesQueue::get_next_url()) {
 			$this->updatePid();
 			$prePublishTime = microtime(true);
 			$this->crateCachedFiles(array(self::$current_url));
@@ -111,7 +111,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			}
 			$this->logSummary($published, false, $prePublishTime);
 			StaticPagesQueue::delete_by_link(self::$current_url);
-        }
+		}
 		
 		if($published) {
 			$this->logSummary($published, true, $prePublishTime);
@@ -318,64 +318,64 @@ EOT;
 		return $this->daemon;
 	}
 
-    /**
-     * Override error_handlers so we can set a page in error state
-     *
-     */
-    protected function load_error_handlers() {
-        set_error_handler(array(__CLASS__, 'error_handler'), error_reporting());
-        set_exception_handler(array(__CLASS__, 'exception_handler'));
-    }
+	/**
+	 * Override error_handlers so we can set a page in error state
+	 *
+	 */
+	protected function load_error_handlers() {
+		set_error_handler(array(__CLASS__, 'error_handler'), error_reporting());
+		set_exception_handler(array(__CLASS__, 'exception_handler'));
+	}
 
-    /**
-     * Generic callback to catch standard PHP runtime errors thrown by the interpreter
-     * or manually triggered with the user_error function.
-     * Caution: The error levels default to E_ALL is the site is in dev-mode (set in main.php).
-     *
-     * @ignore
-     * @param int $errno
-     * @param string $errstr
-     * @param string $errfile
-     * @param int $errline
-     */
-    public static function error_handler($errno, $errstr, $errfile, $errline) {
-        switch ($errno) {
-            case E_ERROR:
-            case E_CORE_ERROR:
-            case E_USER_ERROR:
+	/**
+	 * Generic callback to catch standard PHP runtime errors thrown by the interpreter
+	 * or manually triggered with the user_error function.
+	 * Caution: The error levels default to E_ALL is the site is in dev-mode (set in main.php).
+	 *
+	 * @ignore
+	 * @param int $errno
+	 * @param string $errstr
+	 * @param string $errfile
+	 * @param int $errline
+	 */
+	public static function error_handler($errno, $errstr, $errfile, $errline) {
+		switch ($errno) {
+			case E_ERROR:
+			case E_CORE_ERROR:
+			case E_USER_ERROR:
 				StaticPagesQueue::has_error(self::$current_url, $errstr);
-                Debug::fatalHandler($errno, $errstr, $errfile, $errline, null);
-                break;
+				Debug::fatalHandler($errno, $errstr, $errfile, $errline, null);
+				break;
 
-            case E_WARNING:
-            case E_CORE_WARNING:
-            case E_USER_WARNING:
+			case E_WARNING:
+			case E_CORE_WARNING:
+			case E_USER_WARNING:
 				StaticPagesQueue::has_error(self::$current_url, $errstr);
-                Debug::warningHandler($errno, $errstr, $errfile, $errline, null);
-                break;
+				Debug::warningHandler($errno, $errstr, $errfile, $errline, null);
+				break;
 
-            case E_NOTICE:
-            case E_USER_NOTICE:
-                Debug::noticeHandler($errno, $errstr, $errfile, $errline, null);
-                break;
-        }
-    }
+			case E_NOTICE:
+			case E_USER_NOTICE:
+				Debug::noticeHandler($errno, $errstr, $errfile, $errline, null);
+				break;
+		}
+	}
 
-    /**
-     * Generic callback, to catch uncaught exceptions when they bubble up to the top of the call chain.
-     *
-     * @ignore
-     * @param Exception $exception
-     */
-    public static function exception_handler($exception) {
-        StaticPagesQueue::has_error(self::$current_url);
-        $errno = E_USER_ERROR;
-        $type = get_class($exception);
-        $message = "Uncaught " . $type . ": " . $exception->getMessage();
-        $file = $exception->getFile();
-        $line = $exception->getLine();
-        $context = $exception->getTrace();
-        Debug::fatalHandler($errno, $message, $file, $line, $context);
-    }
+	/**
+	 * Generic callback, to catch uncaught exceptions when they bubble up to the top of the call chain.
+	 *
+	 * @ignore
+	 * @param Exception $exception
+	 */
+	public static function exception_handler($exception) {
+		StaticPagesQueue::has_error(self::$current_url);
+		$errno = E_USER_ERROR;
+		$type = get_class($exception);
+		$message = "Uncaught " . $type . ": " . $exception->getMessage();
+		$file = $exception->getFile();
+		$line = $exception->getLine();
+		$context = $exception->getTrace();
+		Debug::fatalHandler($errno, $message, $file, $line, $context);
+	}
 
 }

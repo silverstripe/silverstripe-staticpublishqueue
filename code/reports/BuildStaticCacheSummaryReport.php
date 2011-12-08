@@ -26,16 +26,16 @@ class BuildStaticCacheSummaryReport extends SS_Report {
 	 */
 	public function columns() {
 		return array(
-            "ID" => array ("ID" => "ID"),
-            "Finished" => array ("Finished" => "Finished"),
+			"ID" => array ("ID" => "ID"),
+			"Finished" => array ("Finished" => "Finished"),
 			"LastEdited" => array(
 				"title" => 'Last update',
 				'casting' => 'SS_Datetime->Ago'
 			),
-            "Pages" => array ("Created" => "Created"),
-            "AverageTime" => array ("AverageTime" => "AverageTime"),
-            "MemoryUsage" => array ("MemoryUsage" => "MemoryUsage"),
-            "PID" => array ("PID" => "PID"),
+			"Pages" => array ("Created" => "Created"),
+			"AverageTime" => array ("AverageTime" => "AverageTime"),
+			"MemoryUsage" => array ("MemoryUsage" => "MemoryUsage"),
+			"PID" => array ("PID" => "PID"),
 			"Created" => array("Created" => "Created"),
 		);
 	}
