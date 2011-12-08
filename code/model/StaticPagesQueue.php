@@ -218,18 +218,18 @@ class StaticPagesQueue extends DataObject {
     }
 	
     /**
-     * Removes all duplicates that has the same URLSegment as $ID
-     *
-     * @param int $ID - ID of the object whose duplicates we want to remove
-     * @return int - how many duplicates that was removed
-     */
-    protected static function remove_duplicates( $ID ) {
-        $result = DB::query('DELETE other FROM StaticPagesQueue AS other INNER JOIN StaticPagesQueue AS current ON current.URLSegment = other.URLSegment AND current.ID != other.ID WHERE current.ID = '.$ID.';');
-        if(!$total = DB::affectedRows()) {
-            return 0;
-        }
-        return $total;
-    }
+		 * Removes all duplicates that has the same URLSegment as $ID
+		 *
+		 * @param int $ID - ID of the object whose duplicates we want to remove
+		 * @return int - how many duplicates that was removed
+		 */
+		protected static function remove_duplicates( $ID ) {
+			$result = DB::query('DELETE FROM "StaticPagesQueue" WHERE "ID" NOT IN (SELECT MIN("ID") FROM "StaticPagesQueue" GROUP BY "URLSegment","ID")');
+			if(!$total = DB::affectedRows()) {
+				return 0;
+			}
+			return $total;
+		}
 
     /**
      *
