@@ -105,23 +105,19 @@ class StaticPagesQueue extends DataObject {
     /**
 	 * This will push all the currently cached insert statements to be pushed 
 	 * into the database
-     *
-     * @return void
-     */
-    public static function push_urls_to_db() {
-        $insertSQL = 'INSERT INTO "StaticPagesQueue" ("Created", "LastEdited", "Priority", "URLSegment") VALUES';
-
-        if(!count(self::$insert_statements)) {
-            return;
-        }
-        $t = DB::query($insertSQL . implode(', ', self::$insert_statements) );
+	 *
+	 * @return void
+	 */
+	public static function push_urls_to_db() {
+		foreach(self::$insert_statements as $stmt) {
+			$insertSQL = 'INSERT INTO "StaticPagesQueue" ("Created", "LastEdited", "Priority", "URLSegment") VALUES ' . $stmt;
+			$t = DB::query($insertSQL);
+		}
 		self::remove_old_cache(self::$urls);
 		// Flush the cache so DataObject::get works correctly
-        if( DB::affectedRows() ) {
-            singleton(__CLASS__)->flushCache();
-        }
-        self::$insert_statements = array();
-    }
+		if( DB::affectedRows() ) singleton(__CLASS__)->flushCache();
+		self::$insert_statements = array();
+	}
 	
 	/**
      * Remove an object by the url
@@ -156,28 +152,35 @@ class StaticPagesQueue extends DataObject {
     }
 	
 	/**
-     * Finds the next most prioritized url that needs recaching
-     *
-     * @return string
-     */
-    public static function get_next_url() {
-        $now = date('Y-m-d H:i:s');
-        $sortOrder = 'Priority DESC, Created ASC';
-        $object = DataObject::get_one(__CLASS__, '"Freshness" in (\'stale\')  ', false, $sortOrder);
-        if($object) {
-            self::remove_duplicates($object->ID);
-            self::mark_as_regenerating($object);
-            return $object->URLSegment;
-        }
-        // Find URLs that has been stuck in regeneration
-        $object = DataObject::get_one(__CLASS__, '"Freshness" = \'regenerating\' AND LastEdited < \''.$now.'\' - INTERVAL '.self::$minutes_until_force_regeneration.' MINUTE', false, $sortOrder);
-        if($object) {
-            self::remove_duplicates($object->ID);
-            self::mark_as_regenerating( $object );
-            return $object->URLSegment;
-        }
+	 * Finds the next most prioritized url that needs recaching
+	 *
+	 * @return string
+	 */
+	public static function get_next_url() {
+		$now = date('Y-m-d H:i:s');
+		$sortOrder = '"Priority" DESC, "Created" ASC';
+		$object = DataObject::get_one(__CLASS__, '"Freshness" in (\'stale\')  ', false, $sortOrder);
+		if($object) {
+			self::remove_duplicates($object->ID);
+			self::mark_as_regenerating($object);
+			return $object->URLSegment;
+		}
+
+		if(DB::getConn() instanceof MySQLDatabase) {
+			$interval = sprintf(
+				'"LastEdited" < \'%s\' - INTERVAL %d MINUTE',
+				$now,
+				self::$minutes_until_force_regeneration
+			);
+		} elseif(DB::getConn() instanceof SQLite3Database) {
+			$interval = sprintf(
+				'"LastEdited" < datetime(\'%s\', \'-%date(format) MINUTE\')',
+				$now,
+				self::$minutes_until_force_regeneration
+			);
+		}
 		// Find URLs that is erronous and might work now (flush issues etc)
-		$object = DataObject::get_one(__CLASS__, '"Freshness" = \'error\' AND LastEdited < \''.$now.'\' - INTERVAL '.self::$minutes_until_force_regeneration.' MINUTE', false, $sortOrder);
+		$object = DataObject::get_one(__CLASS__, '"Freshness" = \'error\' AND ' . $interval, false, $sortOrder);
         if($object) {
             self::remove_duplicates($object->ID);
             self::mark_as_regenerating( $object );
