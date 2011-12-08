@@ -1,0 +1,41 @@
+server {
+        listen 80;
+        server_name mywebsite.dev;
+
+        root /home/stig/mywebsite2011;
+        index index.php index.html;
+
+        # Any assets file, serve up directly. Never pass through to apache
+        location ^~ /assets/ {
+                break;
+        }
+
+        # Any clearly asset files, don't pass request to apache if missing
+        location ~* (\.gif|\.jpg|\.png|\.css|\.js)$ {
+        }
+
+        # Otherwise, see if the file exists and serve if so, pass through if not (but regexs below take precedence over this)
+        # This checks if the static cache has been built, and server that static html.
+        # Order is the 'fresh' copy, then the 'stale copy', an actual file somewhere and at last pass it down to the webserver
+        location / {
+                try_files /cache/$request_uri.html /cache/$request_uri.stale.html $uri @passthrough;
+                open_file_cache max=1000 inactive=120s;
+                open_file_cache_valid 5;
+                expires 5;
+        }
+
+        # PHP request, always pass to apache
+        location ~* \.php$ {
+                error_page 404 = @passthrough;
+                return 404;
+        }
+
+        # This is the backend webserver that is defined in the main nginx.conf
+        location @passthrough {
+                proxy_pass http://backend;
+                expires off;
+        }
+
+        include /etc/nginx/includes/proxy_buffered.conf;
+        include /etc/nginx/includes/deny_sensitive.conf;
+}
