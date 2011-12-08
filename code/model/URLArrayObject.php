@@ -38,6 +38,10 @@ class URLArrayObject extends ArrayObject {
 			return;
 		}
 		foreach ($urls as $URLSegment=>$priority) {
+			if(is_numeric($URLSegment) && is_string($priority)) {
+				$URLSegment = $priority;
+				$priority = 50;
+			}
 			self::get_instance()->append(array($priority, $URLSegment));
 		}
 
