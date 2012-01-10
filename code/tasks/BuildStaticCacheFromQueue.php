@@ -16,9 +16,10 @@
  * Or from cronjobs with a less expressive output as:
  * /dev/tasks/BuildStaticCacheFromQueue verbose=1
  * 
- * Or for running it in the crontab this is the recommended way.
+ * Or for running it in the crontab this is the recommended way. Note that the nice command decreases the priority
+ * of the queue processing so it doesn't interfere with web-server requests
  *
-   * * * * * /path/to/site/sapphire/sake dev/tasks/BuildStaticCacheFromQueue daemon=1 verbose=0 >> /tmp/cachebuilder.log
+   * * * * * /bin/nice -n -10 /path/to/site/sapphire/sake dev/tasks/BuildStaticCacheFromQueue daemon=1 verbose=0 >> /tmp/cachebuilder.log
  *
  */
 class BuildStaticCacheFromQueue extends BuildTask {
