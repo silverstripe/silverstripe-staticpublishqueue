@@ -37,8 +37,11 @@ class URLArrayObject extends ArrayObject {
 		if(!$urls) {
 			return;
 		}
+		
+		array_unique($urls);    //filter out any duplicates
+
 		foreach ($urls as $URLSegment=>$priority) {
-			if(is_numeric($URLSegment) && is_string($priority)) {
+			if(is_numeric($URLSegment) && is_string($priority)) {   //case when we have a non-associative flat array
 				$URLSegment = $priority;
 				$priority = 50;
 			}
