@@ -38,14 +38,17 @@ class URLArrayObject extends ArrayObject {
 			return;
 		}
 		
-		array_unique($urls);    //filter out any duplicates
-
+		$urlsAlreadyProcessed = array();    //array to filter out any duplicates
 		foreach ($urls as $URLSegment=>$priority) {
 			if(is_numeric($URLSegment) && is_string($priority)) {   //case when we have a non-associative flat array
 				$URLSegment = $priority;
 				$priority = 50;
 			}
-			self::get_instance()->append(array($priority, $URLSegment));
+
+			if (!isset($urlsAlreadyProcessed[$URLSegment])) {   //only add URLs not already added
+				self::get_instance()->append(array($priority, $URLSegment));
+				$urlsAlreadyProcessed[$URLSegment] = true;  //set as already processed
+			}
 		}
 
 		// Insert into the database directly instead of waiting to destruct time
