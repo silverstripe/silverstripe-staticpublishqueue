@@ -45,7 +45,8 @@ class URLArrayObject extends ArrayObject {
 				$priority = 50;
 			}
 
-			if (!isset($urlsAlreadyProcessed[$URLSegment])) {   //only add URLs not already added
+			//only add URLs of a certain length and only add URLs not already added
+			if (!empty($URLSegment) && strlen($URLSegment) > 1 && !isset($urlsAlreadyProcessed[$URLSegment])) {
 				self::get_instance()->append(array($priority, $URLSegment));
 				$urlsAlreadyProcessed[$URLSegment] = true;  //set as already processed
 			}
