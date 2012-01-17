@@ -84,7 +84,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		if($request->getVar('daemon')) {
 			$this->daemon = true;
 			while($this->buildCache() && $this->hasRunLessThan(590)) {
-				sleep(1);
+				usleep(200000); //sleep for 200 ms
 				$this->runningTime();
 				$this->summaryObject = null;
 			}
