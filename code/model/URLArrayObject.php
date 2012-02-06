@@ -46,7 +46,11 @@ class URLArrayObject extends ArrayObject {
 			}
 
 			//only add URLs of a certain length and only add URLs not already added
-			if (!empty($URLSegment) && strlen($URLSegment) > 1 && !isset($urlsAlreadyProcessed[$URLSegment])) {
+			if (!empty($URLSegment) &&
+			    strlen($URLSegment) > 1 &&
+			    !isset($urlsAlreadyProcessed[$URLSegment]) &&
+				substr($URLSegment,0,4) != "http") {    //URLs isn't to an external site
+
 				self::get_instance()->append(array($priority, $URLSegment));
 				$urlsAlreadyProcessed[$URLSegment] = true;  //set as already processed
 			}
