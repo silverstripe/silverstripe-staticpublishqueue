@@ -70,28 +70,32 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * @var $request SS_HTTPRequest
 	 */
 	public function run($request) {
-		if($request->getVar('verbose')) {
-			$this->verbose = true;
-		}
-		
-		if($info = $this->anotherInstanceRunning(30)) {
-			if($this->verbose) {
-				echo 'Another task is running with pid '.$info[0].' last heard of '.$info[1].' seconds ago.'.$this->nl();
+		if (!defined('SS_SLAVE')) { //don't run any build task if we are the slave server
+			if($request->getVar('verbose')) {
+				$this->verbose = true;
 			}
-			return false;
-		}
-		
-		if($request->getVar('daemon')) {
-			$this->daemon = true;
-			while($this->buildCache() && $this->hasRunLessThan(590)) {
-				usleep(200000); //sleep for 200 ms
-				$this->runningTime();
-				$this->summaryObject = null;
+
+			if($info = $this->anotherInstanceRunning(30)) {
+				if($this->verbose) {
+					echo 'Another task is running with pid '.$info[0].' last heard of '.$info[1].' seconds ago.'.$this->nl();
+				}
+				return false;
+			}
+
+			if($request->getVar('daemon')) {
+				$this->daemon = true;
+				while($this->buildCache() && $this->hasRunLessThan(590)) {
+					usleep(200000); //sleep for 200 ms
+					$this->runningTime();
+					$this->summaryObject = null;
+				}
+			} else {
+				if($this->buildCache()) {
+					$this->removePid();
+				}
 			}
 		} else {
-			if($this->buildCache()) {
-				$this->removePid();
-			}
+			echo "Server is SS_SLAVE, not running build task (edit the _ss_environment file to make this server the master)";
 		}
 	}
 	
