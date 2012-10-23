@@ -74,9 +74,7 @@ class StaticPagesQueueReport extends SS_Report {
 	 */
 	function sourceQuery($params) {
 		if($this->hasMethod('sourceRecords')) {
-			$query = new StaticPagesQueueReport_FakeQuery($this, 'sourceRecords', $params);
-			$query->setSortColumnMethod('sortColumns');
-			return $query;
+			return $this->sourceRecords()->dataQuery();
 		} else {
 			user_error("Please override sourceQuery()/sourceRecords() and columns() or, if necessary, override getReportField()", E_USER_ERROR);
 		}
@@ -97,17 +95,3 @@ class StaticPagesQueueReport extends SS_Report {
 	}
 }
 
-/**
- * Overloaded so we dont need to do a complex query for getting all entries.
- */
-class StaticPagesQueueReport_FakeQuery extends SS_Report_FakeQuery {
-	
-	/**
-	 *
-	 * @return int
-	 */
-	public function unlimitedRowCount() {
-		$result = DB::query('SELECT ID FROM StaticPagesQueue GROUP BY URLSegment;');
-		return $result->numRecords();
-	}
-}
