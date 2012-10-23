@@ -51,7 +51,7 @@ class StaticPagesQueueReport extends SS_Report {
 				{$limit};";
 		$result = DB::query($sql);		
 		
-		$set = new DataObjectSet();
+		$set = new ArrayList();
 		if(!$result->numRecords()){
 			return $set;
 		}
