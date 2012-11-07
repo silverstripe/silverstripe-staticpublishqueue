@@ -139,18 +139,26 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
 		$results = singleton("Page")->publishPages($URLSegments);
 
-		// Create stale file
+		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
-		$paths = $publisher->urlsToPaths($URLSegments);
-		foreach($paths as $filepath) {
-			$absolutePath = BASE_PATH.'/cache/'.$filepath;
-			if(file_exists($absolutePath)) {
-				$staleContent = str_replace('<div id="stale"></div>',  $this->getStaleHTML(),file_get_contents($absolutePath));
-				$cacheExtension = pathinfo($absolutePath, PATHINFO_EXTENSION);
-				$staleFilepath = str_replace($cacheExtension,'stale.html', $absolutePath);
-				file_put_contents($staleFilepath, $staleContent,LOCK_EX);
+		foreach($results as $url => $result) {
+			if($result['path']) {
+				$filePath = $result['path'];
+			} else {
+				$filePath = $publisher->getDestDir() . '/' . array_shift($publisher->urlsToPaths(array($url)));
+			}
+			$staleFilepath = str_replace(pathinfo($filePath, PATHINFO_EXTENSION), 'stale.html', $filePath);
+			if($result['statuscode'] < 400) {
+				$staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), file_get_contents($filePath));
+				file_put_contents($staleFilepath, $staleContent, LOCK_EX);
 				chmod($staleFilepath, 0664);
-				chmod($absolutePath, 0664);
+				chmod($filePath, 0664);
+			} else {
+				// For HTTP errors, we remove the stale file.
+				// The page was either erroreous, or has been unpublished in the meantime.
+				// Deleting the original cache file would've already been taken care of by
+				// FilesystemPublisher->unpublishPages().
+				@unlink($staleFilepath);
 			}
 		}
 

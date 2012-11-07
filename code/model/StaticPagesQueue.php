@@ -197,7 +197,9 @@ class StaticPagesQueue extends DataObject {
 	}
 
 	/**
-	 * Removes the .html fresh copy of the cache
+	 * Removes the .html fresh copy of the cache.
+	 * Keeps the *.stale.html copy in place,
+	 * in order to notify the user of the stale content.
 	 *
 	 * @param array $URLSegments
 	 */
@@ -209,6 +211,7 @@ class StaticPagesQueue extends DataObject {
 			if(!file_exists($publisher->getDestDir().'/'.$absolutePath)) {
 				continue;
 			}
+			
 			unlink($publisher->getDestDir().'/'.$absolutePath);
 		}
 	}
