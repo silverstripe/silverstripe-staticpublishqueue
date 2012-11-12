@@ -110,9 +110,14 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		while(self::$current_url = StaticPagesQueue::get_next_url()) {
 			$this->updatePid();
 			$prePublishTime = microtime(true);
-			$this->createCachedFiles(array(self::$current_url));
+			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
-				$this->printPublishingMetrics($published++, $prePublishTime, self::$current_url);
+				$this->printPublishingMetrics(
+					$published++, 
+					$prePublishTime, 
+					self::$current_url,
+					sprintf('HTTP Status: %d', $results[self::$current_url]['statuscode'])
+				);
 			}
 			$this->logSummary($published, false, $prePublishTime);
 			StaticPagesQueue::delete_by_link(self::$current_url);
@@ -132,22 +137,32 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 */
 	protected function createCachedFiles(array $URLSegments) {
 		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
-		singleton("Page")->publishPages($URLSegments);
+		$results = singleton("Page")->publishPages($URLSegments);
 
-		// Create stale file
+		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
-		$paths = $publisher->urlsToPaths($URLSegments);
-		foreach($paths as $filepath) {
-			$absolutePath = BASE_PATH.'/cache/'.$filepath;
-			if(file_exists($absolutePath)) {
-				$staleContent = str_replace('<div id="stale"></div>',  $this->getStaleHTML(),file_get_contents($absolutePath));
-				$cacheExtension = pathinfo($absolutePath, PATHINFO_EXTENSION);
-				$staleFilepath = str_replace($cacheExtension,'stale.html', $absolutePath);
-				file_put_contents($staleFilepath, $staleContent,LOCK_EX);
+		foreach($results as $url => $result) {
+			if($result['path']) {
+				$filePath = $result['path'];
+			} else {
+				$filePath = $publisher->getDestDir() . '/' . array_shift($publisher->urlsToPaths(array($url)));
+			}
+			$staleFilepath = str_replace(pathinfo($filePath, PATHINFO_EXTENSION), 'stale.html', $filePath);
+			if($result['statuscode'] < 400) {
+				$staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), file_get_contents($filePath));
+				file_put_contents($staleFilepath, $staleContent, LOCK_EX);
 				chmod($staleFilepath, 0664);
-				chmod($absolutePath, 0664);
+				chmod($filePath, 0664);
+			} else {
+				// For HTTP errors, we remove the stale file.
+				// The page was either erroreous, or has been unpublished in the meantime.
+				// Deleting the original cache file would've already been taken care of by
+				// FilesystemPublisher->unpublishPages().
+				@unlink($staleFilepath);
 			}
 		}
+
+		return $results;
 	}
 
 	/**
@@ -167,11 +182,11 @@ EOT;
 	 *
 	 * @param int $publishedPages
 	 * @param float $prePublishTime
-	 * @param int $memoryDelta
-	 * @param int $currentMemory
+	 * @param String $url
+	 * @param String $extra Additional info, like HTTP status codes
 	 * @param string $url
 	 */
-	protected function printPublishingMetrics($publishedPages, $prePublishTime, $url ) {
+	protected function printPublishingMetrics($publishedPages, $prePublishTime, $url, $extra = null) {
 		static $previous_memory_usage = 0;
 		if(!$previous_memory_usage) {
 			$previous_memory_usage = memory_get_usage(true);
@@ -180,7 +195,15 @@ EOT;
 		$mbDivider=1024*1024;
 
 		$publishTime = microtime(true) - $prePublishTime;
-		printf("%s %.2fs %.1fmb %.1fmb %s", $publishedPages, $publishTime, $memoryDelta/$mbDivider, memory_get_usage()/$mbDivider, $url);
+		printf(
+			"%s %.2fs %.1fmb %.1fmb %s (%s)", 
+			$publishedPages, 
+			$publishTime, 
+			$memoryDelta/$mbDivider, 
+			memory_get_usage()/$mbDivider, 
+			$url,
+			$extra
+		);
 		echo $this->nl();
 	}
 
