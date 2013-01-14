@@ -221,7 +221,7 @@ class StaticPagesQueue extends DataObject {
 	 *
 	 * @param StaticPagesQueue $object 
 	 */
-	protected function mark_as_regenerating(StaticPagesQueue $object) {
+	protected static function mark_as_regenerating(StaticPagesQueue $object) {
 			$now = date('Y-m-d H:i:s');
 			DB::query('UPDATE StaticPagesQueue SET LastEdited = \''.$now.'\', Freshness=\'regenerating\' WHERE ID = '.$object->ID);
 			singleton(__CLASS__)->flushCache();
