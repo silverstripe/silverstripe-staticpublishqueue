@@ -110,7 +110,7 @@ The PHP script looks in the following order to find cached results
 
  - cache/url-segment-of-page.html
  - cache/url-segment-of-page.stale.html
- - passes to sapphire/main.php
+ - passes to framework/main.php
 
 ## Using Nginx
 
@@ -122,4 +122,4 @@ file exists pass it on to Apache backend.
 
 Example of cronjob entry in `/etc/cron.d/`
 
-    * * * * * www-data /my/webroot/sapphire/sake dev/tasks/BuildStaticCacheFromQueue shy=1 >> /tmp/buildstaticcache.log
+    * * * * * www-data /my/webroot/framework/sake dev/tasks/BuildStaticCacheFromQueue shy=1 >> /tmp/buildstaticcache.log
