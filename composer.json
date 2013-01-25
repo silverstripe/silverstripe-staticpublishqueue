@@ -5,6 +5,7 @@
 	"keywords": ["silverstripe", "authentication"],
 	"require": {
 		"silverstripe/framework": "3.*",
-		"silverstripe/cms": "3.*"
+		"silverstripe/cms": "3.*",
+		"silverstripe/gridfieldajaxrefresh": "dev-master"
 	}
 }
