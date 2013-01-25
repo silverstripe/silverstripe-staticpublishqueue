@@ -93,5 +93,15 @@ class StaticPagesQueueReport extends SS_Report {
 			"Freshness" => array ("Freshness" => "Freshness"),
 		);
 	}
+
+	public function getReportField() {
+		$field = parent::getReportField();
+
+		if (class_exists('GridFieldAjaxRefresh')) {
+			$field->getConfig()->addComponent(new GridFieldAjaxRefresh(4000,true));
+		}
+
+		return $field;
+	}
 }
 
