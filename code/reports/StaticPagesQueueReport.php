@@ -98,7 +98,7 @@ class StaticPagesQueueReport extends SS_Report {
 		$field = parent::getReportField();
 
 		if (class_exists('GridFieldAjaxRefresh')) {
-			$field->getConfig()->addComponent(new GridFieldAjaxRefresh(4000,true));
+			$field->getConfig()->addComponent(new GridFieldAjaxRefresh(10000,true));
 		}
 
 		return $field;
