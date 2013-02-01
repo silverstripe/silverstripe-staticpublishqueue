@@ -156,7 +156,7 @@ class StaticPagesQueue extends DataObject {
 	 */
 	public static function get_next_url() {
 		$now = date('Y-m-d H:i:s');
-		$sortOrder = '"Priority" DESC, "Created" ASC';
+		$sortOrder = '"Priority" DESC, "ID" ASC';
 		$object = DataObject::get_one(__CLASS__, '"Freshness" in (\'stale\')  ', false, $sortOrder);
 		if($object) {
 			self::remove_duplicates($object->ID);

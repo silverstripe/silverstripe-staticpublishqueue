@@ -36,7 +36,7 @@ class StaticPagesQueueReport extends SS_Report {
 			$direction = $parts[1];
 			$sort = $field.' '.$direction;
 		} else {
-			$sort = 'Priority DESC, LastEdited DESC, Created ASC';
+			$sort = 'Priority DESC, ID ASC';
 		}
 		if($limit) {
 			$limit = 'LIMIT '.(int)$limit['start'].", ".(int)$limit['limit'];
@@ -98,7 +98,7 @@ class StaticPagesQueueReport extends SS_Report {
 		$field = parent::getReportField();
 
 		if (class_exists('GridFieldAjaxRefresh')) {
-			$field->getConfig()->addComponent(new GridFieldAjaxRefresh(10000,true));
+			$field->getConfig()->addComponent(new GridFieldAjaxRefresh(5000,true));
 		}
 
 		return $field;
