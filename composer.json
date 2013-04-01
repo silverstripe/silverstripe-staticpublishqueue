@@ -1,8 +1,8 @@
 {
 	"name": "silverstripe/staticpublishqueue",
-	"description": "Static publishing queue for westpac",
+	"description": "Static publishing queue to create static versions of pages for enhanced performance and security",
 	"type": "silverstripe-module",
-	"keywords": ["silverstripe", "authentication"],
+	"keywords": ["silverstripe", "static", "html", "security", "performance", "static-publishing", "caching", "cache", "static-caching", "static-cache", "queue", "publishing"],
 	"require": {
 		"silverstripe/framework": "3.*",
 		"silverstripe/cms": "3.*",
