@@ -18,6 +18,37 @@ where a single edit might trigger hundreds of page rebuilds,
 through batching the queue population as well as allowing to
 run the queue processing task as a continuous background task (a Unix daemon).
 
+# Quick Setup Instructions
+Here is a quick guide for how to set up basic static publishing. For more detailed customisations
+see the detailed guide below.
+
+### Add triggers to page
+
+### Set up cron job
+Run the following on the command line from the web-root folder of your SilverStripe installation:
+
+	php staticpublishqueue/scripts/create_cachedir.php
+	php staticpublishqueue/scripts/htaccess_rewrite.php
+	sudo php staticpublishqueue/scripts/create_cronjob.php
+
+- - -
+# Detailed Configuration Guide
+
+## Static Base Directory
+The static base directory is the base directory that the Static Publishing will use as a basis for all static
+assets refernces (js, css, etc.) using the HTML "base" tag. In normal cases you don't need to change this.
+But if you are using a proxy server or load-balancer, then it is important to set this to the actual public
+URL of the website in the following two places:
+
+in: _ss_environment.php
+
+	$_FILE_TO_URL_MAPPING['/var/www/my-site'] = 'http://www.my-awesome-silverstripe-website.com';
+
+in: mysite/_config/my-config.yml
+
+	FilesystemPublisher:
+		static_base_url: http://www.my-awesome-silverstripe-website.com
+
 ## The Event system
 
 Events are the preferred way to fill the queue in a way that
@@ -28,7 +59,7 @@ and a listener on a forum thread queues up a rebuild of all his forum post pages
 But at the same time, another listener is registered to queue a rebuild a hypothetical "all forum members" list.
 The user logic doesn't need to know about the object being displayed in forum threads or member lists.
 
-The system is configured in the `_config.php` with registrering events with event listeners.
+The system is configured in the `_config.php` with registering events with event listeners.
 
     StaticPagesQueueEvent::register_event('MyEvent', 'MyEventListener'):
 
@@ -80,9 +111,9 @@ It will ask the `StaticPagesQueue` to give it urls, sorted by priority, one by o
 recaches them by using the `StaticPublisher` task built into SilverStripe core.
 
 There is an option to let the `BuildStaticCacheFromQueue` a bit less chatty by
-tagging on the shy=1 param. This is good for cronjobs e.g:
+tagging on the verbose=0 param. This is good for cronjobs e.g:
 
-    ./sappire/sake dev/tasks/BuildStaticCacheFromQueue shy=1
+    ./sappire/sake dev/tasks/BuildStaticCacheFromQueue verbose=0
 
 This will generate a fresh page and a stale page in the cache.
 
@@ -95,18 +126,15 @@ as a fallback when the actual cached file is invalidated
 
 ## Current status of stale pages and previous building
 
-There are to reports in the admin that shows this information.
-You need to register these reports explicitly in your `_config.php`:
-
-	SS_Report::register('ReportAdmin', 'StaticPagesQueueReport',-20);
-	SS_Report::register('ReportAdmin', 'BuildStaticCacheSummaryReport',-10);
+There are two reports in the admin that shows this information: StaticPagesQueueReport and BuildStaticCacheSummaryReport
+SilverStripe 3 will automatically register these reports and they will show up in the admin/reports tabexplicitly in your `_config.php`:
 
 ## Custom .htaccess and the stale-static-main.php
 
 The `.htaccess` can pass all requests to a separate PHP file for pre-processing.
 We've included an example file to get you started: `docs/en/stale-static-main.example.php`.
 
-The PHP script looks in the following order to find cached results
+The Apache web-server looks in the following order to find cached results
 
  - cache/url-segment-of-page.html
  - cache/url-segment-of-page.stale.html
@@ -122,4 +150,4 @@ file exists pass it on to Apache backend.
 
 Example of cronjob entry in `/etc/cron.d/`
 
-    * * * * * www-data /my/webroot/framework/sake dev/tasks/BuildStaticCacheFromQueue shy=1 >> /tmp/buildstaticcache.log
+    * * * * * www-data /sites/my-website/www/framework/sake dev/tasks/BuildStaticCacheFromQueue daemon=1 verbose=0 >> /tmp/buildstaticcache.log
