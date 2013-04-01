@@ -71,7 +71,9 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 */
 	public function run($request) {
 		if (!defined('SS_SLAVE')) { //don't run any build task if we are the slave server
-			if($request->getVar('verbose')) {
+			if($request->getVar('verbose') === 0) {
+				$this->verbose = false;
+			} else {    //verbose logging is the default, unless we specify otherwise
 				$this->verbose = true;
 			}
 
