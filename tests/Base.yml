@@ -1,0 +1,32 @@
+SiteTree:
+  top1:
+    Title: top1
+  top2:
+    Title: top2
+  top3:
+    Title: top3
+  child1:
+    Title: child1
+    Parent: =>SiteTree.top1
+  child2:
+    Title: child2
+    Parent: =>SiteTree.top2
+  childchild1:
+    Title: childchild1
+    Parent: =>SiteTree.child1
+  childchild2:
+    Title: childchild2
+    Parent: =>SiteTree.child2
+  childchildchild1:
+    Title: childchildchild1
+    Parent: =>SiteTree.childchild1
+RedirectorPage:
+  redirector1:
+    Title: redirect1
+    Parent: =>SiteTree.childchild2
+    LinkTo: =>SiteTree.top2
+VirtualPage:
+  virtual1:
+    Title: virtual1
+    Parent: =>SiteTree.childchildchild1
+    CopyContentFrom: =>SiteTree.top3
