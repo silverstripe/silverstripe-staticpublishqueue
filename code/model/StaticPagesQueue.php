@@ -205,14 +205,16 @@ class StaticPagesQueue extends DataObject {
 	 */
 	protected static function remove_old_cache( array $URLSegments ) {
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
-		$paths = $publisher->urlsToPaths($URLSegments);
-		foreach($paths as $absolutePath) {
+		if ($publisher) {
+			$paths = $publisher->urlsToPaths($URLSegments);
+			foreach($paths as $absolutePath) {
 
-			if(!file_exists($publisher->getDestDir().'/'.$absolutePath)) {
-				continue;
+				if(!file_exists($publisher->getDestDir().'/'.$absolutePath)) {
+					continue;
+				}
+
+				unlink($publisher->getDestDir().'/'.$absolutePath);
 			}
-			
-			unlink($publisher->getDestDir().'/'.$absolutePath);
 		}
 	}
 
