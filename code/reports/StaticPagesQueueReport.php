@@ -65,8 +65,6 @@ class StaticPagesQueueReport extends SS_Report {
 			)));
 		}
 		return $set;
-
-		return DataObject::get($this->dataClass, "", $sort, null, $limit);
 	}
 	
 	/**
