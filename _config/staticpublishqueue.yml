@@ -1,0 +1,10 @@
+---
+Name: staticpublishqueue
+After: 'framework/*','cms/*'
+---
+SiteTree:
+  extensions:
+    - StaticPublishingSiteTreeExtension
+    - FilesystemPublisher('cache', 'html')
+StaticPublisher:
+  include_caching_metadata: true
