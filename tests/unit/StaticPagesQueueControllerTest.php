@@ -71,7 +71,7 @@ class StaticPagesQueueControllerTest extends SapphireTest {
 		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$child1->Link()))->First();
 		$this->assertEquals($queue->URLSegment,$child1->Link(),"The page's link is in the queue");
 
-		//test if we include parents of parents
+		//test if we include parents of parents (ancestor test)
 		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$top1->Link()))->First();
 		$this->assertEquals($queue->URLSegment,$top1->Link(),"The page's link is in the queue");
 	}
@@ -105,6 +105,7 @@ class StaticPagesQueueControllerTest extends SapphireTest {
 		$top2 = $this->objFromFixture("SiteTree","top2");
 		$top1 = $this->objFromFixture("SiteTree","top1");
 
+		//(ancestor test)
 		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$top1->Link()))->First();
 		$this->assertEquals($queue->URLSegment,$top1->Link(),"The page's link is in the queue");
 		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$top2->Link()))->First();

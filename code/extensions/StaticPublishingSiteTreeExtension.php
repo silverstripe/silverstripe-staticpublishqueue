@@ -2,7 +2,7 @@
 class StaticPublishingSiteTreeExtension extends DataExtension {
 
 	//include all ancestor pages in static publishing queue build, or just one level of parent
-	protected static $includeAncestors = false;
+	protected static $includeAncestors = true;
 
 	function onAfterPublish() {
 		$urls = $this->pagesAffected();
