@@ -1,17 +1,20 @@
 <?php
 class StaticPublishingSiteTreeExtension extends DataExtension {
 
+	//include all ancestor pages in static publishing queue build, or just one level of parent
+	protected static $includeAncestors = false;
+
 	function onAfterPublish() {
-		$urls = $this->pagesAffectedByChanges();
+		$urls = $this->pagesAffected();
 		if(!empty($urls)) URLArrayObject::add_urls($urls);
 	}
 
 	function onAfterUnpublish() {
-		$urls = $this->pagesAffectedByChanges();
+		$urls = $this->pagesAffected();
 		if(!empty($urls)) URLArrayObject::add_urls($urls);
 	}
 
-	function pagesAffectedByChanges() {
+	function pagesAffected() {
 		$urls = array();
 		$oldMode = Versioned::get_reading_mode();
 		Versioned::reading_stage('Live');
@@ -27,7 +30,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		}
 
 		Versioned::set_reading_mode($oldMode);
-		$this->owner->extend('extraPagesAffectedByChanges',$this->owner, $urls);
+		$this->owner->extend('extraPagesAffected',$this->owner, $urls);
 
 		return $urls;
 	}
@@ -48,7 +51,11 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		//include the parent and the parent's parents, etc
 		$parent = $this->owner->Parent();
 		if(!empty($parent) && $parent->ID > 0) {
-			$urls = array_merge((array)$urls, (array)$parent->subPagesToCache());
+			if (self::$includeAncestors) {
+				$urls = array_merge((array)$urls, (array)$parent->subPagesToCache());
+			} else {
+				$urls = array_merge((array)$urls, (array)$parent->Link());
+			}
 		}
 
 		// Including VirtualPages with this page as an original
