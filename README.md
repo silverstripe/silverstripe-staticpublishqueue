@@ -117,6 +117,12 @@ tagging on the verbose=0 param. This is good for cronjobs e.g:
 
 This will generate a fresh page and a stale page in the cache.
 
+### Distributed Static Cache Rebuilding
+When using the MySQL database, the static publish queue automatically uses locking to ensure that no two processes
+grab an item from the static publishing queue at the same time. This allows any number of processes to build
+the static cache concurrently. That is, if the static cache is shared between multiple servers, then all the servers
+can work together to re-build the static cache.
+
 ### The stale page
 
 A "stale page" is just a copy of the fresh one with a little extra HTML content in it

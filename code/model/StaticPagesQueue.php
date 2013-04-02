@@ -127,13 +127,12 @@ class StaticPagesQueue extends DataObject {
 	 *
 	 */
 	public static function delete_by_link($URLSegment) {
-			$object = self::get_by_link($URLSegment);
-			if(!$object) {
-		return false;
-	}
-	$object->delete();
-	unset($object);
-			return true;
+		$object = self::get_by_link($URLSegment);
+		if(!$object) return false;
+
+		$object->delete();
+		unset($object);
+		return true;
 	}
 	
 	/**
@@ -150,49 +149,73 @@ class StaticPagesQueue extends DataObject {
 	}
 
 	/**
+	 * Returns a single queue object according to a particular priority and freshness measure.
+	 * This method removes any duplicates and makes the object as "regenerating", so other calls to this method
+	 * don't grab the same object.
+	 * If we are using MySQLDatabase with InnoDB, we do row-level locking when updating the dataobject to allow for
+	 * distributed cache rebuilds
+	 * @static
+	 * @param $freshness
+	 * @param $sortOrder
+	 */
+	protected static function get_queue_object($freshness, $interval = null, $sortOrder = array('Priority'=>'DESC', 'ID'=>'ASC')) {
+		$className = __CLASS__;
+		$queueObject = null;
+		$filterQuery = array("Freshness" => $freshness);
+		if ($interval) $filterQuery["LastEdited:LessThan"] = $interval;
+
+		$query = self::get()->filter($filterQuery)->sort($sortOrder);
+
+		if ($query->Count() > 0) {
+			$offset = 0;
+
+			if (DB::getConn() instanceof MySQLDatabase) {   //locking currently only works on MySQL
+
+				do {
+					$queueObject = $query->limit(1, $offset)->first();   //get first item
+
+					if ($queueObject) $lockName = $queueObject->URLSegment . $className;
+					//try to locking the item's URL, keep trying new URLs until we find one that is free to lock
+					$offset++;
+				} while($queueObject && !LockMySQL::isFreeToLock($lockName));
+
+				if ($queueObject) {
+					$lockSuccess = LockMySQL::getLock($lockName);  //acquire a lock with the URL of the queue item we have just fetched
+					if ($lockSuccess) {
+						self::remove_duplicates($queueObject->ID);  //remove any duplicates
+						self::mark_as_regenerating($queueObject);   //mark as regenerating so nothing else grabs it
+						LockMySQL::releaseLock($lockName);			//return the object and release the lock
+					}
+				}
+			} else {
+				$queueObject = $query->first();
+				self::remove_duplicates($queueObject->ID);
+				self::mark_as_regenerating($queueObject);
+			}
+		}
+
+		return $queueObject;    //return the object or null
+	}
+
+	/**
 	 * Finds the next most prioritized url that needs recaching
 	 *
 	 * @return string
 	 */
 	public static function get_next_url() {
-		$now = date('Y-m-d H:i:s');
-		$sortOrder = '"Priority" DESC, "ID" ASC';
-		$object = DataObject::get_one(__CLASS__, '"Freshness" in (\'stale\')  ', false, $sortOrder);
-		if($object) {
-			self::remove_duplicates($object->ID);
-			self::mark_as_regenerating($object);
-			return $object->URLSegment;
-		}
+		$object = self::get_queue_object('stale');
+		if($object) return $object->URLSegment;
 
-		if(DB::getConn() instanceof MySQLDatabase) {
-			$interval = sprintf(
-				'"LastEdited" < \'%s\' - INTERVAL %d MINUTE',
-				$now,
-				self::$minutes_until_force_regeneration
-			);
-		} elseif(DB::getConn() instanceof SQLite3Database) {
-			$interval = sprintf(
-				'"LastEdited" < datetime(\'%s\', \'-%d minutes\')',
-				$now,
-				self::$minutes_until_force_regeneration
-			);
-		}
+		$interval = date('Y-m-d H:i:s', strtotime('-'.self::$minutes_until_force_regeneration.' minutes'));
 
-		 // Find URLs that has been stuck in regeneration
-		$object = DataObject::get_one(__CLASS__, '"Freshness" = \'regenerating\' AND ' . $interval, false, $sortOrder);
-		if($object) {
-			self::remove_duplicates($object->ID);
-			self::mark_as_regenerating( $object );
-			return $object->URLSegment;
-		}
+		// Find URLs that has been stuck in regeneration
+		$object = self::get_queue_object('regenerating', $interval);
+		if($object) return $object->URLSegment;
 
 		// Find URLs that is erronous and might work now (flush issues etc)
-		$object = DataObject::get_one(__CLASS__, '"Freshness" = \'error\' AND ' . $interval, false, $sortOrder);
-		if($object) {
-				self::remove_duplicates($object->ID);
-				self::mark_as_regenerating( $object );
-				return $object->URLSegment;
-		}
+		$object = self::get_queue_object('error', $interval);
+		if($object) return $object->URLSegment;
+
 		return '';
 	}
 
