@@ -22,8 +22,6 @@ run the queue processing task as a continuous background task (a Unix daemon).
 Here is a quick guide for how to set up basic static publishing. For more detailed customisations
 see the detailed guide below.
 
-### Add triggers to page
-
 ### Set up cron job
 Run the following on the command line from the web-root folder of your SilverStripe installation:
 
@@ -157,4 +155,8 @@ file exists pass it on to Apache backend.
 
 Example of cronjob entry in `/etc/cron.d/`
 
+	#Cronjob for processing the static publishing queue
     * * * * * www-data /sites/my-website/www/framework/sake dev/tasks/BuildStaticCacheFromQueue daemon=1 verbose=0 >> /tmp/buildstaticcache.log
+
+	#Rebuild the entire static cache at 1am every night".
+	0 1 * * * www-data /sites/my-website/www/framework/sake dev/tasks/RebuildStaticCacheTask flush=all
