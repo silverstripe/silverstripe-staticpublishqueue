@@ -12,7 +12,7 @@ class StaticPagesQueue extends DataObject {
 	 * @var array
 	 */
 	public static $create_table_options = array(
-			'MySQLDatabase' => 'ENGINE=InnoDB'
+		'MySQLDatabase' => 'ENGINE=InnoDB'
 	);
 
 	/**
@@ -20,9 +20,9 @@ class StaticPagesQueue extends DataObject {
 	 * @var array
 	 */
 	public static $db = array(
-			'Priority' => 'Int',
-			'URLSegment' => 'Varchar(255)',
-			'Freshness' => "Enum('stale, regenerating, error', 'stale')"
+		'Priority' => 'Int',
+		'URLSegment' => 'Varchar(255)',
+		'Freshness' => "Enum('stale, regenerating, error', 'stale')"
 	);
 
 	/**
@@ -79,7 +79,7 @@ class StaticPagesQueue extends DataObject {
 	 * @param bool $realtime 
 	 */
 	public static function realtime( $realtime ) {
-			self::$realtime = $realtime;
+		self::$realtime = $realtime;
 	}
 
 	/**
@@ -87,7 +87,7 @@ class StaticPagesQueue extends DataObject {
 	 * @return bool
 	 */
 	public static function is_realtime() {
-			return self::$realtime;
+		return self::$realtime;
 	}
 
 	/**
@@ -97,9 +97,9 @@ class StaticPagesQueue extends DataObject {
 	 * @return type
 	 */
 	public static function add_to_queue($priority, $URLSegment) {
-			$now = date("Y-m-d H:i:s");
-			self::$insert_statements[$URLSegment] = '(\''.$now.'\',\''.$now.'\', \''.Convert::raw2sql($priority).'\',\''.Convert::raw2sql($URLSegment).'\')';
-	self::$urls[md5($URLSegment)] = $URLSegment;
+		$now = date("Y-m-d H:i:s");
+		self::$insert_statements[$URLSegment] = '(\''.$now.'\',\''.$now.'\', \''.Convert::raw2sql($priority).'\',\''.Convert::raw2sql($URLSegment).'\')';
+		self::$urls[md5($URLSegment)] = $URLSegment;
 	}
 
 		/**
@@ -247,9 +247,9 @@ class StaticPagesQueue extends DataObject {
 	 * @param StaticPagesQueue $object 
 	 */
 	protected static function mark_as_regenerating(StaticPagesQueue $object) {
-			$now = date('Y-m-d H:i:s');
-			DB::query('UPDATE StaticPagesQueue SET LastEdited = \''.$now.'\', Freshness=\'regenerating\' WHERE ID = '.$object->ID);
-			singleton(__CLASS__)->flushCache();
+		$now = date('Y-m-d H:i:s');
+		DB::query('UPDATE StaticPagesQueue SET LastEdited = \''.$now.'\', Freshness=\'regenerating\' WHERE ID = '.$object->ID);
+		singleton(__CLASS__)->flushCache();
 	}
 
 	/**
@@ -277,11 +277,11 @@ class StaticPagesQueue extends DataObject {
 	 * @return DataObject || false - The first item matching the query
 	 */
 	protected static function get_by_link($url) {
-			$filter = '"URLSegment" = \''.Convert::raw2sql($url).'\'';
-			$res = DB::query('SELECT * FROM StaticPagesQueue WHERE '.$filter.' LIMIT 1;');
-			if(!$res->numRecords()){
-					return false;
-			}
-			return new StaticPagesQueue($res->first());
+		$filter = '"URLSegment" = \''.Convert::raw2sql($url).'\'';
+		$res = DB::query('SELECT * FROM StaticPagesQueue WHERE '.$filter.' LIMIT 1;');
+		if(!$res->numRecords()){
+				return false;
+		}
+		return new StaticPagesQueue($res->first());
 	}
 }
