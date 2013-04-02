@@ -133,7 +133,8 @@ as a fallback when the actual cached file is invalidated
 ## Current status of stale pages and previous building
 
 There are two reports in the admin that shows this information: StaticPagesQueueReport and BuildStaticCacheSummaryReport
-SilverStripe 3 will automatically register these reports and they will show up in the admin/reports tabexplicitly in your `_config.php`:
+SilverStripe 3 will automatically register these reports and they will show up in the admin/reports tab.
+Both reports automatically updates themselves every few seconds so you can monitor the state of the queues in real-time.
 
 ## Custom .htaccess and the stale-static-main.php
 

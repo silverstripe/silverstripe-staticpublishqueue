@@ -60,4 +60,14 @@ class BuildStaticCacheSummaryReport extends SS_Report {
 
 		return DataObject::get($this->dataClass, "", $sort, null, $limit);
 	}
+
+	public function getReportField() {
+		$field = parent::getReportField();
+
+		if (class_exists('GridFieldAjaxRefresh')) {
+			$field->getConfig()->addComponent(new GridFieldAjaxRefresh(20000,true));
+		}
+
+		return $field;
+	}
 }
