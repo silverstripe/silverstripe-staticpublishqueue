@@ -147,7 +147,8 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			if($result['path']) {
 				$filePath = $result['path'];
 			} else {
-				$filePath = $publisher->getDestDir() . '/' . array_shift($publisher->urlsToPaths(array($url)));
+				$pathsArray = $publisher->urlsToPaths(array($url));
+				$filePath = $publisher->getDestDir() . '/' . array_shift($pathsArray);
 			}
 			$staleFilepath = str_replace(pathinfo($filePath, PATHINFO_EXTENSION), 'stale.html', $filePath);
 			if($result['statuscode'] < 400) {
