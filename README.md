@@ -105,7 +105,7 @@ page in the cache.
 
 A cronjob or a user triggers the task
 
-    ./sappire/sake dev/tasks/BuildStaticCacheFromQueue
+    ./framework/sake dev/tasks/BuildStaticCacheFromQueue
 
 It will ask the `StaticPagesQueue` to give it urls, sorted by priority, one by one. And
 recaches them by using the `StaticPublisher` task built into SilverStripe core.
@@ -113,7 +113,7 @@ recaches them by using the `StaticPublisher` task built into SilverStripe core.
 There is an option to let the `BuildStaticCacheFromQueue` a bit less chatty by
 tagging on the verbose=0 param. This is good for cronjobs e.g:
 
-    ./sappire/sake dev/tasks/BuildStaticCacheFromQueue verbose=0
+    ./framework/sake dev/tasks/BuildStaticCacheFromQueue verbose=0
 
 This will generate a fresh page and a stale page in the cache.
 
