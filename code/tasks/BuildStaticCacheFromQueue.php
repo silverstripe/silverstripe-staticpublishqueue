@@ -286,7 +286,7 @@ EOT;
 		$seconds = time();
 		$fp = fopen($this->getPidFilePath(), "w+");
 		if(!flock($fp, LOCK_EX | LOCK_NB)) {
-			throw new Exception('Can\'t get flock() on "'.$this->getPidFilePath().'"', $code, $previous);
+			throw new Exception('Can\'t get flock() on "'.$this->getPidFilePath().'"');
 		}
 		$pidMessage = $seconds.PHP_EOL.date('Y-m-d H:i:s',$seconds).PHP_EOL.getmypid().PHP_EOL;
 		fputs($fp, $pidMessage, strlen($pidMessage));
