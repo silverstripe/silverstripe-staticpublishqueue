@@ -2,7 +2,7 @@
 class StaticPublishingSiteTreeExtension extends DataExtension {
 
 	//include all ancestor pages in static publishing queue build, or just one level of parent
-	protected static $includeAncestors = true;
+	public static $includeAncestors = true;
 
 	function onAfterPublish() {
 		$urls = $this->pagesAffected();
@@ -10,17 +10,22 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 	}
 
 	function onAfterUnpublish() {
-		$urls = $this->pagesAffected();
+		$urls = $this->pagesAffected(true);
 		if(!empty($urls)) URLArrayObject::add_urls($urls);
 	}
 
-	function pagesAffected() {
+	function pagesAffected($unpublish = false) {
 		$urls = array();
 		$oldMode = Versioned::get_reading_mode();
 		Versioned::reading_stage('Live');
 
 		//the the live version of the current page
-		$thisPage = SiteTree::get()->byID($this->owner->ID);
+		if ($unpublish) {
+			//We no longer have access to the live page, so can just try to grab the ParentID.
+			$thisPage = SiteTree::get()->byID($this->owner->ParentID);
+		} else {
+			$thisPage = SiteTree::get()->byID($this->owner->ID);
+		}
 		if ($thisPage) {
 			//include any related pages (redirector pages and virtual pages)
 			$urls = $thisPage->subPagesToCache();
@@ -33,6 +38,15 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		$this->owner->extend('extraPagesAffected',$this->owner, $urls);
 
 		return $urls;
+	}
+
+
+	/**
+	 * Regenerate the parent page only - or at least try. Do this right away, don't wait for the queue
+	 * @return array Of relative URLs
+	 */
+	function pagesAffectedByUnpublishing() {
+		return $this->owner->pagesAffected(true);
 	}
 
 	/**
