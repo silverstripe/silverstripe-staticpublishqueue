@@ -7,6 +7,11 @@ class RebuildStaticCacheTask extends BuildTask {
 
 	protected $description = 'Full cache rebuild: adds all pages on the site to the static publishing queue';
 
+	public function __construct() {
+		parent::__construct();
+		$this->enabled = $this->config()->get('enabled');
+	}
+
 	function run($request) {
 		ini_set('memory_limit','512M');
 		$oldMode = Versioned::get_reading_mode();
