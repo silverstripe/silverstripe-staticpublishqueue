@@ -139,7 +139,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 */
 	protected function createCachedFiles(array $URLSegments) {
 		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
-		$results = singleton("Page")->publishPages($URLSegments);
+		$results = singleton("SiteTree")->publishPages($URLSegments);
 
 		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
