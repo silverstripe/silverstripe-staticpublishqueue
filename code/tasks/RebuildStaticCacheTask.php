@@ -9,7 +9,9 @@ class RebuildStaticCacheTask extends BuildTask {
 
 	public function __construct() {
 		parent::__construct();
-		$this->enabled = $this->config()->get('enabled');
+		if ($this->config()->get('disabled') === true) {
+			$this->enabled = false ;
+		}
 	}
 
 	function run($request) {
