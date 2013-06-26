@@ -22,7 +22,7 @@ run the queue processing task as a continuous background task (a Unix daemon).
 Here is a quick guide for how to set up basic static publishing. For more detailed customisations
 see the detailed guide below.
 
-### Set up cron job
+### Requirements
  - SilverStripe 3.1 (for a module that works with 3.0, see the 1.0 branch)
  - A Linux or Mac web-server
 
