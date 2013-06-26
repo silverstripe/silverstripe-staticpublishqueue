@@ -23,6 +23,10 @@ Here is a quick guide for how to set up basic static publishing. For more detail
 see the detailed guide below.
 
 ### Set up cron job
+ - SilverStripe 3.1 (for a module that works with 3.0, see the 1.0 branch)
+ - A Linux or Mac web-server
+
+### Set up cron job
 Run the following on the command line from the web-root folder of your SilverStripe installation:
 
 	php staticpublishqueue/scripts/create_cachedir.php
