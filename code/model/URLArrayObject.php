@@ -51,7 +51,10 @@ class URLArrayObject extends ArrayObject {
 			    !isset($urlsAlreadyProcessed[$URLSegment]) &&
 				substr($URLSegment,0,4) != "http") {    //URLs isn't to an external site
 
-				self::get_instance()->append(array($priority, $URLSegment));
+				//check to make sure this page isn't excluded from the static cache
+				if (!self::exclude_from_cache($URLSegment)) {
+					self::get_instance()->append(array($priority, $URLSegment));
+				}
 				$urlsAlreadyProcessed[$URLSegment] = true;  //set as already processed
 			}
 		}
@@ -60,6 +63,20 @@ class URLArrayObject extends ArrayObject {
 		if (StaticPagesQueue::is_realtime()) {
 			self::get_instance()->insertIntoDB();
 		}
+	}
+
+	protected static function exclude_from_cache($url) {
+		$excluded = false;
+
+		//don't publish objects that are excluded from cache
+		$candidatePage = SiteTree::get_by_link($url);
+		if (!empty($candidatePage)) {
+			if (!empty($candidatePage->excludeFromCache)) {
+				$excluded = true;
+			}
+		}
+
+		return $excluded;
 	}
 
 	/**
