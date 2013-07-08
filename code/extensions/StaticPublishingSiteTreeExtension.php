@@ -153,4 +153,17 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 
 		return $urls;
 	}
+
+	/**
+	 * Overriding the static publisher's default functionality to run our on unpublishing logic. This needs to be
+	 * here to satisfy StaticPublisher's method call
+	 * @return array
+	 */
+	function allPagesToCache() {
+		if (method_exists($this->owner,'allPagesToCache')) {
+			return $this->owner->allPagesToCache();
+		} else {
+			return array();
+		}
+	}
 }
