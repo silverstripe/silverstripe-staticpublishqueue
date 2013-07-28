@@ -33,6 +33,8 @@ Run the following on the command line from the web-root folder of your SilverStr
 	php staticpublishqueue/scripts/htaccess_rewrite.php
 	sudo php staticpublishqueue/scripts/create_cronjob.php
 
+(The last script won't work on the Mac, please only use it on a Linux server. Cron jobs are in a different location on the Mac (they are in /usr/lib/cron/tabs/). If you want automatic republishing of pages on a development machine, I recommend running "crontab -e" as your current user and copying in the text in the "Setting up the builder as a cronjob" section of this document, keeping in mind that your web-server user might be named differently)
+
 - - -
 # Detailed Configuration Guide
 
@@ -89,11 +91,26 @@ This list of URLs are then sent to a `URLArrayObject`.
 
 ## The URLArrayObject
 
-This is a bit hack-ish approach to solve the issue of preventing the system to
-do 100s of DB insert statements separately.
+The URLArrayObject class has a static function that you can use to add pages directly to the static publishing queue. 
+This is especially useful if you don't need the layer of indirection that the events system provides. 
+Here is a code example:
 
-It is a singleton collector of URLs, and at the objects `_destruct()` it calls the
-`StaticPagesQueue#add_to_queue` and `StaticPagesQueue#push_urls_to_db`.
+	//Insert a bunch of pages
+	$pages = Page::get();
+	foreach($pages as $page) {
+		if ($page->URLSegment == RootURLController::get_homepage_link()) {
+			//high priority page that should be republished before other pages
+			$urls[$page->Link()] = 90;
+		} else {
+			//regular page with default priority of 50
+			$urls[] = $page->Link();
+		}
+	}
+	URLArrayObject::add_urls($urls);
+
+At the end of the PHP execution cycle (when the object's `_destruct()` method is called) the object
+inserts all the added URLs into the database. Everything gets inserted in one big insert, rather than 
+doing a whole bunch of slow database insert queries.
 
 ## StaticPagesQueue
 
