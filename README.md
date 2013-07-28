@@ -33,7 +33,7 @@ Run the following on the command line from the web-root folder of your SilverStr
 	php staticpublishqueue/scripts/htaccess_rewrite.php
 	sudo php staticpublishqueue/scripts/create_cronjob.php
 
-(The last script won't work on the Mac, please only use it on a Linux server. Cron jobs are in a different location on the Mac (they are in /usr/lib/cron/tabs/). If you want automatic republishing of pages on a development machine, I recommend running "crontab -e" as your current user and copying in the text in the "Setting up the builder as a cronjob" section of this document, keeping in mind that your web-server user might be named differently)
+(The last script won't work on the Mac, please only use it on a Linux server. Cron jobs are in a different location on the Mac (they are in /usr/lib/cron/tabs/). If you want automatic republishing of pages on a development machine, I recommend running "crontab -e" as your current user and copying in the text in the "Setting up the builder as a cronjob" section of this document, keeping in mind that you don't need to specify the user to run as when editing the local user's crontab, so remove "www-data" from the example cronjob text)
 
 - - -
 # Detailed Configuration Guide
