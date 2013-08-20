@@ -34,9 +34,9 @@ class StaticPagesQueueReport extends SS_Report {
 			$parts = explode(' ', $sort);
 			$field = $parts[0];
 			$direction = $parts[1];
-			$sort = $field.' '.$direction;
+			$sort = '"'.$field.'" '.$direction;
 		} else {
-			$sort = 'Priority DESC, ID ASC';
+			$sort = '"Priority" DESC, "ID" ASC';
 		}
 		if($limit) {
 			$limit = 'LIMIT '.(int)$limit['start'].", ".(int)$limit['limit'];
@@ -44,11 +44,11 @@ class StaticPagesQueueReport extends SS_Report {
 			$limit = '';
 		}
 		
-		$sql = "SELECT MAX(Created) as Created, URLSegment, MAX(Priority) as Priority, Freshness 
-				FROM StaticPagesQueue 
-				GROUP BY URLSegment 
-				ORDER BY {$sort}
-				{$limit};";
+		$sql = 'SELECT MAX("Created") as "Created", "URLSegment", MAX("Priority") as "Priority", "Freshness" 
+				FROM "StaticPagesQueue" 
+				GROUP BY "ID", "URLSegment", "Freshness" 
+				ORDER BY '.$sort.'
+				'.$limit.'';
 		$result = DB::query($sql);		
 		
 		$set = new ArrayList();

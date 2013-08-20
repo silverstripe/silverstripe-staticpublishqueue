@@ -237,7 +237,8 @@ EOT;
 	 * @return type 
 	 */
 	protected function cleanOldSummaryLog() {
-		$results = DB::query('DELETE FROM "BuildStaticCacheSummary" WHERE LastEdited < (NOW() - INTERVAL 1 WEEK);');
+		$oneWeekAgo= date('Y-m-d H:i:s', strtotime('- 1 week'));
+		DB::query('DELETE FROM "BuildStaticCacheSummary" WHERE "LastEdited" < \''.$oneWeekAgo.'\';');
 	}
 
 	/**
