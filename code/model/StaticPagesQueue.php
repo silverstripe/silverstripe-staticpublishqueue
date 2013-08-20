@@ -111,11 +111,13 @@ class StaticPagesQueue extends DataObject {
 	public static function push_urls_to_db() {
 		foreach(self::$insert_statements as $stmt) {
 			$insertSQL = 'INSERT INTO "StaticPagesQueue" ("Created", "LastEdited", "Priority", "URLSegment") VALUES ' . $stmt;
-			$t = DB::query($insertSQL);
+			DB::query($insertSQL);
 		}
 		self::remove_old_cache(self::$urls);
 		// Flush the cache so DataObject::get works correctly
-		if( DB::affectedRows() ) singleton(__CLASS__)->flushCache();
+		if(DB::affectedRows()) {
+			singleton(__CLASS__)->flushCache();
+		}
 		self::$insert_statements = array();
 	}
 	
@@ -250,7 +252,7 @@ class StaticPagesQueue extends DataObject {
 	 */
 	protected static function mark_as_regenerating(StaticPagesQueue $object) {
 		$now = date('Y-m-d H:i:s');
-		DB::query('UPDATE StaticPagesQueue SET LastEdited = \''.$now.'\', Freshness=\'regenerating\' WHERE ID = '.$object->ID);
+		DB::query('UPDATE "StaticPagesQueue" SET "LastEdited" = \''.$now.'\', "Freshness"=\'regenerating\' WHERE "ID" = '.$object->ID);
 		singleton(__CLASS__)->flushCache();
 	}
 
@@ -258,7 +260,7 @@ class StaticPagesQueue extends DataObject {
 	 * Removes all duplicates that has the same URLSegment as $ID
 	 *
 	 * @param int $ID - ID of the object whose duplicates we want to remove
-	 * @return int - how many duplicates that was removed
+	 * @return void
 	 */
 	static function remove_duplicates( $ID ) {
 		$obj = DataObject::get_by_id('StaticPagesQueue', $ID);
@@ -266,10 +268,6 @@ class StaticPagesQueue extends DataObject {
 		DB::query(
 			sprintf('DELETE FROM "StaticPagesQueue" WHERE "URLSegment" = \'%s\' AND "ID" != %d', $obj->URLSegment, (int)$ID)
 		);
-		if(!$total = DB::affectedRows()) {
-			return 0;
-		}
-		return $total;
 	}
 
 	/**
@@ -280,9 +278,9 @@ class StaticPagesQueue extends DataObject {
 	 */
 	protected static function get_by_link($url) {
 		$filter = '"URLSegment" = \''.Convert::raw2sql($url).'\'';
-		$res = DB::query('SELECT * FROM StaticPagesQueue WHERE '.$filter.' LIMIT 1;');
+		$res = DB::query('SELECT * FROM "StaticPagesQueue" WHERE '.$filter.' LIMIT 1;');
 		if(!$res->numRecords()){
-				return false;
+			return false;
 		}
 		return new StaticPagesQueue($res->first());
 	}
