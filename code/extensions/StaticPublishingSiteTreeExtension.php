@@ -15,9 +15,15 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		$updateURLs = array();  //urls to republish
 		$removeURLs = array();  //urls to delete the static cache from
 		foreach($removePages as $page) {
-			if ($page instanceof RedirectorPage) $removeURLs[] = $page->regularLink();
-			else $removeURLs[] = $page->Link();
-
+			if ($page instanceof RedirectorPage) {
+				$link = $page->regularLink();
+			} else {
+				$link = $page->Link();
+			}
+			if($page->hasExtension('SiteTreeSubsites')) {
+				$link .= '?SubsiteID='.$page->SubsiteID;
+			}
+			$removeURLs[] = $link;
 			//and update any pages that might have been linking to those pages
 			$updateURLs = array_merge((array)$updateURLs, (array)$page->pagesAffected(true));
 		}
@@ -99,7 +105,11 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 			//include any related pages (redirector pages and virtual pages)
 			$urls = array_merge((array)$urls, (array)$thisPage->subPagesToCache());
 			if($thisPage instanceof RedirectorPage){
-				$urls = array_merge((array)$urls, (array)$thisPage->regularLink());
+				$link = $thisPage->regularLink();
+				if($thisPage->hasExtension('SiteTreeSubsites')) {
+					$link .= '?SubsiteID='.$thisPage->SubsiteID;
+				}
+				$urls = array_merge((array)$urls, array($link));
 			}
 		}
 
@@ -124,16 +134,24 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		} else {
 			$link = $this->owner->Link();
 		}
+		if($this->owner->hasExtension('SiteTreeSubsites')) {
+			$link .= '?SubsiteID='.$this->owner->SubsiteID;
+		}
 		$urls[$link] = 60;
 		
 		//include the parent and the parent's parents, etc
 		$parent = $this->owner->Parent();
 		if(!empty($parent) && $parent->ID > 0) {
 			if (self::$includeAncestors) {
-				$urls = array_merge((array)$urls, (array)$parent->subPagesToCache());
+				$links = (array)$parent->subPagesToCache();
 			} else {
-				$urls = array_merge((array)$urls, (array)$parent->Link());
+				$link = $parent->Link();
+				if($parent->hasExtension('SiteTreeSubsites')) {
+					$link .= '?SubsiteID='.$parent->SubsiteID;
+				}
+				$links = array($link);
 			}
+			$urls = array_merge((array)$urls, $links);
 		}
 
 		// Including VirtualPages with this page as an original
@@ -149,7 +167,11 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		$redirectorPages = RedirectorPage::get()->filter(array('LinkToID' => $this->owner->ID));
 		if($redirectorPages->Count() > 0) {
 			foreach($redirectorPages as $redirectorPage) {
-				$urls[] = $redirectorPage->regularLink();
+				$link = $redirectorPage->regularLink();
+				if($redirectorPage->hasExtension('SiteTreeSubsites')) {
+					$link .= '?SubsiteID='.$redirectorPage->SubsiteID;
+				}
+				$urls[] = $link;
 			}
 		}
 
