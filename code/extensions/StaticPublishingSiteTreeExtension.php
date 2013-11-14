@@ -119,9 +119,13 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		$urls = array();
 
 		// Add redirector page (if required) or just include the current page
-		if($this->owner instanceof RedirectorPage) $urls[$this->owner->regularLink()] = 60;
-		else $urls[$this->owner->Link()] = 60;  //higher priority for the actual page, not others
-
+		if($this->owner instanceof RedirectorPage) {
+			$link = $this->owner->regularLink();
+		} else {
+			$link = $this->owner->Link();
+		}
+		$urls[$link] = 60;
+		
 		//include the parent and the parent's parents, etc
 		$parent = $this->owner->Parent();
 		if(!empty($parent) && $parent->ID > 0) {
