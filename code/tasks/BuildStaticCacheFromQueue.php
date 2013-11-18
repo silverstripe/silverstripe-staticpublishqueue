@@ -114,12 +114,14 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
-				$this->printPublishingMetrics(
-					$published++, 
-					$prePublishTime, 
-					self::$current_url,
-					sprintf('HTTP Status: %d', $results[self::$current_url]['statuscode'])
-				);
+				foreach($results as $url => $data) {
+					$this->printPublishingMetrics(
+						$published++, 
+						$prePublishTime, 
+						$url,
+						sprintf('HTTP Status: %d', $results[$url]['statuscode'])
+					);
+				}
 			}
 			$this->logSummary($published, false, $prePublishTime);
 			StaticPagesQueue::delete_by_link(self::$current_url);
@@ -138,9 +140,30 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * @param array $URLSegments
 	 */
 	protected function createCachedFiles(array $URLSegments) {
-		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
-		$results = singleton("SiteTree")->publishPages($URLSegments);
-
+		$results = array();
+		foreach($URLSegments as $index => $url) {
+			$urlParts = @parse_url($url);
+			// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
+			if(!(isset($urlParts['query']) && strstr($urlParts['query'], 'SubsiteID'))) {
+				$results = singleton("SiteTree")->publishPages($URLSegments);
+			// This take care of the subsite
+			} else {
+				parse_str($urlParts['query'], $getParameters);
+				$subsite = Subsite::get()->byID($getParameters['SubsiteID']);
+				// Will create a folder in the cache folder that is the same as the domain name
+				Config::inst()->update('FilesystemPublisher', 'domain_based_caching', true);
+				// Set the theme folder
+				Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
+				unset($URLSegments[$index]);
+				// Generate a cache file for every generated domain
+				foreach($subsite->Domains() as $domain) {
+					Config::inst()->update('FilesystemPublisher', 'static_base_url', 'http://'.$domain->Domain.'/');
+					$result = singleton("SiteTree")->publishPages(array('http://'.$domain->Domain.$url));
+					$results = array_merge($results, $result);
+				}
+			}
+		}
+		
 		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
 		foreach($results as $url => $result) {
