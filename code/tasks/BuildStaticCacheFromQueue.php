@@ -155,6 +155,8 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				$results = singleton("SiteTree")->publishPages(array($url));
 
 			} else {
+				Config::inst()->nest();
+
 				// Subsite page requested. Change behaviour to publish into directory.
 				Config::inst()->update('FilesystemPublisher', 'domain_based_caching', true);
 				$subsiteID = $getParameters['SubsiteID'];
@@ -181,6 +183,8 @@ class BuildStaticCacheFromQueue extends BuildTask {
 						$results = array_merge($results, $result);
 					}
 				}
+
+				Config::inst()->unnest();
 			}
 		}
 
