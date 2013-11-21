@@ -137,29 +137,51 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * Builds cached files and stale files that is a copy of an existing cached page but with
 	 * a notice that the page is stale.
 	 *
+	 * If a SubsiteID GET parameter is found in the URL, the page is generated into a directory,
+	 * regardless if it's from the main site or subsite.
+	 *
 	 * @param array $URLSegments
 	 */
 	protected function createCachedFiles(array $URLSegments) {
 		$results = array();
 		foreach($URLSegments as $index => $url) {
+			// Extract GET params
 			$urlParts = @parse_url($url);
-			// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
-			if(!(isset($urlParts['query']) && strstr($urlParts['query'], 'SubsiteID'))) {
-				$results = singleton("SiteTree")->publishPages($URLSegments);
-			// This take care of the subsite
+			if (isset($urlParts['query'])) parse_str($urlParts['query'], $getParameters);
+			else $getParameters = array();
+
+			if(!isset($getParameters['SubsiteID'])) {
+				// Non-subsite page requested. Publish as normal into root.
+				$results = singleton("SiteTree")->publishPages(array($url));
+
 			} else {
-				parse_str($urlParts['query'], $getParameters);
-				$subsite = Subsite::get()->byID($getParameters['SubsiteID']);
-				// Will create a folder in the cache folder that is the same as the domain name
+				// Subsite page requested. Change behaviour to publish into directory.
 				Config::inst()->update('FilesystemPublisher', 'domain_based_caching', true);
-				// Set the theme folder
-				Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
-				unset($URLSegments[$index]);
-				// Generate a cache file for every generated domain
-				foreach($subsite->Domains() as $domain) {
-					Config::inst()->update('FilesystemPublisher', 'static_base_url', 'http://'.$domain->Domain.'/');
-					$result = singleton("SiteTree")->publishPages(array('http://'.$domain->Domain.$url));
-					$results = array_merge($results, $result);
+				$subsiteID = $getParameters['SubsiteID'];
+
+				if ($subsiteID==0) {
+					// Main site page - but publishing into subdirectory.
+					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
+					$results = singleton("SiteTree")->publishPages(
+						array($staticBaseUrl . '/' . Director::makeRelative($url))
+					);
+					
+				} else {
+					// Subsite page. Generate all domain variants registered with the subsite.
+					$subsite = Subsite::get()->byID($subsiteID);
+					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
+
+					unset($URLSegments[$index]);
+
+					foreach($subsite->Domains() as $domain) {
+						Config::inst()->update(
+							'FilesystemPublisher',
+							'static_base_url',
+							'http://'.$domain->Domain . Director::baseURL()
+						);
+						$result = singleton("SiteTree")->publishPages(array('http://'.$domain->Domain.$url));
+						$results = array_merge($results, $result);
+					}
 				}
 			}
 		}
