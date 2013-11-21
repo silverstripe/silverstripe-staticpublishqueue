@@ -171,8 +171,6 @@ class BuildStaticCacheFromQueue extends BuildTask {
 					$subsite = Subsite::get()->byID($subsiteID);
 					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
 
-					unset($URLSegments[$index]);
-
 					foreach($subsite->Domains() as $domain) {
 						Config::inst()->update(
 							'FilesystemPublisher',
@@ -185,7 +183,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				}
 			}
 		}
-		
+
 		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
 		foreach($results as $url => $result) {
