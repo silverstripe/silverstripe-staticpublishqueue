@@ -244,14 +244,14 @@ class FilesystemPublisher extends DataExtension {
 			$isErrorPage = false;
 			$pageObject = null;
 			if ($response && is_object($response) && ((int)$response->getStatusCode())>=400) {
-				$pageObject = SiteTree::get_by_link($url);
-				if ($pageObject && $pageObject instanceof ErrorPage) $isErrorPage = true;
+				$obj = URLArrayObject::get_object($url);
+				if ($obj && $obj instanceof ErrorPage) $isErrorPage = true;
 			}
 
 			// Skip any responses with a 404 status code unless it's the ErrorPage itself.
 			if (!$isErrorPage && is_object($response) && $response->getStatusCode()=='404') continue;
 
-			// Generate file content			
+			// Generate file content.
 			// PHP file caching will generate a simple script from a template
 			if($this->fileExtension == 'php') {
 				if(is_object($response)) {

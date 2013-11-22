@@ -34,8 +34,12 @@ class RebuildStaticCacheTask extends BuildTask {
 			return $this->queueURLs(explode(',', $request->getVar('urls')));
 		}
 		$pages = $this->getAllLivePages();
-		$urls = $this->getURLs($pages);
-		return $this->queueURLs($urls);
+
+		// Collect all URLs into associative array.
+		foreach($pages as $page) {
+			URLArrayObject::add_urls_on_behalf($page->subPagesToCache(), $page);
+		}
+
 	}
 
 	/**
@@ -68,25 +72,5 @@ class RebuildStaticCacheTask extends BuildTask {
 		Versioned::set_reading_mode($oldMode);
 		return $pages;
 	}
-	
-	/**
-	 * 
-	 * @param DataList $pages
-	 * @return array
-	 */
-	protected function getURLs(DataList $pages) {
-		$urls = array();
-		foreach($pages as $page) {
-			if($page instanceof RedirectorPage) {
-				$link = $page->regularLink();
-			} else {
-				$link = $page->Link();
-			}
-			if($page->hasExtension('SiteTreeSubsites')) {
-				$link .= '?SubsiteID='.$page->SubsiteID;
-			}
-			$urls[] = $link;
-		}
-		return $urls;
-	}
+
 }
