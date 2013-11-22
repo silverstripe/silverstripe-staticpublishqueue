@@ -145,13 +145,10 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	protected function createCachedFiles(array $URLSegments) {
 		$results = array();
 		foreach($URLSegments as $index => $url) {
-			// Extract GET params
-			$urlParts = @parse_url($url);
-			if (isset($urlParts['query'])) parse_str($urlParts['query'], $getParameters);
-			else $getParameters = array();
+			$obj = URLArrayObject::get_object($url);
 
-			if(!isset($getParameters['SubsiteID'])) {
-				// Non-subsite page requested. Publish as normal into root.
+			if (!$obj || !$obj->hasExtension('SiteTreeSubsites')) {
+				// No metadata available. Pass it straight on.
 				$results = singleton("SiteTree")->publishPages(array($url));
 
 			} else {
@@ -159,18 +156,17 @@ class BuildStaticCacheFromQueue extends BuildTask {
 
 				// Subsite page requested. Change behaviour to publish into directory.
 				Config::inst()->update('FilesystemPublisher', 'domain_based_caching', true);
-				$subsiteID = $getParameters['SubsiteID'];
 
-				if ($subsiteID==0) {
+				if ($obj->SubsiteID==0) {
 					// Main site page - but publishing into subdirectory.
 					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
 					$results = singleton("SiteTree")->publishPages(
-						array($staticBaseUrl . '/' . Director::makeRelative($url))
+						array($staticBaseUrl . '/' . Director::makeRelative('/' . $url))
 					);
-					
+
 				} else {
 					// Subsite page. Generate all domain variants registered with the subsite.
-					$subsite = Subsite::get()->byID($subsiteID);
+					$subsite = $obj->Subsite();
 					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
 
 					foreach($subsite->Domains() as $domain) {
@@ -179,7 +175,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 							'static_base_url',
 							'http://'.$domain->Domain . Director::baseURL()
 						);
-						$result = singleton("SiteTree")->publishPages(array('http://'.$domain->Domain.$url));
+						$result = singleton("SiteTree")->publishPages(array('http://'.$domain->Domain.'/'.$url));
 						$results = array_merge($results, $result);
 					}
 				}

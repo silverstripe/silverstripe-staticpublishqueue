@@ -6,7 +6,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 
 	function onAfterPublish() {
 		$urls = $this->pagesAffected();
-		if(!empty($urls)) URLArrayObject::add_urls($urls);
+		if(!empty($urls)) URLArrayObject::add_urls_on_behalf($urls, $this->owner);
 	}
 
 	function onAfterUnpublish() {
@@ -20,9 +20,6 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 			} else {
 				$link = $page->Link();
 			}
-			if($page->hasExtension('SiteTreeSubsites')) {
-				$link .= '?SubsiteID='.$page->SubsiteID;
-			}
 			$removeURLs[] = $link;
 			//and update any pages that might have been linking to those pages
 			$updateURLs = array_merge((array)$updateURLs, (array)$page->pagesAffected(true));
@@ -32,7 +29,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		increase_memory_limit_to();
 		singleton("SiteTree")->unpublishPagesAndStaleCopies($removeURLs); //remove those pages (right now)
 
-		if(!empty($updateURLs)) URLArrayObject::add_urls($updateURLs);
+		if(!empty($updateURLs)) URLArrayObject::add_urls_on_behalf($updateURLs, $this->owner);
 	}
 
 	/**
@@ -84,6 +81,15 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		return $pages;
 	}
 
+	/**
+	 * Provides a list of URLs that need to be refreshed as a result of this page being changed.
+	 * This is intended for partial site updates, such as publishing one page from the CMS.
+	 *
+	 * This may be different from subPagesToCache - could be a smaller set if we intend to leave some
+	 * parts of the cache stale, or a larger set if we have a lot of related urls to update.
+	 *
+	 * @return array associative array of url => priority
+	 */
 	function pagesAffected($unpublish = false) {
 		$urls = array();
 		if ($this->owner->hasMethod('pagesAffectedByChanges')) {
@@ -106,9 +112,6 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 			$urls = array_merge((array)$urls, (array)$thisPage->subPagesToCache());
 			if($thisPage instanceof RedirectorPage){
 				$link = $thisPage->regularLink();
-				if($thisPage->hasExtension('SiteTreeSubsites')) {
-					$link .= '?SubsiteID='.$thisPage->SubsiteID;
-				}
 				$urls = array_merge((array)$urls, array($link));
 			}
 		}
@@ -120,10 +123,13 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 	}
 
 	/**
-	 * Get a list of URLs to cache related to this page,
-	 * e.g. through custom controller actions or views like paginated lists.
+	 * Get a list of URLs related to this page as needed for regenerating the cache from scratch.
+	 * The sum of all subPagesToCache as executed on SiteTree objects must cover all reachable URLs for this site.
 	 *
-	 * @return array Of relative URLs
+	 * Do not include URLs that should better belong to another object, as this will cause overlap during
+	 * the rebuild-all.
+	 *
+	 * @return array associative array of url => priority
 	 */
 	function subPagesToCache() {
 		$urls = array();
@@ -134,11 +140,8 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		} else {
 			$link = $this->owner->Link();
 		}
-		if($this->owner->hasExtension('SiteTreeSubsites')) {
-			$link .= '?SubsiteID='.$this->owner->SubsiteID;
-		}
 		$urls[$link] = 60;
-		
+
 		//include the parent and the parent's parents, etc
 		$parent = $this->owner->Parent();
 		if(!empty($parent) && $parent->ID > 0) {
@@ -146,9 +149,6 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 				$links = (array)$parent->subPagesToCache();
 			} else {
 				$link = $parent->Link();
-				if($parent->hasExtension('SiteTreeSubsites')) {
-					$link .= '?SubsiteID='.$parent->SubsiteID;
-				}
 				$links = array($link);
 			}
 			$urls = array_merge((array)$urls, $links);
@@ -168,9 +168,6 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		if($redirectorPages->Count() > 0) {
 			foreach($redirectorPages as $redirectorPage) {
 				$link = $redirectorPage->regularLink();
-				if($redirectorPage->hasExtension('SiteTreeSubsites')) {
-					$link .= '?SubsiteID='.$redirectorPage->SubsiteID;
-				}
 				$urls[] = $link;
 			}
 		}
