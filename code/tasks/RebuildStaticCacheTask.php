@@ -37,7 +37,9 @@ class RebuildStaticCacheTask extends BuildTask {
 
 		// Collect all URLs into associative array.
 		foreach($pages as $page) {
-			URLArrayObject::add_urls_on_behalf($page->subPagesToCache(), $page);
+			if (is_callable(array($page, 'urlsToCache'))) {
+				URLArrayObject::add_urls_on_behalf($page->urlsToCache(), $page);
+			}
 		}
 
 	}
