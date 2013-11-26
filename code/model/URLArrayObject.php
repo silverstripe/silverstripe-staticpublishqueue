@@ -29,7 +29,7 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * Adds metadata into the queued structure.
+	 * Adds metadata into the URL.
 	 *
 	 * @param $url string
 	 * @param $obj DataObject to inject
@@ -40,6 +40,24 @@ class URLArrayObject extends ArrayObject {
 		$url = HTTP::setGetVar('_ID', $dataObject->ID, $url, '&');
 		$url = HTTP::setGetVar('_ClassName', $dataObject->ClassName, $url, '&');
 		return $url;
+	}
+
+	/**
+	 * Adds metadata into all URLs in the array.
+	 *
+	 * @param $urls array of url => priority
+	 * @param $obj DataObject to inject
+	 *
+	 * @return array array of transformed URLs.
+	 */
+	public static function add_object_to_array($urls, DataObject $dataObject) {
+		$processedUrls = array();
+		foreach ($urls as $url=>$priority) {
+			$url = URLArrayObject::add_object($url, $dataObject);
+			$processedUrls[$url] = $priority;
+		}
+
+		return $processedUrls;
 	}
 
 	/**
@@ -65,19 +83,13 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * Adds urls to the queue after injecting the object's metadata.
+	 * Adds urls to the queue after injecting the objects' metadata.
 	 *
 	 * @param $urls array associative array of url => priority
 	 * @param $dataObject DataObject object to associate the urls with
 	 */
 	public static function add_urls_on_behalf(array $urls, DataObject $dataObject) {
-		$processedUrls = array();
-		foreach ($urls as $url=>$priority) {
-			$url = URLArrayObject::add_object($url, $dataObject);
-			$processedUrls[$url] = $priority;
-		}
-
-		return self::add_urls($processedUrls);
+		return self::add_urls(self::add_object_to_array($urls, $dataObject));
 	}
 
 	/**
