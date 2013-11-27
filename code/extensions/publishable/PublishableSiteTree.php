@@ -50,9 +50,10 @@ class PublishableSiteTree extends Extension implements StaticallyPublishable, St
 
 				// Trigger deletion of all cached redirectors pointing here.
 				$redirectors = $this->owner->getMyRedirectorPages();
-				if ($redirectors->Count()>0) {
-					$redirectors = new ArrayList($redirectors->toArray());
-					$list = $redirectors->merge($list);
+				if ($redirectors->count()>0) {
+					foreach ($redirectors as $redirector) {
+						$list->push($redirector);
+					}
 				}
 
 				return $list;

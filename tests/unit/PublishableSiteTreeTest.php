@@ -67,6 +67,28 @@ class PublishableSiteTreeTest extends SapphireTest {
 
 	}
 
+	function testObjectsToDeleteIfRedirectorExists() {
+
+		$redir = Object::create('PublishableSiteTreeTest_Publishable');
+		$redir->Title = 'redir';
+
+		$stub = $this->getMock(
+			'PublishableSiteTreeTest_Publishable',
+			array('getMyRedirectorPages')
+		);
+		$stub->Title = 'stub';
+
+		$stub->expects($this->once())
+			->method('getMyRedirectorPages')
+			->will($this->returnValue(
+				new ArrayList(array($redir))
+			));
+
+		$objects = $stub->objectsToDelete(array('action' => 'unpublish'));
+		$this->assertTrue(in_array('redir', $objects->column('Title'), 'Deletes redirector page pointing to it'));
+
+	}
+
 }
 
 class PublishableSiteTreeTest_Publishable extends SiteTree implements TestOnly {
