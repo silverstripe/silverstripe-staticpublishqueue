@@ -113,11 +113,11 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			$this->updatePid();
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
-			if(false) {
+			if($this->verbose) {
 				foreach($results as $url => $data) {
 					$this->printPublishingMetrics(
-						$published++, 
-						$prePublishTime, 
+						$published++,
+						$prePublishTime,
 						$url,
 						sprintf('HTTP Status: %d', $results[$url]['statuscode'])
 					);
