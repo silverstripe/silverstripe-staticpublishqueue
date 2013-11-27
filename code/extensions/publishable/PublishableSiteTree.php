@@ -39,6 +39,9 @@ class PublishableSiteTree extends Extension implements StaticallyPublishable, St
 
 		switch ($context['action']) {
 
+			case 'publish':
+				return new ArrayList(array());
+
 			case 'unpublish':
 				return new ArrayList(array($this->owner));
 

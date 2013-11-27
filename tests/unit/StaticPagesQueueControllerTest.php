@@ -18,6 +18,10 @@ class StaticPagesQueueControllerTest extends SapphireTest {
 		self::empty_temp_db();
 	}
 
+	public static function remove_query($url) {
+		return substr($url, 0, strpos($url, '?'));
+	}
+
 	public function testQueueOnPublish() {
 		$top1 = $this->objFromFixture("SiteTree","top1");
 		$top1->doPublish();
@@ -26,7 +30,11 @@ class StaticPagesQueueControllerTest extends SapphireTest {
 
 		$this->assertNotNull($queue);
 		$this->assertGreaterThan(0,$queue->Count(),"Something in the queue");
-		$this->assertEquals($queue->First()->URLSegment,$top1->Link(),"The queued page's link is in the queue");
+		$this->assertEquals(
+			self::remove_query($queue->First()->URLSegment),
+			$top1->Link(),
+			"The queued page's link is in the queue"
+		);
 	}
 
 	public function testQueueParentPages() {
