@@ -120,7 +120,6 @@ class FilesystemPublisher extends DataExtension {
 
 			$filename = $urlSegment ? "$urlSegment.$this->fileExtension" : "index.$this->fileExtension";
 
-			//var_dump($filename);
 			if (Config::inst()->get('FilesystemPublisher', 'domain_based_caching')) {
 				if (!$urlParts) continue; // seriously malformed url here...
 				$filename = $urlParts['host'] . '/' . $filename;
@@ -180,7 +179,6 @@ class FilesystemPublisher extends DataExtension {
 		// This may have been set explicitly via StaticPublisher::static_publisher_theme,
 		// or we can use the last non-null theme.
 		$customTheme = Config::inst()->get('FilesystemPublisher', 'static_publisher_theme');
-		var_dump($customTheme);
 		if($customTheme) {
 			Config::inst()->update('SSViewer', 'theme', $customTheme);
 		}
