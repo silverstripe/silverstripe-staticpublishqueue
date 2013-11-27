@@ -2,6 +2,6 @@
 Name: staticpublishqueue
 After: 'framework/*','cms/*'
 ---
-StaticPublisher:
+FilesystemPublisher:
   include_caching_metadata: true
   disable_realtime: true

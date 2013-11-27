@@ -148,8 +148,8 @@ class FilesystemPublisherTest extends SapphireTest {
 		
 		//We can set the static_publishing theme to something completely different:
 		//Static publishing will use this one instead of the current_custom_theme if it is not false
-		Config::inst()->update('StaticPublisher', 'static_publisher_theme', 'otherTheme');
-		$current_theme = Config::inst()->get('StaticPublisher', 'static_publisher_theme');
+		Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', 'otherTheme');
+		$current_theme = Config::inst()->get('FilesystemPublisher', 'static_publisher_theme');
 
 		$this->assertNotEquals($current_theme, $default_theme, 'The static publisher theme overrides the custom theme');
 	}

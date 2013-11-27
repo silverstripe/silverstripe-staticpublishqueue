@@ -16,6 +16,12 @@ class FilesystemPublisher extends DataExtension {
 	protected $fileExtension = 'html';
 	
 	/**
+	 *
+	 * @var bool
+	 */
+	private $static_publisher_theme = false;
+	
+	/**
 	 * @var string
 	 *
 	 * @config
@@ -173,8 +179,8 @@ class FilesystemPublisher extends DataExtension {
 		// Set the appropriate theme for this publication batch.
 		// This may have been set explicitly via StaticPublisher::static_publisher_theme,
 		// or we can use the last non-null theme.
-		$customTheme = Config::inst()->get('StaticPublisher', 'static_publisher_theme');
-
+		$customTheme = Config::inst()->get('FilesystemPublisher', 'static_publisher_theme');
+		var_dump($customTheme);
 		if($customTheme) {
 			Config::inst()->update('SSViewer', 'theme', $customTheme);
 		}
@@ -193,7 +199,7 @@ class FilesystemPublisher extends DataExtension {
 			Config::inst()->update('SSViewer', 'rewrite_hash_links', 'php'); 
 		}
 		
-		if(Config::inst()->get('StaticPublisher', 'echo_progress')) {
+		if(Config::inst()->get('FilesystemPublisher', 'echo_progress')) {
 			echo $this->class.": Publishing to " . $staticBaseUrl . "\n";		
 		}
 		
@@ -220,7 +226,7 @@ class FilesystemPublisher extends DataExtension {
 				continue;
 			}
 			
-			if(Config::inst()->get('StaticPublisher', 'echo_progress')) {
+			if(Config::inst()->get('FilesystemPublisher', 'echo_progress')) {
 				echo " * Publishing page $i/$totalURLs: $url\n";
 				flush();
 			}
@@ -279,7 +285,7 @@ class FilesystemPublisher extends DataExtension {
 				}
 			}
 			
-			if(Config::inst()->get('StaticPublisher', 'include_caching_metadata')) {
+			if(Config::inst()->get('FilesystemPublisher', 'include_caching_metadata')) {
 				$content = str_replace(
 					'</html>', 
 					sprintf("</html>\n\n<!-- %s -->", implode(" ", $this->getMetadata($url))),

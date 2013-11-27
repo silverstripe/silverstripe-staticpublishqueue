@@ -113,7 +113,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			$this->updatePid();
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
-			if($this->verbose) {
+			if(false) {
 				foreach($results as $url => $data) {
 					$this->printPublishingMetrics(
 						$published++, 
@@ -168,7 +168,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 					// Subsite page. Generate all domain variants registered with the subsite.
 					$subsite = $obj->Subsite();
 					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
-
+					//var_dump($subsite->Theme);
 					foreach($subsite->Domains() as $domain) {
 						Config::inst()->update(
 							'FilesystemPublisher',
