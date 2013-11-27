@@ -37,9 +37,12 @@ class URLArrayObject extends ArrayObject {
 	 * @return string transformed URL.
 	 */
 	public static function add_object($url, DataObject $dataObject) {
-		$url = HTTP::setGetVar('_ID', $dataObject->ID, $url, '&');
-		$url = HTTP::setGetVar('_ClassName', $dataObject->ClassName, $url, '&');
-		return $url;
+		$updatedUrl = HTTP::setGetVar('_ID', $dataObject->ID, $url, '&');
+		$updatedUrl = HTTP::setGetVar('_ClassName', $dataObject->ClassName, $updatedUrl, '&');
+
+		// Hack: fix the HTTP::setGetVar removing leading slash from the URL if BaseURL is used.
+		if (strpos($url, '/')===0) return '/' . $updatedUrl;
+		else return $updatedUrl;
 	}
 
 	/**
@@ -50,7 +53,7 @@ class URLArrayObject extends ArrayObject {
 	 *
 	 * @return array array of transformed URLs.
 	 */
-	public static function add_object_to_array($urls, DataObject $dataObject) {
+	public static function add_objects($urls, DataObject $dataObject) {
 		$processedUrls = array();
 		foreach ($urls as $url=>$priority) {
 			$url = URLArrayObject::add_object($url, $dataObject);
@@ -89,7 +92,7 @@ class URLArrayObject extends ArrayObject {
 	 * @param $dataObject DataObject object to associate the urls with
 	 */
 	public static function add_urls_on_behalf(array $urls, DataObject $dataObject) {
-		return self::add_urls(self::add_object_to_array($urls, $dataObject));
+		return self::add_urls(self::add_objects($urls, $dataObject));
 	}
 
 	/**

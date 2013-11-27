@@ -2,11 +2,6 @@
 Name: staticpublishqueue
 After: 'framework/*','cms/*'
 ---
-SiteTree:
-  extensions:
-    - PublishableSiteTree
-    - SiteTreePublishingEngine
-    - FilesystemPublisher('cache', 'html')
 StaticPublisher:
   include_caching_metadata: true
   disable_realtime: true

@@ -6,9 +6,6 @@
  * It is expected that a full cache can be rebuilt by finding all objects that implement
  * this interface, and calling urlsToCache on these. This implies that any URL should belong
  * to just one object.
- *
- * Available context information:
- * * action - name of the executed action: publish or unpublish
  */
 interface StaticallyPublishable {
 
