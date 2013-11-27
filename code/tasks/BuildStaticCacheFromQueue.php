@@ -157,25 +157,34 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				// Subsite page requested. Change behaviour to publish into directory.
 				Config::inst()->update('FilesystemPublisher', 'domain_based_caching', true);
 
+				// Pop the base-url segment from the url.
+				if (strpos($url, '/')===0) $cleanUrl = Director::makeRelative($url);
+				else $cleanUrl = Director::makeRelative('/' . $url);
+
 				if ($obj->SubsiteID==0) {
 					// Main site page - but publishing into subdirectory.
 					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
+
+					// $staticBaseUrl contains the base segment already.
 					$results = singleton("SiteTree")->publishPages(
-						array($staticBaseUrl . '/' . Director::makeRelative('/' . $url))
+						array($staticBaseUrl . '/' . $cleanUrl)
 					);
 
 				} else {
 					// Subsite page. Generate all domain variants registered with the subsite.
 					$subsite = $obj->Subsite();
 					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
-					//var_dump($subsite->Theme);
+
 					foreach($subsite->Domains() as $domain) {
 						Config::inst()->update(
 							'FilesystemPublisher',
 							'static_base_url',
 							'http://'.$domain->Domain . Director::baseURL()
 						);
-						$result = singleton("SiteTree")->publishPages(array('http://'.$domain->Domain.'/'.$url));
+
+						$result = singleton("SiteTree")->publishPages(
+							array('http://'.$domain->Domain . Director::baseURL() . $cleanUrl)
+						);
 						$results = array_merge($results, $result);
 					}
 				}

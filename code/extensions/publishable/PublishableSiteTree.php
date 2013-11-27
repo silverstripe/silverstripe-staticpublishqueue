@@ -3,13 +3,16 @@
  * Bare-bones impelmentation of a publishable page.
  *
  * You can override this either by implementing one of the interfaces the class directly, or by applying
- * an extension via the config system using: `After: 'staticpublishqueue/*'`, which will overwrite the dynamic
- * methods.
+ * an extension via the config system ordering (inject your extension "before" the PublishableSiteTree).
  *
  * @see SiteTreePublishingEngine
  */
 
 class PublishableSiteTree extends Extension implements StaticallyPublishable, StaticPublishingTrigger {
+
+	public function getMyRedirectorPages() {
+		return RedirectorPage::get()->filter(array('LinkToID' => $this->owner->ID));
+	}
 
 	/**
 	 * Update both the object and it's parent on publishing. Update parent on unpublishing.
@@ -43,7 +46,16 @@ class PublishableSiteTree extends Extension implements StaticallyPublishable, St
 				return new ArrayList(array());
 
 			case 'unpublish':
-				return new ArrayList(array($this->owner));
+				$list = new ArrayList(array($this->owner));
+
+				// Trigger deletion of all cached redirectors pointing here.
+				$redirectors = $this->owner->getMyRedirectorPages();
+				if ($redirectors->Count()>0) {
+					$redirectors = new ArrayList($redirectors->toArray());
+					$list = $redirectors->merge($list);
+				}
+
+				return $list;
 
 		}
 
