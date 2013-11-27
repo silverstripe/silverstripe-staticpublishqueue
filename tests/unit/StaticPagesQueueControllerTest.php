@@ -6,7 +6,14 @@
  */
 class StaticPagesQueueControllerTest extends SapphireTest {
 
-	static $fixture_file = "staticpublishqueue/tests/Base.yml";
+	protected static $fixture_file = "staticpublishqueue/tests/Base.yml";
+	
+	protected $requiredExtensions = array(
+		'SiteTree' => array(
+			'SiteTreePublishingEngine',
+			'PublishableSiteTree',
+		)
+	);
 
 	public function setUp() {
 		parent::setUp();
@@ -67,17 +74,23 @@ class StaticPagesQueueControllerTest extends SapphireTest {
 		foreach($queue as $q) {
 			$q->delete();
 		}
-		$this->assertEquals(0,StaticPagesQueue::get()->Count(),"Queue is now empty");
+		$this->assertEquals(0, StaticPagesQueue::get()->Count(), "Queue is now empty");
 
 		$childchild1 = $this->objFromFixture("SiteTree","childchild1");
 		$childchild1->doPublish();
 
 		//queued page and both its parents are queued
-		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$childchild1->Link()))->First();
-		$this->assertEquals($queue->URLSegment,$childchild1->Link(),"The page's link is in the queue");
+		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$childchild1->Link()));
+		
+		$this->assertNotEquals(0, $queue->count(), 'Queue should contain more than zero items');
+		$item = $queue->first();
+		$this->assertEquals($item->URLSegment, $childchild1->Link(), "The page's link is in the queue");
 
+		
 		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$child1->Link()))->First();
-		$this->assertEquals($queue->URLSegment,$child1->Link(),"The page's link is in the queue");
+		$this->assertNotEquals(0, $queue->count(), 'Queue should contain more than zero items');
+		$item = $queue->first();
+		$this->assertEquals($item->URLSegment,$child1->Link(),"The page's link is in the queue");
 
 		//test if we include parents of parents (ancestor test)
 		$queue = StaticPagesQueue::get()->filter(array('URLSegment'=>$top1->Link()))->First();
