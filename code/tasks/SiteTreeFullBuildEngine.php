@@ -4,7 +4,7 @@
  * Similar to {@link RebuildStaticPagesTask}, but only queues pages for republication
  * in the {@link StaticPagesQueue}. This queue is worked off by an independent task running constantly on the server.
  */
-class RebuildStaticCacheTask extends BuildTask {
+class SiteTreeFullBuildEngine extends BuildTask {
 
 	/**
 	 *
@@ -51,7 +51,7 @@ class RebuildStaticCacheTask extends BuildTask {
 	 * @return bool - if any pages were queued
 	 */
 	protected function queueURLs($urls = array()) {
-		echo sprintf("RebuildStaticCacheTask: Queuing %d pages".PHP_EOL, count($urls));
+		echo sprintf("SiteTreeFullBuildEngine: Queuing %d pages".PHP_EOL, count($urls));
 		if(!count($urls)) {
 			return false;
 		}
