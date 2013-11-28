@@ -101,7 +101,7 @@ Example of cronjob entry in `/etc/cron.d/`
 	* * * * * www-data /sites/my-website/www/framework/sake dev/tasks/BuildStaticCacheFromQueue daemon=1 verbose=0 >> /tmp/buildstaticcache.log
 
 	#Rebuild the entire static cache at 1am every night".
-	0 1 * * * www-data /sites/my-website/www/framework/sake dev/tasks/RebuildStaticCacheTask flush=all
+	0 1 * * * www-data /sites/my-website/www/framework/sake dev/tasks/SiteTreeFullBuildEngine flush=all
 
 ## Reference
 
@@ -135,7 +135,7 @@ this page is published into HTML.
 On the generation side, the capabilities provided by these implementations are consumed by:
 
 * `SiteTreePublishingEngine` which is able to trigger republishing on CMS operations using both interfaces
-* `RebuildStaticCacheTask` which only searches for `StaticallyPublishable` and makes sure all the requested URLs
+* `SiteTreeFullBuildEngine` which only searches for `StaticallyPublishable` and makes sure all the requested URLs
 are refreshed in case a trigger missed something.
 
 ### Cache directory
@@ -229,11 +229,11 @@ every minute to make sure the task is alive.
 
 You can run this once-off from command line for debugging purposes using: `daemon=0 verbose=1`.
 
-### Full rebuild (RebuildStaticCacheTask)
+### Full rebuild (SiteTreeFullBuildEngine)
 
 This task will rebuild the cache in full, making sure all changes have been flushed:
 
-	framework/sake dev/tasks/RebuildStaticCacheTask flush=all
+	framework/sake dev/tasks/SiteTreeFullBuildEngine flush=all
 
 We recommend running this nightly to catch all discrepancies from in-flight updates.
 
