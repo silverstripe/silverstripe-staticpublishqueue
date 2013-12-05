@@ -4,6 +4,10 @@
  * 1) Holding the data for a prioritized queue of URLs that needs to be static cached
  * 2) Interaction with that queue
  *
+ * @TODO: would be good to refactor this queue to hold not only URLSegment, but also ClassName and ID of the
+ * associated object (or any other metadata). This would allow FilesystemPublisher::publishPages and others
+ * to stop having to smuggle the metadata within the URL (see URLArrayData::get_object).
+ *
  */
 class StaticPagesQueue extends DataObject {
 

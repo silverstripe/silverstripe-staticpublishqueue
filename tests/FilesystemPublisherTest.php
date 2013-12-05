@@ -193,6 +193,8 @@ class FilesystemPublisherTest extends SapphireTest {
 		$l1->doPublish();
 		$response = Director::test('mimetype');
 		$this->assertEquals($response->getHeader('Content-Type'), 'text/html; charset=utf-8', 'Content-Type should be text/html; charset=utf-8');
+		SiteTree::remove_extension('FilesystemPublisher');
+		SiteTree::add_extension('FilesystemPublisher');
 	}
 
 	public function testContentTypeJSON() {
@@ -204,6 +206,8 @@ class FilesystemPublisherTest extends SapphireTest {
 		$l1->doPublish();
 		$response = Director::test('mimetype/json');
 		$this->assertEquals($response->getHeader('Content-Type'), 'application/json', 'Content-Type should be application/json');
+		SiteTree::remove_extension('FilesystemPublisher');
+		SiteTree::add_extension('FilesystemPublisher');
 	}
 }
 

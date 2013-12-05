@@ -1,6 +1,14 @@
 <?php
 
 /**
+ * @TODO This is a legacy code copied from staticpublisher. Would be good to clean it up. Some functions are
+ * no longer working, or are simply not used any more.
+ *
+ * @TODO Also the interface of publishPages and urlsToPaths could be better - specifically see how the
+ * SiteTreePublishingEngine::unpublishPagesAndStaleCopies and the BuildStaticCacheFromQueue::createCachedFiles
+ * struggle to communicate with FilesystemPublisher - they need to set up various global config parameters to
+ * achieve the desired behaviour.
+ *
  * @package staticpublisher
  */
 class FilesystemPublisher extends DataExtension {
@@ -72,7 +80,7 @@ class FilesystemPublisher extends DataExtension {
 		
 		parent::__construct();
 	}
-	
+
 	/**
 	 * Transforms relative or absolute URLs to their static path equivalent.
 	 * This needs to be the same logic that's used to look up these paths through
@@ -132,28 +140,6 @@ class FilesystemPublisher extends DataExtension {
 	}
 	
 	/**
-	 * @param array $urls
-	 */
-	public function unpublishPages($urls) {
-		// Do we need to map these?
-		// Detect a numerically indexed arrays
-		if (is_numeric(join('', array_keys($urls)))) $urls = $this->urlsToPaths($urls);
-		
-		// This can be quite memory hungry and time-consuming
-		// @todo - Make a more memory efficient publisher
-		increase_time_limit_to();
-		increase_memory_limit_to();
-		
-		$cacheBaseDir = $this->getDestDir();
-		
-		foreach($urls as $url => $path) {
-			if (file_exists($cacheBaseDir.'/'.$path)) {
-				@unlink($cacheBaseDir.'/'.$path);
-			}
-		}
-	}
-	
-	/**
  	 * Uses {@link Director::test()} to perform in-memory HTTP requests
  	 * on the passed-in URLs.
  	 * 
@@ -175,6 +161,8 @@ class FilesystemPublisher extends DataExtension {
 		increase_time_limit_to();
 		increase_memory_limit_to();
 		
+		Config::inst()->nest();
+
 		// Set the appropriate theme for this publication batch.
 		// This may have been set explicitly via StaticPublisher::static_publisher_theme,
 		// or we can use the last non-null theme.
@@ -363,6 +351,8 @@ class FilesystemPublisher extends DataExtension {
 				copy($file['Copy'], $path);
 			}
 		}
+
+		Config::inst()->unnest();
 
 		return $result;
 	}
