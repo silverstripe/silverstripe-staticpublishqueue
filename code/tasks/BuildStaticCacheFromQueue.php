@@ -161,7 +161,8 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				if (strpos($url, '/')===0) $cleanUrl = Director::makeRelative($url);
 				else $cleanUrl = Director::makeRelative('/' . $url);
 
-				if ($obj->SubsiteID==0) {
+				$subsite = $obj->Subsite();
+				if (!$subsite) {
 					// Main site page - but publishing into subdirectory.
 					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
 
@@ -172,7 +173,6 @@ class BuildStaticCacheFromQueue extends BuildTask {
 
 				} else {
 					// Subsite page. Generate all domain variants registered with the subsite.
-					$subsite = $obj->Subsite();
 					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
 
 					foreach($subsite->Domains() as $domain) {
