@@ -34,35 +34,187 @@ class SiteTreePublishingEngineTest extends SapphireTest {
 
 	}
 
-	function testFlushChanges() {
+	function testFlushChangesToUpdateEnqueuesAndDeletesRegular() {
 
 		$toUpdate = array('/toUpdate?_ID=1&_ClassName=StaticallyPublishableTest'=>10);
-		$toDelete = array('/toDelete?_ID=1&_ClassName=StaticallyPublishableTest'=>10);
 
+		$stub = $this->getMock(
+			'SiteTreePublishingEngineTest_StaticPublishingTrigger',
+			array('convertUrlsToPathMap', 'deleteRegularFiles', 'deleteStaleFiles')
+		);
+		$stub->expects($this->once())
+			->method('convertUrlsToPathMap')
+			->will($this->returnValue(array('url'=>'file')));
+
+		// Test: enqueues the updated URLs
 		$urlArrayObjectClass = $this->getMockClass('URLArrayObject', array('add_urls'));
 		Injector::inst()->registerNamedService('URLArrayObject', new $urlArrayObjectClass);
 		$urlArrayObjectClass::staticExpects($this->once())
 			->method('add_urls')
 			->with($this->equalTo($toUpdate));
 
+		// Test: deletes just the regular files
+		$stub->expects($this->never())
+			->method('deleteStaleFiles');
+		$stub->expects($this->once())
+			->method('deleteRegularFiles')
+			->with($this->equalTo(array('file')));
+
+		// Test: clears the update queue
+		$stub->setToUpdate($toUpdate);
+		$stub->flushChanges();
+		$this->assertEquals($stub->getToUpdate(), array(), 'The update cache has been flushed.');
+
+	}
+
+	function testFlushChangesToDeleteDeletesRegularAndStale() {
+
+		$toDelete = array('/toDelete?_ID=1&_ClassName=StaticallyPublishableTest'=>10);
+
 		$stub = $this->getMock(
 			'SiteTreePublishingEngineTest_StaticPublishingTrigger',
-			array('unpublishPagesAndStaleCopies')
+			array('convertUrlsToPathMap', 'deleteRegularFiles', 'deleteStaleFiles')
 		);
 		$stub->expects($this->once())
-			->method('unpublishPagesAndStaleCopies')
-			->with($this->equalTo($toDelete));
+			->method('convertUrlsToPathMap')
+			->will($this->returnValue(array('url'=>'file')));
 
-		$stub->setToUpdate($toUpdate);
+		// Test: deletes both regular and stale files
+		$stub->expects($this->once())
+			->method('deleteRegularFiles')
+			->with($this->equalTo(array('file')));
+		$stub->expects($this->once())
+			->method('deleteStaleFiles')
+			->with($this->equalTo(array('file')));
+
+		// Test: clears the queue
 		$stub->setToDelete($toDelete);
-
 		$stub->flushChanges();
-
-		$this->assertEquals($stub->getToUpdate(), array(), 'The update cache has been flushed.');
 		$this->assertEquals($stub->getToDelete(), array(), 'The delete cache has been flushed.');
 
 	}
 
+	function testConvertUrlsToPathMapNoObject() {
+		Config::inst()->nest();
+		Config::inst()->update('FilesystemPublisher', 'static_base_url', 'http://foo');
+		Config::inst()->update('Director', 'alternate_base_url', '/');
+
+		$urls = array('/xyzzy');
+
+		$stub = $this->getMock('SiteTreePublishingEngineTest_StaticPublishingTrigger');
+
+		// Test (inclusively with urlsToPaths, these interfaces should be refactored together)
+		$test = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
+		$result = $test->convertUrlsToPathMap($urls);
+		$this->assertEquals($result, array(
+			'/xyzzy' => './xyzzy.html'
+		));
+
+		Config::inst()->unnest();
+	}
+
+	function testConvertUrlsToPathMapMainSite() {
+		Config::inst()->nest();
+		Config::inst()->update('FilesystemPublisher', 'static_base_url', 'http://foo');
+		Config::inst()->update('Director', 'alternate_base_url', '/');
+		$urls = array('/xyzzy?_ID=1&_ClassName=SiteTreePublishingEngineTest_StaticallyPublishable');
+
+		// Pretend this object supports subsites, and is from the main site.
+		$page = $this->getMock('SiteTreePublishingEngineTest_StaticallyPublishable', array('Subsite', 'hasExtension'));
+		$page->expects($this->any())
+			->method('Subsite')
+			->will($this->returnValue(null));
+		$page->expects($this->any())
+			->method('hasExtension')
+			->will($this->returnValue(true));
+
+		// Prepare static mocks.
+		$urlArrayObjectClass = $this->getMockClass('URLArrayObject', array('get_object'));
+		Injector::inst()->registerNamedService('URLArrayObject', new $urlArrayObjectClass);
+		$urlArrayObjectClass::staticExpects($this->any())
+			->method('get_object')
+			->will($this->returnValue(
+				$page
+			));
+
+		// Test (inclusively with urlsToPaths, these interfaces should be refactored together)
+		$test = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
+		$result = $test->convertUrlsToPathMap($urls);
+		$this->assertEquals(
+			$result,
+			array('http://foo/xyzzy?_ID=1&_ClassName=SiteTreePublishingEngineTest_StaticallyPublishable' =>
+				'foo/xyzzy.html')
+		);
+
+		Config::inst()->unnest();
+	}
+
+	function testConvertUrlsToPathMapSubsite() {
+		Config::inst()->nest();
+		Config::inst()->update('FilesystemPublisher', 'static_base_url', 'http://foo');
+		Config::inst()->update('Director', 'alternate_base_url', '/');
+		$urls = array('/xyzzy?_ID=1&_ClassName=SiteTreePublishingEngineTest_StaticallyPublishable');
+
+		// Mock a set of objects pretending to support Subsites. Subsites might not be installed.
+		$domain1 = $this->getMock('SubsiteDomain_mock', array('Domain'));
+		$domain1->Domain = 'subiste1.domain.org';
+		$domain2 = $this->getMock('SubsiteDomain_mock', array('Domain'));
+		$domain2->Domain = 'subiste2.domain.org';
+
+		$domains = Object::create('ArrayList', array($domain1, $domain2));
+
+		$subsite = $this->getMock('Subsite_mock', array('Domains'));
+		$subsite->expects($this->any())
+			->method('Domains')
+			->will($this->returnValue($domains));
+
+		$page = $this->getMock('SiteTreePublishingEngineTest_StaticallyPublishable', array('Subsite', 'hasExtension'));
+		$page->expects($this->any())
+			->method('Subsite')
+			->will($this->returnValue($subsite));
+		$page->expects($this->any())
+			->method('hasExtension')
+			->will($this->returnValue(true));
+
+		// Prepare static mocks.
+		$urlArrayObjectClass = $this->getMockClass('URLArrayObject', array('get_object'));
+		Injector::inst()->registerNamedService('URLArrayObject', new $urlArrayObjectClass);
+		$urlArrayObjectClass::staticExpects($this->any())
+			->method('get_object')
+			->will($this->returnValue($page));
+
+		// Test (inclusively with urlsToPaths, these interfaces should be refactored together)
+		$result = $page->convertUrlsToPathMap($urls);
+		$this->assertEquals(
+			$result,
+			array(
+				'http://subiste1.domain.org/xyzzy?_ID=1&_ClassName=SiteTreePublishingEngineTest_StaticallyPublishable' =>
+				"subiste1.domain.org/xyzzy.html",
+				'http://subiste2.domain.org/xyzzy?_ID=1&_ClassName=SiteTreePublishingEngineTest_StaticallyPublishable' =>
+				"subiste2.domain.org/xyzzy.html"
+			)
+		);
+
+		Config::inst()->unnest();
+
+	}
+
+	function testDeleteStaleFiles() {
+
+		$stub = $this->getMock(
+			'SiteTreePublishingEngineTest_StaticPublishingTrigger',
+			array('deleteFromCacheDir')
+		);
+		$stub->expects($this->at(0))
+			->method('deleteFromCacheDir')
+			->with($this->equalTo('xyzzy.stale.html'));
+		$stub->expects($this->at(1))
+			->method('deleteFromCacheDir')
+			->with($this->equalTo('foo/bar/baz.stale.html'));
+
+		$stub->deleteStaleFiles(array('xyzzy.html', 'foo/bar/baz.html'));
+
+	}
 }
 
 class SiteTreePublishingEngineTest_StaticallyPublishable extends SiteTree implements TestOnly, StaticallyPublishable {
@@ -87,7 +239,8 @@ class SiteTreePublishingEngineTest_StaticallyPublishable extends SiteTree implem
 class SiteTreePublishingEngineTest_StaticPublishingTrigger extends SiteTree implements TestOnly, StaticPublishingTrigger {
 
 	private $extensions = array(
-		'SiteTreePublishingEngine'
+		'SiteTreePublishingEngine',
+		'FilesystemPublisher'
 	);
 
 	public function generatePublishable($url, $prio) {
