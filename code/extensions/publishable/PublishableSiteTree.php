@@ -5,6 +5,8 @@
  * You can override this either by implementing one of the interfaces the class directly, or by applying
  * an extension via the config system ordering (inject your extension "before" the PublishableSiteTree).
  *
+ * @TODO: re-implement optional publishing of all the ancestors up to the root? Currently it only republishes the parent
+ *
  * @see SiteTreePublishingEngine
  */
 
