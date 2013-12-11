@@ -2,6 +2,17 @@
 
 class SiteTreePublishingEngineTest extends SapphireTest {
 
+	protected $requiredExtensions = array(
+		'SiteTreePublishingEngineTest_StaticallyPublishable' => array(
+			'SiteTreePublishingEngine',
+			'FilesystemPublisher'
+		),
+		'SiteTreePublishingEngineTest_StaticPublishingTrigger' => array(
+			'SiteTreePublishingEngine',
+			'FilesystemPublisher'
+		)
+	);
+
 	public function setUp() {
 		parent::setUp();
 		Config::inst()->nest();
@@ -245,11 +256,6 @@ class SiteTreePublishingEngineTest_StaticallyPublishable extends SiteTree implem
 }
 
 class SiteTreePublishingEngineTest_StaticPublishingTrigger extends SiteTree implements TestOnly, StaticPublishingTrigger {
-
-	private $extensions = array(
-		'SiteTreePublishingEngine',
-		'FilesystemPublisher'
-	);
 
 	public function generatePublishable($url, $prio) {
 		$obj = Object::create('SiteTreePublishingEngineTest_StaticallyPublishable');

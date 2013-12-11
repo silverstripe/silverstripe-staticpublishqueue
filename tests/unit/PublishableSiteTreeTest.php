@@ -2,6 +2,10 @@
 
 class PublishableSiteTreeTest extends SapphireTest {
 
+	protected $requiredExtensions = array(
+		'PublishableSiteTreeTest_Publishable' => array('PublishableSiteTree')
+	);
+
 	public function setUp() {
 		parent::setUp();
 		Config::inst()->nest();
@@ -103,9 +107,5 @@ class PublishableSiteTreeTest extends SapphireTest {
 }
 
 class PublishableSiteTreeTest_Publishable extends SiteTree implements TestOnly {
-
-	private $extensions = array(
-		'PublishableSiteTree'
-	);
 
 }
