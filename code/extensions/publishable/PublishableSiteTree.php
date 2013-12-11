@@ -12,34 +12,43 @@
 
 class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger {
 
-	public function getMyRedirectorPages() {
-		return RedirectorPage::get()->filter(array('LinkToID' => $this->owner->ID));
+	public function getMyVirtualPages() {
+		return VirtualPage::get()->filter(array('CopyContentFromID' => $this->owner->ID));
 	}
 
-	/**
-	 * Update both the object and it's parent on publishing. Update parent on unpublishing.
-	 */
 	public function objectsToUpdate($context) {
 
 		switch ($context['action']) {
 
 			case 'publish':
+				// Trigger refresh of the page itself.
 				$list = new ArrayList(array($this->owner));
+
+				// Refresh the parent.
 				if ($this->owner->ParentID) $list->push($this->owner->Parent());
+
+				// Refresh related virtual pages.
+				$virtuals = $this->owner->getMyVirtualPages();
+				if ($virtuals->count()>0) {
+					foreach ($virtuals as $virtual) {
+						$list->push($virtual);
+					}
+				}
+
 				return $list;
 
 			case 'unpublish':
 				$list = new ArrayList(array());
+
+				// Refresh the parent
 				if ($this->owner->ParentID) $list->push($this->owner->Parent());
+
 				return $list;
 
 		}
 
 	}
 
-	/**
-	 * Remove the object on unpublishing (the parent will get updated via objectsToUpdate).
-	 */
 	public function objectsToDelete($context) {
 
 		switch ($context['action']) {
@@ -48,13 +57,14 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 				return new ArrayList(array());
 
 			case 'unpublish':
+				// Trigger cache removal for this page.
 				$list = new ArrayList(array($this->owner));
 
-				// Trigger deletion of all cached redirectors pointing here.
-				$redirectors = $this->owner->getMyRedirectorPages();
-				if ($redirectors->count()>0) {
-					foreach ($redirectors as $redirector) {
-						$list->push($redirector);
+				// Trigger removal of the related virtual pages.
+				$virtuals = $this->owner->getMyVirtualPages();
+				if ($virtuals->count()>0) {
+					foreach ($virtuals as $virtual) {
+						$list->push($virtual);
 					}
 				}
 
