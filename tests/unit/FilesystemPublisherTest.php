@@ -8,29 +8,30 @@
 class FilesystemPublisherTest extends SapphireTest {
 	
 	protected $usesDatabase = true;
-	
-	protected $orig = array();
-	
+
 	public function setUp() {
 		parent::setUp();
 		
 		SiteTree::add_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/')");
 		
-		$this->orig['domain_based_caching'] = Config::inst()->get('FilesystemPublisher', 'domain_based_caching');
-
+		Config::inst()->nest();
+		Config::inst()->update('StaticPagesQueue', 'realtime', true);
 		Config::inst()->update('FilesystemPublisher', 'domain_based_caching', false);
 	}
 	
 	public function tearDown() {
 		parent::tearDown();
 
-		SiteTree::remove_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/')");
+		Config::inst()->unnest();
 
-		Config::inst()->update('FilesystemPublisher', 'domain_based_caching', $this->orig['domain_based_caching']);
+		SiteTree::remove_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/')");
 
 		if(file_exists(BASE_PATH . '/assets/FilesystemPublisherTest-static-folder')) {
 			Filesystem::removeFolder(BASE_PATH . '/assets/FilesystemPublisherTest-static-folder');
 		}
+
+		// Purge DB from StaticPagesQueue items.
+		self::empty_temp_db();
 	}
 	
 	public function testUrlsToPathsWithRelativeUrls() {
