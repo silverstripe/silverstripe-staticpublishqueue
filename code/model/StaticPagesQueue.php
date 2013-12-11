@@ -56,7 +56,7 @@ class StaticPagesQueue extends DataObject {
 	 *
 	 * @var boolean
 	 */
-	protected static $realtime = false;
+	private static $realtime = false;
 
 	/**
 	 *
@@ -77,21 +77,11 @@ class StaticPagesQueue extends DataObject {
 	protected static $urls = array();
 	
 	/**
-	 * Set this to true to insert entries directly into the database queue, 
-	 * otherwise it will be inserted during __deconstruct time 
-	 *
-	 * @param bool $realtime 
-	 */
-	public static function realtime( $realtime ) {
-		self::$realtime = $realtime;
-	}
-
-	/**
 	 *
 	 * @return bool
 	 */
 	public static function is_realtime() {
-		return self::$realtime;
+		return Config::inst()->get('StaticPagesQueue','realtime');
 	}
 
 	/**

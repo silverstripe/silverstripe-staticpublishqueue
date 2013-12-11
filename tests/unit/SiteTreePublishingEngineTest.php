@@ -2,6 +2,17 @@
 
 class SiteTreePublishingEngineTest extends SapphireTest {
 
+	public function setUp() {
+		parent::setUp();
+		Config::inst()->nest();
+		Config::inst()->update('StaticPagesQueue', 'realtime', true);
+	}
+
+	public function tearDown() {
+		Config::inst()->unnest();
+		parent::tearDown();
+	}
+	
 	function testCollectChangesForPublishing() {
 
 		$obj = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
@@ -47,10 +58,9 @@ class SiteTreePublishingEngineTest extends SapphireTest {
 			->will($this->returnValue(array('url'=>'file')));
 
 		// Test: enqueues the updated URLs
-		$urlArrayObjectClass = $this->getMockClass('URLArrayObject', array('add_urls'));
-		Injector::inst()->registerNamedService('URLArrayObject', new $urlArrayObjectClass);
-		$urlArrayObjectClass::staticExpects($this->once())
-			->method('add_urls')
+		$stub->setUrlArrayObject($this->getMock('URLArrayObject', array('addUrls')));
+		$stub->getUrlArrayObject()->expects($this->once())
+			->method('addUrls')
 			->with($this->equalTo($toUpdate));
 
 		// Test: deletes just the regular files
@@ -101,11 +111,10 @@ class SiteTreePublishingEngineTest extends SapphireTest {
 
 		$urls = array('/xyzzy');
 
-		$stub = $this->getMock('SiteTreePublishingEngineTest_StaticPublishingTrigger');
+		$stub = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
 
 		// Test (inclusively with urlsToPaths, these interfaces should be refactored together)
-		$test = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
-		$result = $test->convertUrlsToPathMap($urls);
+		$result = $stub->convertUrlsToPathMap($urls);
 		$this->assertEquals($result, array(
 			'/xyzzy' => './xyzzy.html'
 		));
@@ -128,18 +137,17 @@ class SiteTreePublishingEngineTest extends SapphireTest {
 			->method('hasExtension')
 			->will($this->returnValue(true));
 
-		// Prepare static mocks.
-		$urlArrayObjectClass = $this->getMockClass('URLArrayObject', array('get_object'));
-		Injector::inst()->registerNamedService('URLArrayObject', new $urlArrayObjectClass);
-		$urlArrayObjectClass::staticExpects($this->any())
-			->method('get_object')
+		$stub = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
+
+		$stub->setUrlArrayObject($this->getMock('URLArrayObject', array('getObject')));
+		$stub->getUrlArrayObject()->expects($this->any())
+			->method('getObject')
 			->will($this->returnValue(
 				$page
 			));
 
 		// Test (inclusively with urlsToPaths, these interfaces should be refactored together)
-		$test = Object::create('SiteTreePublishingEngineTest_StaticPublishingTrigger');
-		$result = $test->convertUrlsToPathMap($urls);
+		$result = $stub->convertUrlsToPathMap($urls);
 		$this->assertEquals(
 			$result,
 			array('http://foo/xyzzy?_ID=1&_ClassName=SiteTreePublishingEngineTest_StaticallyPublishable' =>
@@ -163,28 +171,28 @@ class SiteTreePublishingEngineTest extends SapphireTest {
 
 		$domains = Object::create('ArrayList', array($domain1, $domain2));
 
-		$subsite = $this->getMock('Subsite_mock', array('Domains'));
+		$subsite = $this->getMock('Subsite_mock', array('Domains', 'ID'));
 		$subsite->expects($this->any())
 			->method('Domains')
 			->will($this->returnValue($domains));
+		$subsite->ID = 1;
 
-		$page = $this->getMock('SiteTreePublishingEngineTest_StaticallyPublishable', array('Subsite', 'hasExtension'));
-		$page->expects($this->any())
+		$stub = $this->getMock('SiteTreePublishingEngineTest_StaticallyPublishable', array('Subsite', 'hasExtension'));
+		$stub->expects($this->any())
 			->method('Subsite')
 			->will($this->returnValue($subsite));
-		$page->expects($this->any())
+		$stub->expects($this->any())
 			->method('hasExtension')
 			->will($this->returnValue(true));
 
 		// Prepare static mocks.
-		$urlArrayObjectClass = $this->getMockClass('URLArrayObject', array('get_object'));
-		Injector::inst()->registerNamedService('URLArrayObject', new $urlArrayObjectClass);
-		$urlArrayObjectClass::staticExpects($this->any())
-			->method('get_object')
-			->will($this->returnValue($page));
+		$stub->setUrlArrayObject($this->getMock('URLArrayObject', array('getObject')));
+		$stub->getUrlArrayObject()->expects($this->any())
+			->method('getObject')
+			->will($this->returnValue($stub));
 
 		// Test (inclusively with urlsToPaths, these interfaces should be refactored together)
-		$result = $page->convertUrlsToPathMap($urls);
+		$result = $stub->convertUrlsToPathMap($urls);
 		$this->assertEquals(
 			$result,
 			array(

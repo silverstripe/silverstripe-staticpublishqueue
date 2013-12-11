@@ -2,6 +2,17 @@
 
 class PublishableSiteTreeTest extends SapphireTest {
 
+	public function setUp() {
+		parent::setUp();
+		Config::inst()->nest();
+		Config::inst()->update('StaticPagesQueue', 'realtime', true);
+	}
+
+	public function tearDown() {
+		Config::inst()->unnest();
+		parent::tearDown();
+	}
+
 	function testObjectsToUpdateOnPublish() {
 
 		$parent = Object::create('PublishableSiteTreeTest_Publishable');

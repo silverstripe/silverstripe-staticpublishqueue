@@ -12,6 +12,15 @@
 class SiteTreePublishingEngine extends DataExtension {
 
 	/**
+	 * @var URLArrayObject
+	 */
+	protected $urlArrayObject;
+
+	private static $dependencies = array(
+		'urlArrayObject' =>  '%$URLArrayObject'
+	);
+
+	/**
 	 * Queues the urls to be flushed into the queue.
 	 */
 	private $toUpdate = array();
@@ -20,6 +29,14 @@ class SiteTreePublishingEngine extends DataExtension {
 	 * Queues the urls to be deleted as part of a next flush operation.
 	 */
 	private $toDelete = array();
+
+	public function setUrlArrayObject($o) {
+		$this->urlArrayObject = $o;
+	}
+
+	public function getUrlArrayObject() {
+		return $this->urlArrayObject;
+	}
 
 	public function getToUpdate() {
 		return $this->toUpdate;
@@ -60,8 +77,6 @@ class SiteTreePublishingEngine extends DataExtension {
 	 * Collect all changes for the given context.
 	 */
 	public function collectChanges($context) {
-		$urlArrayObject = Injector::inst()->get('URLArrayObject');
-
 		increase_time_limit_to();
 		increase_memory_limit_to();
 
@@ -76,7 +91,7 @@ class SiteTreePublishingEngine extends DataExtension {
 				if(!empty($urls)) {
 					$this->toUpdate = array_merge(
 						$this->toUpdate,
-						$urlArrayObject::add_objects($urls, $object)
+						$this->owner->getUrlArrayObject()->addObjects($urls, $object)
 					);
 				}
 
@@ -94,7 +109,7 @@ class SiteTreePublishingEngine extends DataExtension {
 				if(!empty($urls)) {
 					$this->toDelete = array_merge(
 						$this->toDelete,
-						$urlArrayObject::add_objects($urls, $object)
+						$this->owner->getUrlArrayObject()->addObjects($urls, $object)
 					);
 				}
 			}
@@ -107,11 +122,9 @@ class SiteTreePublishingEngine extends DataExtension {
 	 * Execute URL deletions, enqueue URL updates.
 	 */
 	public function flushChanges() {
-		$urlArrayObject = Injector::inst()->get('URLArrayObject');
-
 		if(!empty($this->toUpdate)) {
 			// Enqueue for republishing.
-			$urlArrayObject::add_urls($this->toUpdate);
+			$this->owner->getUrlArrayObject()->addUrls($this->toUpdate);
 			// Meanwhile, remove the regular cache files leaving behind only the stale variants.
 			$pathMap = $this->owner->convertUrlsToPathMap(array_keys($this->toUpdate));
 			$this->owner->deleteRegularFiles(array_values($pathMap));
@@ -144,12 +157,11 @@ class SiteTreePublishingEngine extends DataExtension {
 	public function convertUrlsToPathMap($urls) {
 
 		// Inject static objects.
-		$urlArrayObject = Injector::inst()->get('URLArrayObject');
 		$director = Injector::inst()->get('Director');
 
 		$pathMap = array();
 		foreach($urls as $url) {
-			$obj = $urlArrayObject::get_object($url);
+			$obj = $this->owner->getUrlArrayObject()->getObject($url);
 
 			if (!$obj || !$obj->hasExtension('SiteTreeSubsites')) {
 				// Normal processing for files directly in the cache folder.
@@ -171,7 +183,7 @@ class SiteTreePublishingEngine extends DataExtension {
 				}
 
 				$subsite = $obj->Subsite();
-				if (!$subsite) {
+				if (!$subsite || !$subsite->ID) {
 					// Main site page - but publishing into subdirectory.
 					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
 					$pathMap = array_merge($pathMap, $this->owner->urlsToPaths(array($staticBaseUrl . '/' . $cleanUrl)));

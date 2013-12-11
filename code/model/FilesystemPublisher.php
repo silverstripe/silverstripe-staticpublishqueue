@@ -14,6 +14,15 @@
 class FilesystemPublisher extends DataExtension {
 
 	/**
+	 * @var URLArrayObject
+	 */
+	protected $urlArrayObject;
+
+	static $dependencies = array(
+		'urlArrayObject' =>  '%$URLArrayObject'
+	);
+
+	/**
 	 * @var string
 	 */
 	protected $destFolder = 'cache';
@@ -46,6 +55,14 @@ class FilesystemPublisher extends DataExtension {
 	 */
 	private static $domain_based_caching = false;
 	
+	public function setUrlArrayObject($o) {
+		$this->urlArrayObject = $o;
+	}
+
+	public function getUrlArrayObject() {
+		return $this->urlArrayObject;
+	}
+
 	/**
 	 * Set a different base URL for the static copy of the site.
 	 * This can be useful if you are running the CMS on a different domain from the website.
@@ -236,7 +253,7 @@ class FilesystemPublisher extends DataExtension {
 			$isErrorPage = false;
 			$pageObject = null;
 			if ($response && is_object($response) && ((int)$response->getStatusCode())>=400) {
-				$obj = URLArrayObject::get_object($url);
+				$obj = $this->owner->getUrlArrayObject()->getObject($url);
 				if ($obj && $obj instanceof ErrorPage) $isErrorPage = true;
 			}
 

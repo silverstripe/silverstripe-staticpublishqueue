@@ -25,6 +25,15 @@
 class BuildStaticCacheFromQueue extends BuildTask {
 
 	/**
+	 * @var URLArrayObject
+	 */
+	protected $urlArrayObject;
+
+	private static $dependencies = array(
+		'urlArrayObject' =>  '%$URLArrayObject'
+	);
+
+	/**
 	 * Should be self exploratory. Note: needs to public due to error handling
 	 *
 	 * @var string
@@ -63,6 +72,14 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * @var BuildStaticCacheSummary
 	 */
 	protected $summaryObject = null;
+
+	public function setUrlArrayObject($o) {
+		$this->urlArrayObject = $o;
+	}
+
+	public function getUrlArrayObject() {
+		return $this->urlArrayObject;
+	}
 
 	/**
 	 * Starts the republishing of pages in the StaticPagesQueue
@@ -145,7 +162,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	protected function createCachedFiles(array $URLSegments) {
 		$results = array();
 		foreach($URLSegments as $index => $url) {
-			$obj = URLArrayObject::get_object($url);
+			$obj = $this->getUrlArrayObject()->getObject($url);
 
 			if (!$obj || !$obj->hasExtension('SiteTreeSubsites')) {
 				// No metadata available. Pass it straight on.
@@ -162,7 +179,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				else $cleanUrl = Director::makeRelative('/' . $url);
 
 				$subsite = $obj->Subsite();
-				if (!$subsite) {
+				if (!$subsite || !$subsite->ID) {
 					// Main site page - but publishing into subdirectory.
 					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
 
