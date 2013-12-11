@@ -10,7 +10,7 @@
  * @see SiteTreePublishingEngine
  */
 
-class PublishableSiteTree extends Extension implements StaticallyPublishable, StaticPublishingTrigger {
+class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger {
 
 	public function getMyRedirectorPages() {
 		return RedirectorPage::get()->filter(array('LinkToID' => $this->owner->ID));
