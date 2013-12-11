@@ -82,25 +82,47 @@ class PublishableSiteTreeTest extends SapphireTest {
 
 	}
 
-	function testObjectsToDeleteIfRedirectorExists() {
+	function testObjectsToUpdateOnPublishIfVirtualExists() {
 
 		$redir = Object::create('PublishableSiteTreeTest_Publishable');
-		$redir->Title = 'redir';
+		$redir->Title = 'virtual';
 
 		$stub = $this->getMock(
 			'PublishableSiteTreeTest_Publishable',
-			array('getMyRedirectorPages')
+			array('getMyVirtualPages')
 		);
 		$stub->Title = 'stub';
 
 		$stub->expects($this->once())
-			->method('getMyRedirectorPages')
+			->method('getMyVirtualPages')
+			->will($this->returnValue(
+				new ArrayList(array($redir))
+			));
+
+		$objects = $stub->objectsToUpdate(array('action' => 'publish'));
+		$this->assertTrue(in_array('virtual', $objects->column('Title'), 'Updates related virtual page'));
+
+	}
+
+	function testObjectsToDeleteOnUnpublishIfVirtualExists() {
+
+		$redir = Object::create('PublishableSiteTreeTest_Publishable');
+		$redir->Title = 'virtual';
+
+		$stub = $this->getMock(
+			'PublishableSiteTreeTest_Publishable',
+			array('getMyVirtualPages')
+		);
+		$stub->Title = 'stub';
+
+		$stub->expects($this->once())
+			->method('getMyVirtualPages')
 			->will($this->returnValue(
 				new ArrayList(array($redir))
 			));
 
 		$objects = $stub->objectsToDelete(array('action' => 'unpublish'));
-		$this->assertTrue(in_array('redir', $objects->column('Title'), 'Deletes redirector page pointing to it'));
+		$this->assertTrue(in_array('virtual', $objects->column('Title'), 'Deletes related virtual page'));
 
 	}
 
