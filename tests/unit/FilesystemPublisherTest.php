@@ -186,29 +186,29 @@ class FilesystemPublisherTest extends SapphireTest {
 	}
 
 	public function testContentTypeHTML() {
-		SiteTree::remove_extension('FilesystemPublisher');
-		SiteTree::add_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/', 'php')");
+		StaticPublisherTestPage::remove_extension('FilesystemPublisher');
+		StaticPublisherTestPage::add_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/', 'php')");
 		$l1 = new StaticPublisherTestPage();
 		$l1->URLSegment = 'mimetype';
  		$l1->write();
 		$l1->doPublish();
 		$response = Director::test('mimetype');
 		$this->assertEquals($response->getHeader('Content-Type'), 'text/html; charset=utf-8', 'Content-Type should be text/html; charset=utf-8');
-		SiteTree::remove_extension('FilesystemPublisher');
-		SiteTree::add_extension('FilesystemPublisher');
+		StaticPublisherTestPage::remove_extension('FilesystemPublisher');
+		StaticPublisherTestPage::add_extension('FilesystemPublisher');
 	}
 
 	public function testContentTypeJSON() {
-		SiteTree::remove_extension('FilesystemPublisher');
-		SiteTree::add_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/', 'php')");
+		StaticPublisherTestPage::remove_extension('FilesystemPublisher');
+		StaticPublisherTestPage::add_extension("FilesystemPublisher('assets/FilesystemPublisherTest-static-folder/', 'php')");
 		$l1 = new StaticPublisherTestPage();
 		$l1->URLSegment = 'mimetype';
  		$l1->write();
 		$l1->doPublish();
 		$response = Director::test('mimetype/json');
 		$this->assertEquals($response->getHeader('Content-Type'), 'application/json', 'Content-Type should be application/json');
-		SiteTree::remove_extension('FilesystemPublisher');
-		SiteTree::add_extension('FilesystemPublisher');
+		StaticPublisherTestPage::remove_extension('FilesystemPublisher');
+		StaticPublisherTestPage::add_extension('FilesystemPublisher');
 	}
 }
 
