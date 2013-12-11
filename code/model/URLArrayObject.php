@@ -2,31 +2,12 @@
 /**
  * This is an helper object to StaticPagesQueue to hold an array of urls with
  * priorites to be recached.
- * 
- * If the StaticPagesQueue::is_realtime is false this class will call 
+ *
+ * If the StaticPagesQueue::is_realtime is false this class will call
  * StaticPagesQueue::push_urls_to_db when in __destructs.
  *
  */
 class URLArrayObject extends ArrayObject {
-
-	/**
-	 *
-	 * @var URLArrayObject
-	 */
-	protected static $instance;
-
-	/**
-	 *
-	 * @staticvar string $instance
-	 * @return URLArrayObject
-	 */
-	protected static function get_instance() {
-		static $instance = null;
-		if (!self::$instance) {
-			self::$instance = new URLArrayObject();
-		}
-		return self::$instance;
-	}
 
 	/**
 	 * Adds metadata into the URL.
@@ -36,7 +17,7 @@ class URLArrayObject extends ArrayObject {
 	 *
 	 * @return string transformed URL.
 	 */
-	public static function add_object($url, DataObject $dataObject) {
+	public function addObject($url, DataObject $dataObject) {
 		$updatedUrl = HTTP::setGetVar('_ID', $dataObject->ID, $url, '&');
 		$updatedUrl = HTTP::setGetVar('_ClassName', $dataObject->ClassName, $updatedUrl, '&');
 
@@ -53,10 +34,10 @@ class URLArrayObject extends ArrayObject {
 	 *
 	 * @return array array of transformed URLs.
 	 */
-	public static function add_objects($urls, DataObject $dataObject) {
+	public function addObjects($urls, DataObject $dataObject) {
 		$processedUrls = array();
 		foreach ($urls as $url=>$priority) {
-			$url = URLArrayObject::add_object($url, $dataObject);
+			$url = $this->addObject($url, $dataObject);
 			$processedUrls[$url] = $priority;
 		}
 
@@ -70,7 +51,7 @@ class URLArrayObject extends ArrayObject {
 	 *
 	 * @return DataObject represented by the URL.
 	 */
-	public static function get_object($url) {
+	public function getObject($url) {
 		$urlParts = @parse_url($url);
 		if (isset($urlParts['query'])) parse_str($urlParts['query'], $getParameters);
 		else $getParameters = array();
@@ -91,8 +72,8 @@ class URLArrayObject extends ArrayObject {
 	 * @param $urls array associative array of url => priority
 	 * @param $dataObject DataObject object to associate the urls with
 	 */
-	public static function add_urls_on_behalf(array $urls, DataObject $dataObject) {
-		return self::add_urls(self::add_objects($urls, $dataObject));
+	public function addUrlsOnBehalf(array $urls, DataObject $dataObject) {
+		return $this->addUrls($this->addObjects($urls, $dataObject));
 	}
 
 	/**
@@ -100,7 +81,7 @@ class URLArrayObject extends ArrayObject {
 	 *
 	 * @param array $urls 
 	 */
-	public static function add_urls(array $urls) {
+	public function addUrls(array $urls) {
 		if(!$urls) {
 			return;
 		}
@@ -118,21 +99,21 @@ class URLArrayObject extends ArrayObject {
 			    !isset($urlsAlreadyProcessed[$URLSegment]) &&
 				substr($URLSegment,0,4) != "http") {    //URLs isn't to an external site
 
-				//check to make sure this page isn't excluded from the static cache
-				if (!self::exclude_from_cache($URLSegment)) {
-					self::get_instance()->append(array($priority, $URLSegment));
+				//check to make sure this page isn't excluded from the cache
+				if (!$this->excludeFromCache($URLSegment)) {
+					$this->append(array($priority, $URLSegment));
 				}
 				$urlsAlreadyProcessed[$URLSegment] = true;  //set as already processed
 			}
 		}
 
 		// Insert into the database directly instead of waiting to destruct time
-		if (StaticPagesQueue::is_realtime()) {
-			self::get_instance()->insertIntoDB();
+		if (Config::inst()->get('StaticPagesQueue', 'realtime')) {
+			$this->insertIntoDB();
 		}
 	}
 
-	protected static function exclude_from_cache($url) {
+	protected function excludeFromCache($url) {
 		$excluded = false;
 
 		//don't publish objects that are excluded from cache
@@ -152,7 +133,9 @@ class URLArrayObject extends ArrayObject {
 	 * 
 	 */
 	public function __destruct() {
-		$this->insertIntoDB();
+		if (!Config::inst()->get('StaticPagesQueue', 'realtime')) {
+			$this->insertIntoDB();
+		}
 	}
 
 	/**
@@ -163,7 +146,7 @@ class URLArrayObject extends ArrayObject {
 	 */
 	public function insertIntoDB() {
 		$arraycopy = $this->getArrayCopy();
-		usort($arraycopy, array(__CLASS__, 'sort_on_priority'));
+		usort($arraycopy, array($this, 'sortOnPriority'));
 		foreach ($arraycopy as $array) {
 			StaticPagesQueue::add_to_queue($array[0], $array[1]);
 		}
@@ -178,7 +161,7 @@ class URLArrayObject extends ArrayObject {
 	 * @param array $b
 	 * @return int - signed
 	 */
-	protected function sort_on_priority($a, $b) {
+	protected function sortOnPriority($a, $b) {
 		if ($a[0] == $b[0]) {
 			return 0;
 		}

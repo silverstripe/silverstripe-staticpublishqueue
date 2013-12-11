@@ -7,6 +7,15 @@
 class SiteTreeFullBuildEngine extends BuildTask {
 
 	/**
+	 * @var URLArrayObject
+	 */
+	protected $urlArrayObject;
+
+	private static $dependencies = array(
+		'urlArrayObject' =>  '%$URLArrayObject'
+	);
+
+	/**
 	 *
 	 * @var string
 	 */
@@ -22,11 +31,20 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		}
 	}
 
+	public function setUrlArrayObject($o) {
+		$this->urlArrayObject = $o;
+	}
+
+	public function getUrlArrayObject() {
+		return $this->urlArrayObject;
+	}
+
 	/**
 	 * 
 	 * @param SS_HTTPRequest $request
 	 */
 	public function run($request) {
+
 		if($request->getVar('urls') && is_array($request->getVar('urls'))) {
 			return $this->queueURLs($request->getVar('urls'));
 		}
@@ -38,7 +56,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		// Collect all URLs into associative array.
 		foreach($pages as $page) {
 			if (is_callable(array($page, 'urlsToCache'))) {
-				URLArrayObject::add_urls_on_behalf($page->urlsToCache(), $page);
+				$this->getUrlArrayObject()->addUrlsOnBehalf($page->urlsToCache(), $page);
 			}
 		}
 
@@ -55,7 +73,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		if(!count($urls)) {
 			return false;
 		}
-		URLArrayObject::add_urls($urls);
+		$this->getUrlArrayObject()->addUrls($urls);
 		return true;
 	}
 	
