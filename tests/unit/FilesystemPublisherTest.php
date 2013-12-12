@@ -17,6 +17,8 @@ class FilesystemPublisherTest extends SapphireTest {
 		Config::inst()->nest();
 		Config::inst()->update('StaticPagesQueue', 'realtime', true);
 		Config::inst()->update('FilesystemPublisher', 'domain_based_caching', false);
+		Config::inst()->update('FilesystemPublisher', 'static_base_url', 'http://foo');
+		Config::inst()->update('Director', 'alternate_base_url', 'http://foo/');
 	}
 	
 	public function tearDown() {
