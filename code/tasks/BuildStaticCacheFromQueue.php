@@ -25,6 +25,15 @@
 class BuildStaticCacheFromQueue extends BuildTask {
 
 	/**
+	 * @var URLArrayObject
+	 */
+	protected $urlArrayObject;
+
+	private static $dependencies = array(
+		'urlArrayObject' =>  '%$URLArrayObject'
+	);
+
+	/**
 	 * Should be self exploratory. Note: needs to public due to error handling
 	 *
 	 * @var string
@@ -63,6 +72,14 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * @var BuildStaticCacheSummary
 	 */
 	protected $summaryObject = null;
+
+	public function setUrlArrayObject($o) {
+		$this->urlArrayObject = $o;
+	}
+
+	public function getUrlArrayObject() {
+		return $this->urlArrayObject;
+	}
 
 	/**
 	 * Starts the republishing of pages in the StaticPagesQueue
@@ -114,12 +131,14 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
-				$this->printPublishingMetrics(
-					$published++, 
-					$prePublishTime, 
-					self::$current_url,
-					sprintf('HTTP Status: %d', $results[self::$current_url]['statuscode'])
-				);
+				foreach($results as $url => $data) {
+					$this->printPublishingMetrics(
+						$published++,
+						$prePublishTime,
+						$url,
+						sprintf('HTTP Status: %d', $results[$url]['statuscode'])
+					);
+				}
 			}
 			$this->logSummary($published, false, $prePublishTime);
 			StaticPagesQueue::delete_by_link(self::$current_url);
@@ -135,11 +154,61 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * Builds cached files and stale files that is a copy of an existing cached page but with
 	 * a notice that the page is stale.
 	 *
+	 * If a SubsiteID GET parameter is found in the URL, the page is generated into a directory,
+	 * regardless if it's from the main site or subsite.
+	 *
 	 * @param array $URLSegments
 	 */
 	protected function createCachedFiles(array $URLSegments) {
-		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
-		$results = singleton("SiteTree")->publishPages($URLSegments);
+		$results = array();
+		foreach($URLSegments as $index => $url) {
+			$obj = $this->getUrlArrayObject()->getObject($url);
+
+			if (!$obj || !$obj->hasExtension('SiteTreeSubsites')) {
+				// No metadata available. Pass it straight on.
+				$results = singleton("SiteTree")->publishPages(array($url));
+
+			} else {
+				Config::inst()->nest();
+
+				// Subsite page requested. Change behaviour to publish into directory.
+				Config::inst()->update('FilesystemPublisher', 'domain_based_caching', true);
+
+				// Pop the base-url segment from the url.
+				if (strpos($url, '/')===0) $cleanUrl = Director::makeRelative($url);
+				else $cleanUrl = Director::makeRelative('/' . $url);
+
+				$subsite = $obj->Subsite();
+				if (!$subsite || !$subsite->ID) {
+					// Main site page - but publishing into subdirectory.
+					$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
+
+					// $staticBaseUrl contains the base segment already.
+					$results = singleton("SiteTree")->publishPages(
+						array($staticBaseUrl . '/' . $cleanUrl)
+					);
+
+				} else {
+					// Subsite page. Generate all domain variants registered with the subsite.
+					Config::inst()->update('FilesystemPublisher', 'static_publisher_theme', $subsite->Theme);
+
+					foreach($subsite->Domains() as $domain) {
+						Config::inst()->update(
+							'FilesystemPublisher',
+							'static_base_url',
+							'http://'.$domain->Domain . Director::baseURL()
+						);
+
+						$result = singleton("SiteTree")->publishPages(
+							array('http://'.$domain->Domain . Director::baseURL() . $cleanUrl)
+						);
+						$results = array_merge($results, $result);
+					}
+				}
+
+				Config::inst()->unnest();
+			}
+		}
 
 		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');

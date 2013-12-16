@@ -9,8 +9,15 @@ class StaticPagesQueueEventTest extends SapphireTest {
 	public function setUp() {
 		parent::setUp();
 		StaticPagesQueueEvent::clear();
+		Config::inst()->nest();
+		Config::inst()->update('StaticPagesQueue', 'realtime', true);
 	}
-	
+
+	public function tearDown() {
+		Config::inst()->unnest();
+		parent::tearDown();
+	}
+
 	public function testRegisterEventWithNonExistingInterface() {
 		$this->setExpectedException('StaticPagesQueueEvent_Exception');
 		StaticPagesQueueEvent::register_event('EventTestClassImplementator', 'apa');
