@@ -21,6 +21,10 @@ class SiteTreeFullBuildEngine extends BuildTask {
 	 */
 	protected $description = 'Full cache rebuild: adds all pages on the site to the static publishing queue';
 
+	/** @var int - chunk size (set via config) */
+	private static $records_per_request = 200;
+
+
 	/**
 	 * Checks if this task is enabled / disabled via the config setting
 	 */
@@ -42,6 +46,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 	/**
 	 * 
 	 * @param SS_HTTPRequest $request
+	 * @return bool
 	 */
 	public function run($request) {
 
@@ -51,21 +56,57 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		if($request->getVar('urls')) {
 			return $this->queueURLs(explode(',', $request->getVar('urls')));
 		}
-		$pages = $this->getAllLivePages();
 
-		// Collect all URLs into associative array.
+		increase_time_limit_to();
+		$self = get_class($this);
+		$verbose = isset($_GET['verbose']);
+
+		if (isset($_GET['start'])) {
+			$this->runFrom((int)$_GET['start']);
+		} else {
+			foreach(array('framework','sapphire') as $dirname) {
+				$script = sprintf("%s%s$dirname%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+				if (file_exists($script)) break;
+			}
+
+			$total = $this->getAllLivePages()->count();
+			echo "Adding all pages to the queue. Total: $total\n\n";
+			for ($offset = 0; $offset < $total; $offset += self::config()->records_per_request) {
+				echo "$offset..";
+				$cmd = "php $script dev/tasks/$self start=$offset";
+				if($verbose) echo "\n  Running '$cmd'\n";
+				$res = $verbose ? passthru($cmd) : `$cmd`;
+				if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
+			}
+		}
+	}
+
+
+	/**
+	 * Process a chunk of pages
+	 * @param $start
+	 */
+	protected function runFrom($start) {
+		$chunkSize = (int)self::config()->records_per_request;
+		$pages = $this->getAllLivePages()->sort('ID')->limit($chunkSize, $start);
+		$count = 0;
+
+		// Collect all URLs into the queue
 		foreach($pages as $page) {
 			if (is_callable(array($page, 'urlsToCache'))) {
 				$this->getUrlArrayObject()->addUrlsOnBehalf($page->urlsToCache(), $page);
+				$count++;
 			}
 		}
 
+		echo sprintf("SiteTreeFullBuildEngine: Queuing %d pages".PHP_EOL, $count);
 	}
+
 
 	/**
 	 * Adds an array of urls to the Queue
-	 *  
-	 * @param array $count
+	 *
+	 * @param array $urls
 	 * @return bool - if any pages were queued
 	 */
 	protected function queueURLs($urls = array()) {
