@@ -57,6 +57,11 @@ class SiteTreeFullBuildEngine extends BuildTask {
 			return $this->queueURLs(explode(',', $request->getVar('urls')));
 		}
 
+		// The following shenanigans are necessary because a simple Page::get()
+		// will run out of memory on large data sets. This will take the pages
+		// in chunks by running this script multiple times and setting $_GET['start'].
+		// Chunk size can be set via yml (SiteTreeFullBuildEngine.records_per_request).
+		// To disable this functionality, just set a large chunk size and pass start=0.
 		increase_time_limit_to();
 		$self = get_class($this);
 		$verbose = isset($_GET['verbose']);
