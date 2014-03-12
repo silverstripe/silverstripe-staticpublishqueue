@@ -7,5 +7,6 @@
 		"silverstripe/framework": "3.1.*",
 		"silverstripe/cms": "3.1.*",
 		"silverstripe/gridfieldajaxrefresh": "dev-master"
-	}
+	},
+	"minimum-stability": "dev"
 }
