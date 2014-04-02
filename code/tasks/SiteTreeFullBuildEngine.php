@@ -133,6 +133,9 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		if(class_exists('Subsite')) {
 			Subsite::disable_subsite_filter(true);
 		}
+		if(class_exists('Translatable')) {
+			Translatable::disable_locale_filter();
+		}		
 		Versioned::reading_stage('Live');
 		$pages = DataObject::get("SiteTree");
 		Versioned::set_reading_mode($oldMode);
