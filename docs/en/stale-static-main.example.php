@@ -116,12 +116,12 @@ if (CACHE_ENABLED
 	} else {
 		// No cache hit... fallback to dynamic routing
 		header('X-SilverStripe-Cache: miss at '.@date('r').' on '.$cacheDir.$file);
-		include BASE_PATH.DIRECTORY_SEPARATOR.'sapphire/main.php';
+		include BASE_PATH.DIRECTORY_SEPARATOR.'framework/main.php';
 		if (CACHE_DEBUG) echo "<h1>File was NOT cached</h1>";
 	}
 } else {
 	// Fall back to dynamic generation via normal routing if caching has been explicitly disabled
-	include BASE_PATH.DIRECTORY_SEPARATOR.'sapphire/main.php';
+	include BASE_PATH.DIRECTORY_SEPARATOR.'framework/main.php';
 }
 
 ?>
