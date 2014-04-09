@@ -210,7 +210,8 @@ EOT;
 
 		$publishTime = microtime(true) - $prePublishTime;
 		printf(
-			"%s %.2fs %.1fmb %.1fmb %s (%s)", 
+			"%s %s %.2fs %.1fmb %.1fmb %s (%s)",
+            date("Y-m-d H:i:s"),
 			$publishedPages, 
 			$publishTime, 
 			$memoryDelta/$mbDivider, 
