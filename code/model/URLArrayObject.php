@@ -2,8 +2,8 @@
 /**
  * This is an helper object to StaticPagesQueue to hold an array of urls with
  * priorites to be recached.
- * 
- * If the StaticPagesQueue::is_realtime is false this class will call 
+ *
+ * If the StaticPagesQueue::is_realtime is false this class will call
  * StaticPagesQueue::push_urls_to_db when in __destructs.
  *
  */
@@ -31,13 +31,14 @@ class URLArrayObject extends ArrayObject {
 	/**
 	 * The format of the urls should be array( 'URLSegment' => '50')
 	 *
-	 * @param array $urls 
+	 * @param array $urls
+     * @param string $requester - A requester to record in the logs as source of this when regenerating
 	 */
-	public static function add_urls(array $urls) {
+	public static function add_urls(array $urls, $requester = null) {
 		if(!$urls) {
 			return;
 		}
-		
+
 		$urlsAlreadyProcessed = array();    //array to filter out any duplicates
 		foreach ($urls as $URLSegment=>$priority) {
 			if(is_numeric($URLSegment) && is_string($priority)) {   //case when we have a non-associative flat array
@@ -53,7 +54,7 @@ class URLArrayObject extends ArrayObject {
 
 				//check to make sure this page isn't excluded from the static cache
 				if (!self::exclude_from_cache($URLSegment)) {
-					self::get_instance()->append(array($priority, $URLSegment));
+					self::get_instance()->append(array($priority, $URLSegment, $requester));
 				}
 				$urlsAlreadyProcessed[$URLSegment] = true;  //set as already processed
 			}
@@ -80,25 +81,25 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * When this class is getting garbage collected, trigger the insert of all 
+	 * When this class is getting garbage collected, trigger the insert of all
 	 * urls into the database
-	 * 
+	 *
 	 */
 	public function __destruct() {
 		$this->insertIntoDB();
 	}
 
 	/**
-	 * This method will insert all URLs that exists in this object into the 
+	 * This method will insert all URLs that exists in this object into the
 	 * database by calling the StaticPagesQueue
 	 *
-	 * @return type 
+	 * @return type
 	 */
 	public function insertIntoDB() {
 		$arraycopy = $this->getArrayCopy();
 		usort($arraycopy, array(__CLASS__, 'sort_on_priority'));
 		foreach ($arraycopy as $array) {
-			StaticPagesQueue::add_to_queue($array[0], $array[1]);
+			StaticPagesQueue::add_to_queue($array[0], $array[1], $array[2]);
 		}
 		StaticPagesQueue::push_urls_to_db();
 		$this->exchangeArray(array());

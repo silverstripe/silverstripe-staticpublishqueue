@@ -6,7 +6,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 
 	function onAfterPublish() {
 		$urls = $this->pagesAffected();
-		if(!empty($urls)) URLArrayObject::add_urls($urls);
+		if(!empty($urls)) URLArrayObject::add_urls($urls, get_class($this) .', ID:'. $this->owner->ID .', URL:'. $this->owner->Link());
 	}
 
 	function onAfterUnpublish() {
@@ -26,7 +26,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		increase_memory_limit_to();
 		singleton("SiteTree")->unpublishPagesAndStaleCopies($removeURLs); //remove those pages (right now)
 
-		if(!empty($updateURLs)) URLArrayObject::add_urls($updateURLs);
+		if(!empty($updateURLs)) URLArrayObject::add_urls($updateURLs, get_class($this) .', ID:'. $this->owner->ID .', URL:'. $this->owner->Link());
 	}
 
 	/**

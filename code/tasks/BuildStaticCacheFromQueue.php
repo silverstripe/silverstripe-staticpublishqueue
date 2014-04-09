@@ -109,16 +109,27 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		$this->updatePid();
 		$this->load_error_handlers();
 		$published = 0;
-		while(self::$current_url = StaticPagesQueue::get_next_url()) {
+		while($currentObject = StaticPagesQueue::get_next_url_object()) {
+            self::$current_url = $currentObject->URLSegment;
 			$this->updatePid();
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
+                //get which task requested this rebuild
+                $requester = '';
+                if (isset($currentObject->Requester)) {
+                    $requester = $currentObject->Requester;
+                }
+
 				$this->printPublishingMetrics(
 					$published++, 
 					$prePublishTime, 
 					self::$current_url,
-					sprintf('HTTP Status: %d', $results[self::$current_url]['statuscode'])
+					sprintf('HTTP Status: %d, Action: %s, Requester: %s',
+                        $results[self::$current_url]['statuscode'],
+                        $results[self::$current_url]['action'], //action: update, unlink or unlinkNoFile
+                        $requester
+                    )
 				);
 			}
 			$this->logSummary($published, false, $prePublishTime);

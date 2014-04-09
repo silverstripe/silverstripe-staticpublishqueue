@@ -2,8 +2,8 @@
 
 
 class StaticPagesQueueTest extends SapphireTest {
-	
-	
+
+
 	public function setUp() {
 		parent::setUp();
 		StaticPagesQueue::realtime(true);
@@ -12,43 +12,43 @@ class StaticPagesQueueTest extends SapphireTest {
 
 	/**
 	 * Remove all StaticPagesQueue that might be left after running a testcase
-	 * 
+	 *
 	 */
 	public function tearDown() {
 		parent::tearDown();
 		self::empty_temp_db();
 	}
-	
+
 	public function testAddOneURL() {
 		$obj = DataObject::get_one('StaticPagesQueue');
 		$this->assertFalse( $obj instanceof StaticPagesQueue );
-		URLArrayObject::add_urls(array('test1' => 1));
+		URLArrayObject::add_urls(array('test1' => 1), get_class($this));
 		$obj = DataObject::get_one('StaticPagesQueue', null, false);
 		$this->assertTrue($obj instanceof StaticPagesQueue);
 		$this->assertEquals('test1', $obj->URLSegment );
 	}
-	
+
 	public function testAddManyURLs() {
 		$objSet = DataObject::get('StaticPagesQueue');
 		URLArrayObject::add_urls(array('test2-2' => 2 ,'test2-10' => 10),true);
 		$objSet = DataObject::get('StaticPagesQueue');
 		$this->assertEquals( 2, $objSet->Count() );
-		$this->assertDOSContains(array( 
-			  array('URLSegment' => 'test2-2'), 
+		$this->assertDOSContains(array(
+			  array('URLSegment' => 'test2-2'),
 			  array('URLSegment' => 'test2-10')
 		), $objSet);
 	}
-	
+
 	public function testGetNextUrlInEmptyQueue() {
 		$this->assertEquals( '', StaticPagesQueue::get_next_url() );
 	}
-	
+
 	public function testGetNextUrlByPriority() {
 		URLArrayObject::add_urls(array('monkey' => 1 ,'stool' => 10),true);
 		$this->assertEquals( 'stool', StaticPagesQueue::get_next_url() );
 		$this->assertEquals( 'monkey', StaticPagesQueue::get_next_url() );
 	}
-	
+
 	public function testBumpThePriority() {
 		URLArrayObject::add_urls(array('foobar' => 1),true);
 		URLArrayObject::add_urls(array('monkey' => 10),true);
@@ -58,11 +58,11 @@ class StaticPagesQueueTest extends SapphireTest {
 		StaticPagesQueue::get_next_url();
 		$this->assertEquals(10, DataObject::get('StaticPagesQueue')->Last()->Priority);
 	}
-	
+
 	public function testNothingToDelete() {
 		$this->assertFalse( StaticPagesQueue::delete_by_link("Im not there"));
 	}
-	
+
 	public function testGetNextUrlByPrioAndDate() {
 		$oldObject = new StaticPagesQueue(array('URLSegment'=>'old/page','Priority'=>10),true);
 		$oldObject->write();
@@ -73,7 +73,7 @@ class StaticPagesQueueTest extends SapphireTest {
 		$this->assertEquals( 'stool/falls', StaticPagesQueue::get_next_url());
 		$this->assertEquals( 'monkey/bites', StaticPagesQueue::get_next_url());
 	}
-	
+
 	public function testMarkAsDone() {
 		URLArrayObject::add_urls(array('monkey' => 1),true);
 		$url = StaticPagesQueue::get_next_url();
@@ -82,7 +82,7 @@ class StaticPagesQueueTest extends SapphireTest {
 	}
 
 	/**
-	 * This tests that queueitems that are marked as regenerating, but are older 
+	 * This tests that queueitems that are marked as regenerating, but are older
 	 * than 10 minutes actually gets another try
 	 */
 	public function testDeadEntries() {
@@ -128,14 +128,14 @@ class StaticPagesQueueTest extends SapphireTest {
 		StaticPagesQueue::remove_duplicates($test2Objs->First()->ID);
 		$test2Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test2\'');
 		$this->assertEquals(1, $test2Objs->Count(), 'Removing a single duplicate');
-		
+
 		StaticPagesQueue::remove_duplicates($test3Objs->First()->ID);
 		$test3Objs = DataObject::get('StaticPagesQueue', '"URLSegment" = \'test3\'');
 		$this->assertEquals(1, $test3Objs->Count(), 'Removing multiple duplicates');
 	}
 
 	/**
-	 * 
+	 *
 	 * Test takes about 22sec on my local environment
 	 */
 //    public function testPerformance() {
