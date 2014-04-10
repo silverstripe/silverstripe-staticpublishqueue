@@ -116,7 +116,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
                 //get which task requested this rebuild
-                $requester = '';
+                $requester = 'unknown';
                 if (isset($currentObject->Requester)) {
                     $requester = $currentObject->Requester;
                 }
@@ -185,8 +185,8 @@ class BuildStaticCacheFromQueue extends BuildTask {
                 // FilesystemPublisher->unpublishPages(), so we only want ot delete the stale page
                 // once we have a confirmed 404, or when overwriting it with a published new page
                 if (file_exists($staleFilepath)) {
-                    @unlink($staleFilepath);
-                    $result['action'] = "unlink";
+                    user_error("Stale file exists on page that returns a 404. Stale file should have been deleted with the unpublish action, or page is erroneously returning a 404. Keeping stale file, but this might be an error: ".$staleFilepath, E_USER_ERROR);
+                    $result['action'] = "errorStaleFileExistsFor404";
                 } else {
                     $result['action'] = "unlinkFileDoesNotExist";
                 }
