@@ -9,6 +9,8 @@
  */
 class URLArrayObject extends ArrayObject {
 
+	private $shutDownRegistered = false;
+
 	/**
 	 * Adds metadata into the URL.
 	 *
@@ -110,6 +112,12 @@ class URLArrayObject extends ArrayObject {
 		// Insert into the database directly instead of waiting to destruct time
 		if (Config::inst()->get('StaticPagesQueue', 'realtime')) {
 			$this->insertIntoDB();
+		} else {
+			//don't register a shutdown twice within a single object
+			if (!$this->shutDownRegistered) {
+				register_shutdown_function(array($this,'destructMethod'));
+				$this->shutDownRegistered = true;
+			}
 		}
 	}
 
@@ -128,11 +136,11 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * When this class is getting garbage collected, trigger the insert of all 
+	 * When this class is getting garbage collected, trigger the insert of all
 	 * urls into the database
-	 * 
+	 *
 	 */
-	public function __destruct() {
+	public function destructMethod() {
 		if (!Config::inst()->get('StaticPagesQueue', 'realtime')) {
 			$this->insertIntoDB();
 		}
