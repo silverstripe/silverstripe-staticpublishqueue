@@ -220,7 +220,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 					$pathsArray = $publisher->urlsToPaths(array($url));
 					$filePath = $publisher->getDestDir() . '/' . array_shift($pathsArray);
 				}
-				$staleFilepath = str_replace(pathinfo($filePath, PATHINFO_EXTENSION), 'stale.html', $filePath);
+				$staleFilepath = str_replace('.'.pathinfo($filePath, PATHINFO_EXTENSION), '.stale.html', $filePath);
 				if($result['statuscode'] < 400) {
 					$staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), file_get_contents($filePath));
 					file_put_contents($staleFilepath, $staleContent, LOCK_EX);
