@@ -194,10 +194,6 @@ class FilesystemPublisher extends DataExtension {
 		$currentBaseURL = Director::baseURL();
 		$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
 		
-		if($staticBaseUrl) {
-			Config::inst()->update('Director', 'alternate_base_url', $staticBaseUrl);
-		}
-		
 		if($this->fileExtension == 'php') {
 			Config::inst()->update('SSViewer', 'rewrite_hash_links', 'php'); 
 		}
@@ -217,10 +213,6 @@ class FilesystemPublisher extends DataExtension {
 				'redirect' => null, 
 				'path' => null
 			);
-			
-			if($staticBaseUrl) {
-				Config::inst()->update('Director', 'alternate_base_url', $staticBaseUrl);
-			}
 
 			$i++;
 
@@ -342,10 +334,6 @@ class FilesystemPublisher extends DataExtension {
 					$missingFiles[$external] = true;
 				}
 			}*/
-		}
-
-		if(Config::inst()->get('FilesystemPublisher', 'static_base_url')) {
-			Config::inst()->update('Director', 'alternate_base_url', $currentBaseURL); 
 		}
 
 		if($this->fileExtension == 'php') {
