@@ -147,7 +147,7 @@ class FilesystemPublisher extends DataExtension {
 
 			if (Config::inst()->get('FilesystemPublisher', 'domain_based_caching')) {
 				if (!$urlParts) continue; // seriously malformed url here...
-				$filename = $urlParts['host'] . '/' . $filename;
+				if (isset($urlParts['host'])) $filename = $urlParts['host'] . '/' . $filename;
 			}
 		
 			$mappedUrls[$url] = ((dirname($filename) == '/') ? '' :  (dirname($filename).'/')).basename($filename);
