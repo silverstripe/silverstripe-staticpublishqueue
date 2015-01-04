@@ -171,7 +171,7 @@ class StaticPagesQueue extends DataObject {
 					do {
 						$queueObject = $filteredQuery->limit(1, $offset)->first();   //get first item
 
-						if ($queueObject) $lockName = $queueObject->URLSegment . $className;
+						if ($queueObject) $lockName = md5($queueObject->URLSegment . $className);
 						//try to locking the item's URL, keep trying new URLs until we find one that is free to lock
 						$offset++;
 					} while($queueObject && !LockMySQL::isFreeToLock($lockName));
