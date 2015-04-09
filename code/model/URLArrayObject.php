@@ -12,23 +12,6 @@ class URLArrayObject extends ArrayObject {
 	private $shutDownRegistered = false;
 
 	/**
-	 * Adds metadata into the URL.
-	 *
-	 * @param $url string
-	 * @param $obj DataObject to inject
-	 *
-	 * @return string transformed URL.
-	 */
-	public function addObject($url, DataObject $dataObject) {
-		$updatedUrl = HTTP::setGetVar('_ID', $dataObject->ID, $url, '&');
-		$updatedUrl = HTTP::setGetVar('_ClassName', $dataObject->ClassName, $updatedUrl, '&');
-
-		// Hack: fix the HTTP::setGetVar removing leading slash from the URL if BaseURL is used.
-		if (strpos($url, '/')===0) return '/' . $updatedUrl;
-		else return $updatedUrl;
-	}
-
-	/**
 	 * Adds metadata into all URLs in the array.
 	 *
 	 * @param $urls array of url => priority
@@ -39,8 +22,9 @@ class URLArrayObject extends ArrayObject {
 	public function addObjects($urls, DataObject $dataObject) {
 		$processedUrls = array();
 		foreach ($urls as $url=>$priority) {
-			$url = $this->addObject($url, $dataObject);
-			$processedUrls[$url] = $priority;
+			if ($url !== false) {
+				$processedUrls[$url] = $priority;
+			}
 		}
 
 		return $processedUrls;
