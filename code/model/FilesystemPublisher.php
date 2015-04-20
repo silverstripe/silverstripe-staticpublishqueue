@@ -198,8 +198,9 @@ class FilesystemPublisher extends DataExtension {
 			Config::inst()->update('Director', 'alternate_base_url', $staticBaseUrl);
 		}
 		
+		// Disable due to https://github.com/silverstripe-labs/silverstripe-staticpublishqueue/issues/36
 		if($this->fileExtension == 'php') {
-			Config::inst()->update('SSViewer', 'rewrite_hash_links', 'php'); 
+			//Config::inst()->update('SSViewer', 'rewrite_hash_links', 'php'); 
 		}
 		
 		if(Config::inst()->get('FilesystemPublisher', 'echo_progress')) {
@@ -348,8 +349,9 @@ class FilesystemPublisher extends DataExtension {
 			Config::inst()->update('Director', 'alternate_base_url', $currentBaseURL); 
 		}
 
+		// Disabled due to https://github.com/silverstripe-labs/silverstripe-staticpublishqueue/issues/36
 		if($this->fileExtension == 'php') {
-			Config::inst()->update('SSViewer', 'rewrite_hash_links', true); 
+			//Config::inst()->update('SSViewer', 'rewrite_hash_links', true); 
 		}
 
 		$base = BASE_PATH . "/$this->destFolder";
