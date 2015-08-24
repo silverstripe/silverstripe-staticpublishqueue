@@ -211,6 +211,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		}
 
 		// Create or remove stale file
+		$newResults = array();
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
 		if ($publisher) {
 			foreach($results as $url => $result) {
@@ -221,22 +222,38 @@ class BuildStaticCacheFromQueue extends BuildTask {
 					$filePath = $publisher->getDestDir() . '/' . array_shift($pathsArray);
 				}
 				$staleFilepath = str_replace('.'.pathinfo($filePath, PATHINFO_EXTENSION), '.stale.html', $filePath);
-				if($result['statuscode'] < 400) {
-					$staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), file_get_contents($filePath));
-					file_put_contents($staleFilepath, $staleContent, LOCK_EX);
-					chmod($staleFilepath, 0664);
-					chmod($filePath, 0664);
-				} else {
-					// For HTTP errors, we remove the stale file.
-					// The page was either erroreous, or has been unpublished in the meantime.
-					// Deleting the original cache file would've already been taken care of by
-					// FilesystemPublisher->unpublishPages().
-					@unlink($staleFilepath);
-				}
+				
+				//keep the stale file is there is an error when generating the file
+	            if (file_exists($filePath)) {
+	                $filePathContents = file_get_contents($filePath);
+	                if (count($filePathContents) > 0 &&
+	                    $result['statuscode'] < 400) {
+	                    $staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), $filePathContents);
+	                    file_put_contents($staleFilepath, $staleContent, LOCK_EX);
+	                    chmod($staleFilepath, 0664);
+	                    chmod($filePath, 0664);
+	                    $result['action'] = "update";
+	                }
+	            } elseif ($result['statuscode'] == 404) {   //file does not exist AND status code is 404
+	                // For HTTP errors, we DO NOT remove the stale file.
+	                // The page was correctly published, but there might have been an intermittent error
+	                // Deleting the original cache file would've already been taken care of by
+	                // FilesystemPublisher->unpublishPages(), so we only want ot delete the stale page
+	                // once we have a confirmed 404, or when overwriting it with a published new page
+	                if (file_exists($staleFilepath)) {
+						user_error("Stale file exists on page that returns a 404. Stale file should have been deleted with the unpublish action, or page is erroneously returning a 404. Keeping stale file, but this might be an error: ".$staleFilepath, E_USER_ERROR);
+						$result['action'] = "errorStaleFileExistsFor404";
+	                } else {
+	                    $result['action'] = "unlinkFileDoesNotExist";
+	                }
+	            }
+	
+	            //record the action in the results that return
+	            $newResults[$url] = $result;
 			}
 		}
 
-		return $results;
+		return $newResults;
 	}
 
 	/**
