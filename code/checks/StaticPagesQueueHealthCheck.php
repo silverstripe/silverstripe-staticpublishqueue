@@ -13,7 +13,7 @@
 		/**
 		 * @param Int In minutes.
 		 */
-		function __construct($maxAgeMins = 60) {
+		function __construct($maxAgeMins = 300) {
 			$this->maxAgeMins = $maxAgeMins;
 		}
 
