@@ -226,7 +226,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				//keep the stale file is there is an error when generating the file
 				if (file_exists($filePath)) {
 					$filePathContents = file_get_contents($filePath);
-					if (count($filePathContents) > 0 &&
+					if (strlen($filePathContents) > 0 &&
 						$result['statuscode'] < 400) {
 						$staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), $filePathContents);
 						file_put_contents($staleFilepath, $staleContent, LOCK_EX);
@@ -234,7 +234,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 						chmod($filePath, 0664);
 						$result['action'] = "update";
 					}
-				} elseif ($result['statuscode'] == 404) {   //file does not exist AND status code is 404
+				} elseif (strval($result['statuscode']) === '404') {   //file does not exist AND status code is 404
 					// For HTTP errors, we DO NOT remove the stale file.
 					// The page was correctly published, but there might have been an intermittent error
 					// Deleting the original cache file would've already been taken care of by
