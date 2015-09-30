@@ -81,13 +81,13 @@ class URLArrayObject extends ArrayObject {
 	/**
 	 * The format of the urls should be array( 'URLSegment' => '50')
 	 *
-	 * @param array $urls 
+	 * @param array $urls
 	 */
 	public function addUrls(array $urls) {
 		if(!$urls) {
 			return;
 		}
-		
+
 		$urlsAlreadyProcessed = array();    //array to filter out any duplicates
 		foreach ($urls as $URLSegment=>$priority) {
 			if(is_numeric($URLSegment) && is_string($priority)) {   //case when we have a non-associative flat array
@@ -147,10 +147,10 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * This method will insert all URLs that exists in this object into the 
+	 * This method will insert all URLs that exists in this object into the
 	 * database by calling the StaticPagesQueue
 	 *
-	 * @return type 
+	 * @return type
 	 */
 	public function insertIntoDB() {
 		$arraycopy = $this->getArrayCopy();
@@ -176,4 +176,12 @@ class URLArrayObject extends ArrayObject {
 		return ($a[0] > $b[0]) ? -1 : 1;
 	}
 
+	// removes the injected _ID and _ClassName get parameters
+	public static function sanitizeUrl($url) {
+		list($urlPart, $query) = array_pad(explode('?', $url), 2, '');
+		parse_str($query, $getVars);
+		unset($getVars['_ID'], $getVars['_ClassName']);
+		$sanitizedQuery = http_build_query($getVars);
+		return $urlPart . '?' . $sanitizedQuery;
+	}
 }
