@@ -194,9 +194,9 @@ class FilesystemPublisher extends DataExtension {
 		$currentBaseURL = Director::baseURL();
 		$staticBaseUrl = Config::inst()->get('FilesystemPublisher', 'static_base_url');
 
-		// if($this->fileExtension == 'php') {
-		// 	Config::inst()->update('SSViewer', 'rewrite_hash_links', 'php');
-		// }
+		if($this->fileExtension == 'php') {
+			Config::inst()->update('SSViewer', 'rewrite_hash_links', 'php');
+		}
 
 		if(Config::inst()->get('FilesystemPublisher', 'echo_progress')) {
 			echo $this->class.": Publishing to " . $staticBaseUrl . "\n";
@@ -230,7 +230,8 @@ class FilesystemPublisher extends DataExtension {
 
 			if($url == "") $url = "/";
 			if(Director::is_relative_url($url)) $url = Director::absoluteURL($url);
-			$response = Director::test(str_replace('+', ' ', $url));
+			$sanitizedURL = URLArrayObject::sanitizeUrl($url);
+			$response = Director::test(str_replace('+', ' ', $sanitizedURL));
 
 			if (!$response) continue;
 
@@ -336,9 +337,9 @@ class FilesystemPublisher extends DataExtension {
 			}*/
 		}
 
-		// if($this->fileExtension == 'php') {
-		// 	Config::inst()->update('SSViewer', 'rewrite_hash_links', true);
-		// }
+		if($this->fileExtension == 'php') {
+			Config::inst()->update('SSViewer', 'rewrite_hash_links', true);
+		}
 
 		$base = BASE_PATH . "/$this->destFolder";
 
