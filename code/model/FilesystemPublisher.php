@@ -230,7 +230,7 @@ class FilesystemPublisher extends DataExtension {
 			
 			if($url == "") $url = "/";
 			if(Director::is_relative_url($url)) $url = Director::absoluteURL($url);
-			$sanitizedURL = URLArrayObject::sanitizeUrl($url);
+			$sanitizedURL = URLArrayObject::sanitize_url($url);
 			$response = Director::test(str_replace('+', ' ', $sanitizedURL));
 
 			if (!$response) continue;

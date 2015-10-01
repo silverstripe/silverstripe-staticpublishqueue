@@ -177,7 +177,7 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	// removes the injected _ID and _ClassName get parameters
-	public static function sanitizeUrl($url) {
+	public static function sanitize_url($url) {
 		list($urlPart, $query) = array_pad(explode('?', $url), 2, '');
 		parse_str($query, $getVars);
 		unset($getVars['_ID'], $getVars['_ClassName']);
