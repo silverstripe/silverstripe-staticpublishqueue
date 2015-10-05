@@ -233,6 +233,12 @@ class FilesystemPublisher extends DataExtension {
 			$sanitizedURL = URLArrayObject::sanitize_url($url);
 			$response = Director::test(str_replace('+', ' ', $sanitizedURL));
 
+			// Prevent empty static cache files from being written
+			if (is_object($response) && !$response->getBody()) {
+				SS_Log::log(new Exception('Prevented blank static cache page write for: ' . $path), SS_Log::NOTICE);
+				continue;
+			}
+
 			if (!$response) continue;
 
 			if($response) {
