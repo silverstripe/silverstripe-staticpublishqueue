@@ -99,8 +99,9 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		// Collect all URLs into the queue
 		foreach($pages as $page) {
 			
-			if (is_callable(array($page, 'canCache')) && !$page->canCache())
+			if (is_callable(array($page, 'canCache')) && !$page->canCache()) {
 				continue;
+			}
 				
 			if (is_callable(array($page, 'urlsToCache'))) {
 				$this->getUrlArrayObject()->addUrlsOnBehalf($page->urlsToCache(), $page);
