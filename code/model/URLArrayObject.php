@@ -160,4 +160,12 @@ class URLArrayObject extends ArrayObject {
 		return ($a[0] > $b[0]) ? -1 : 1;
 	}
 
+	// removes the injected _ID and _ClassName get parameters
+	public static function sanitize_url($url) {
+		list($urlPart, $query) = array_pad(explode('?', $url), 2, '');
+		parse_str($query, $getVars);
+		unset($getVars['_ID'], $getVars['_ClassName']);
+		$sanitizedQuery = http_build_query($getVars);
+		return $urlPart . '?' . $sanitizedQuery;
+	}
 }
