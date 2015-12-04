@@ -233,17 +233,15 @@ class FilesystemPublisher extends DataExtension {
 			$sanitizedURL = URLArrayObject::sanitize_url($url);
 			$response = Director::test(str_replace('+', ' ', $sanitizedURL));
 
-			// Prevent empty static cache files from being written
-			if (is_object($response) && !$response->getBody()) {
-				SS_Log::log(new Exception('Prevented blank static cache page write for: ' . $path), SS_Log::NOTICE);
-				continue;
-			}
-
-			if (!$response) continue;
-
 			if($response) {
 				$result[$origUrl]['statuscode'] = $response->getStatusCode();
 			}
+			else {
+				// If response object does not exist at all
+				SS_Log::log(new Exception('Response object does not exist for: ' . $path), SS_Log::NOTICE);
+				continue;
+			}
+
 			Requirements::clear();
 			
 			singleton('DataObject')->flushCache();
@@ -293,6 +291,12 @@ class FilesystemPublisher extends DataExtension {
 					sprintf("</html>\n\n<!-- %s -->", implode(" ", $this->getMetadata($url))),
 					$content
 				);
+			}
+
+			// Prevent empty static cache files from being written
+			if (empty($content)) {
+				SS_Log::log(new Exception('Prevented blank static cache page write for: ' . $path), SS_Log::NOTICE);
+				continue;
 			}
 
 			if (!$isErrorPage) {
