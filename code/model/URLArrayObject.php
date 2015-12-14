@@ -182,6 +182,8 @@ class URLArrayObject extends ArrayObject {
 		parse_str($query, $getVars);
 		unset($getVars['_ID'], $getVars['_ClassName']);
 		$sanitizedQuery = http_build_query($getVars);
-		return $urlPart . '?' . $sanitizedQuery;
+		
+		$sanitizedQuery = ($sanitizedQuery !== '') ? '?' . $sanitizedQuery : '';
+		return $urlPart . $sanitizedQuery;
 	}
 }
