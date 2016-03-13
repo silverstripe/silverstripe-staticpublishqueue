@@ -102,7 +102,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		foreach($pages as $page) {
 
 			if (is_callable(array($page, 'canCache')) && !$page->canCache()) {
-				$arrNonCachedPages[] =
+				$arrNonCachedPages[] = $page;
 				continue;
 			}
 
