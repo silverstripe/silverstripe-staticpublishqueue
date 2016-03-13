@@ -44,7 +44,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param SS_HTTPRequest $request
 	 * @return bool
 	 */
@@ -96,16 +96,30 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		$pages = $this->getAllLivePages()->sort('ID')->limit($chunkSize, $start);
 		$count = 0;
 
+		$arrNonCachedPages = array();
+
 		// Collect all URLs into the queue
 		foreach($pages as $page) {
-			
+
 			if (is_callable(array($page, 'canCache')) && !$page->canCache()) {
+				$arrNonCachedPages[] =
 				continue;
 			}
-				
+
 			if (is_callable(array($page, 'urlsToCache'))) {
 				$this->getUrlArrayObject()->addUrlsOnBehalf($page->urlsToCache(), $page);
 				$count++;
+			}
+		}
+
+		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
+		if ($publisher) {
+			foreach ($arrNonCachedPages as $page) {
+				$pathsArray = $publisher->urlsToPaths(array($page->Link()));
+				$filePath = $publisher->getDestDir() . '/' . array_shift($pathsArray);
+				@unlink($filePath);
+				$staleFilepath = str_replace(pathinfo($filePath, PATHINFO_EXTENSION), 'stale.html', $filePath);
+				@unlink($staleFilepath);
 			}
 		}
 
@@ -127,9 +141,9 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		$this->getUrlArrayObject()->addUrls($urls);
 		return true;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @return DataList
 	 */
 	protected function getAllLivePages() {
@@ -140,7 +154,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 		}
 		if(class_exists('Translatable')) {
 			Translatable::disable_locale_filter();
-		}		
+		}
 		Versioned::reading_stage('Live');
 		$pages = DataObject::get("SiteTree");
 		Versioned::set_reading_mode($oldMode);
