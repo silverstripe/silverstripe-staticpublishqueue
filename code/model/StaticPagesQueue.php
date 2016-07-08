@@ -56,6 +56,12 @@ class StaticPagesQueue extends DataObject {
 	 *
 	 * @var boolean
 	 */
+	private static $use_mysql_locks = true;
+
+	/**
+	 *
+	 * @var boolean
+	 */
 	private static $realtime = false;
 
 	/**
@@ -166,7 +172,7 @@ class StaticPagesQueue extends DataObject {
 			$filteredQuery = $query->filter($filterQuery)->sort($sortOrder);
 
 			if ($filteredQuery->Count() > 0) {
-				if (DB::getConn() instanceof MySQLDatabase) {   //locking currently only works on MySQL
+				if (self::config()->use_mysql_locks && DB::getConn() instanceof MySQLDatabase) {   //locking currently only works on MySQL
 
 					do {
 						$queueObject = $filteredQuery->limit(1, $offset)->first();   //get first item
