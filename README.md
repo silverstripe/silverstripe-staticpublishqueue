@@ -24,6 +24,10 @@ possible to cross the subsite boundary, e.g. by hitting `http://onesubsite.co.nz
 This will serve up the homepage of the second subsite on the first subsite's domain.
 </div>
 
+## Maintainers
+
+* Ed Linklater <ed@silverstripe.com>
+
 ## Requirements
 
 * SilverStripe 3.1
