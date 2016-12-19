@@ -166,38 +166,35 @@ class StaticPagesQueue extends DataObject {
 		$filterQuery = array("Freshness" => $freshness);
 		if ($interval) $filterQuery["LastEdited:LessThan"] = $interval;
 
-		$query = self::get();
-		if ($query->Count() > 0) {
-			$offset = 0;
-			$filteredQuery = $query->filter($filterQuery)->sort($sortOrder);
+        $offset = 0;
+        $filteredQuery = self::get()->filter($filterQuery)->sort($sortOrder);
 
-			if ($filteredQuery->Count() > 0) {
-				if (!self::config()->disable_mysql_locks && DB::getConn() instanceof MySQLDatabase) {   //locking currently only works on MySQL
+		$queueObject = $filteredQuery->first();
+        if ($queueObject) {
+            if (!self::config()->disable_mysql_locks && DB::getConn() instanceof MySQLDatabase) {   //locking currently only works on MySQL
 
-					do {
-						$queueObject = $filteredQuery->limit(1, $offset)->first();   //get first item
+                do {
+                    $queueObject = $filteredQuery->limit(1, $offset)->first();   //get first item
 
-						if ($queueObject) $lockName = md5($queueObject->URLSegment . $className);
-						//try to locking the item's URL, keep trying new URLs until we find one that is free to lock
-						$offset++;
-					} while($queueObject && !LockMySQL::isFreeToLock($lockName));
+                    if ($queueObject) $lockName = md5($queueObject->URLSegment . $className);
+                    //try to locking the item's URL, keep trying new URLs until we find one that is free to lock
+                    $offset++;
+                } while($queueObject && !LockMySQL::isFreeToLock($lockName));
 
-					if ($queueObject) {
-						$lockSuccess = LockMySQL::getLock($lockName);  //acquire a lock with the URL of the queue item we have just fetched
-						if ($lockSuccess) {
-							self::remove_duplicates($queueObject->ID);  //remove any duplicates
-							self::mark_as_regenerating($queueObject);   //mark as regenerating so nothing else grabs it
-							LockMySQL::releaseLock($lockName);			//return the object and release the lock
-						}
-					}
-				} else {
-					$queueObject = $filteredQuery->first();
-					self::remove_duplicates($queueObject->ID);
-					self::mark_as_regenerating($queueObject);
-				}
-			}
-		}
-
+                if ($queueObject) {
+                    $lockSuccess = LockMySQL::getLock($lockName);  //acquire a lock with the URL of the queue item we have just fetched
+                    if ($lockSuccess) {
+                        self::remove_duplicates($queueObject->ID);  //remove any duplicates
+                        self::mark_as_regenerating($queueObject);   //mark as regenerating so nothing else grabs it
+                        LockMySQL::releaseLock($lockName);			//return the object and release the lock
+                    }
+                }
+            } else {
+                self::remove_duplicates($queueObject->ID);
+                self::mark_as_regenerating($queueObject);
+            }
+        }
+		
 		return $queueObject;    //return the object or null
 	}
 
