@@ -146,6 +146,8 @@ class StaticPagesQueue extends DataObject {
 		if(!$url) return;
 		
 		$existingObject = self::get_by_link($url);
+        if(!$existingObject) return;
+        
 		$existingObject->Freshness = 'error';
 		$existingObject->write();
 	}
