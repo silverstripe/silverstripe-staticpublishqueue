@@ -1,0 +1,7 @@
+URLArrayObjectTestPage:
+  excluded:
+    URLSegment: exclude-from-cache
+    excludeFromCache: true
+  included:
+    URLSegment: include-in-cache
+    excludeFromCache: false
