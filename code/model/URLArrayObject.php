@@ -122,17 +122,18 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	protected function excludeFromCache($url) {
-		$excluded = false;
+		$candidatePage = $this->getObject($url);
 
-		//don't publish objects that are excluded from cache
-		$candidatePage = SiteTree::get_by_link($url);
-		if (!empty($candidatePage)) {
-			if (!empty($candidatePage->excludeFromCache)) {
-				$excluded = true;
-			}
+		if (empty($candidatePage)) {
+			$cleanUrl = $this->removeQueryStringFromUrl($url);
+			$candidatePage = SiteTree::get_by_link($cleanUrl);
 		}
 
-		return $excluded;
+		return !empty($candidatePage) && !empty($candidatePage->excludeFromCache);
+	}
+
+	private function removeQueryStringFromUrl($url) {
+		return strtok($url, '?');
 	}
 
 	/**
