@@ -8,7 +8,7 @@ class BuildStaticCacheSummary extends DataObject {
 
 	public static $db = array(
 		'Pages' => 'Int',
-		'TotalTime' => 'Int',
+		'TotalTime' => 'Float',
 		'AverageTime' => 'Float',
 		'MemoryUsage' => 'Float',
 		'PID' => 'Int',

@@ -55,7 +55,7 @@ class BuildStaticCacheSummaryReport extends SS_Report {
 
 			$sort = $field.' '.$direction;
 		} else {
-			$sort = $this->dataClass.'.ID DESC';
+			$sort = Convert::symbol2sql("$this->dataClass.ID").' DESC';
 		}
 
 		return DataObject::get($this->dataClass, "", $sort, null, $limit);
