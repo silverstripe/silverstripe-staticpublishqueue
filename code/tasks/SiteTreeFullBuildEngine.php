@@ -11,6 +11,12 @@ class SiteTreeFullBuildEngine extends BuildTask {
 	 */
 	protected $urlArrayObject;
 
+	/**
+	 * @var  php_command Command used to run php scripts
+	 * default is 'php'
+	 */
+	protected static $php_command = 'php';
+
 	private static $dependencies = array(
 		'urlArrayObject' =>  '%$URLArrayObject'
 	);
@@ -24,6 +30,13 @@ class SiteTreeFullBuildEngine extends BuildTask {
 	/** @var int - chunk size (set via config) */
 	private static $records_per_request = 200;
 
+
+	/**
+	 * Set the command used to execute php scripts by this class
+	 */
+	public static function set_php_command($cmd) {
+		self::$php_command = $cmd;
+	}
 
 	/**
 	 * Checks if this task is enabled / disabled via the config setting
@@ -44,7 +57,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param SS_HTTPRequest $request
 	 * @return bool
 	 */
@@ -76,9 +89,10 @@ class SiteTreeFullBuildEngine extends BuildTask {
 
 			$total = $this->getAllLivePages()->count();
 			echo "Adding all pages to the queue. Total: $total\n\n";
+			$php = self::$php_command;
 			for ($offset = 0; $offset < $total; $offset += self::config()->records_per_request) {
 				echo "$offset..";
-				$cmd = "php $script dev/tasks/$self start=$offset";
+				$cmd = "$php $script dev/tasks/$self start=$offset";
 				if($verbose) echo "\n  Running '$cmd'\n";
 				$res = $verbose ? passthru($cmd) : `$cmd`;
 				if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
@@ -137,7 +151,7 @@ class SiteTreeFullBuildEngine extends BuildTask {
 			Translatable::disable_locale_filter();
 		}		
 		Versioned::reading_stage('Live');
-		$pages = DataObject::get("SiteTree");
+		$pages = DataObject::get("SiteTree")->sort('LastEdited');
 		Versioned::set_reading_mode($oldMode);
 		return $pages;
 	}
