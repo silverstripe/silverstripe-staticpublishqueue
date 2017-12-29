@@ -1,12 +1,20 @@
 {
 	"name": "silverstripe/staticpublishqueue",
 	"description": "Static publishing queue to create static versions of pages for enhanced performance and security",
-	"type": "silverstripe-module",
+	"type": "silverstripe-vendormodule",
 	"keywords": ["silverstripe", "static", "html", "security", "performance", "static-publishing", "caching", "cache", "static-caching", "static-cache", "queue", "publishing"],
 	"require": {
-		"silverstripe/framework": "^3.1.0",
-		"silverstripe/cms": "^3.1.0",
-		"silverstripe/gridfieldajaxrefresh": "dev-master"
+		"silverstripe/framework": "^4",
+		"silverstripe/cms": "^4",
+		"symbiote/silverstripe-queuedjobs": "^4.1"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^5"
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "4.x-dev"
+		}
 	},
 	"minimum-stability": "dev"
 }
