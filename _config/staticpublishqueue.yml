@@ -1,7 +1,13 @@
 ---
 Name: staticpublishqueue
-After: 'framework/*','cms/*'
 ---
-FilesystemPublisher:
+SilverStripe\StaticPublishQueue\Extension\Publisher\FilesystemPublisher:
   include_caching_metadata: true
   disable_realtime: true
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\StaticPublishQueue\Publisher:
+    class: SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher
+SilverStripe\CMS\Model\SiteTree:
+  extensions:
+    - SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine
+    - SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree
