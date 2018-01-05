@@ -45,12 +45,14 @@ class FilesystemPublisher extends Publisher
     {
         $fileExtension = strtolower($fileExtension);
         if (!in_array($fileExtension, ['html', 'php'])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Bad file extension "%s" passed to %s::%s',
-                $fileExtension,
-                static::class,
-                __FUNCTION__
-            ));
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Bad file extension "%s" passed to %s::%s',
+                    $fileExtension,
+                    static::class,
+                    __FUNCTION__
+                )
+            );
         }
         $this->fileExtension = $fileExtension;
         return $this;
@@ -95,7 +97,7 @@ class FilesystemPublisher extends Publisher
 
     /**
      * @param HTTPResponse $response
-     * @param string $url
+     * @param string       $url
      * @return bool
      */
     protected function publishRedirect($response, $url)
@@ -106,20 +108,20 @@ class FilesystemPublisher extends Publisher
             $content = $this->generatePHPCacheRedirection($location, $response->getStatusCode());
         } else {
             $absoluteURL = Convert::raw2htmlatt(Director::absoluteURL($location));
-            $content = "<html><head><meta http-equiv=\"refresh\" content=\"2; URL=$absoluteURL\"></head><body></body></html>";
+            $content = $this->generateHTMLCacheRedirection($absoluteURL);
         }
         return $this->saveToPath($content, $path);
     }
 
     /**
      * @param HTTPResponse $response
-     * @param string $url
+     * @param string       $url
      * @return bool
      */
     protected function publishErrorPage($response, $url)
     {
         $path = $this->URLtoPath($url);
-        $path = dirname($path) . DIRECTORY_SEPARATOR . 'error-' . $response->getStatusCode() . '.' . $this->getFileExtension();
+        $path = dirname($path).DIRECTORY_SEPARATOR.'error-'.$response->getStatusCode().'.'.$this->getFileExtension();
         if ($this->getFileExtension() === 'php') {
             $content = $this->generatePHPCacheFile(
                 $response->getBody(),
@@ -136,7 +138,7 @@ class FilesystemPublisher extends Publisher
 
     /**
      * @param HTTPResponse $response
-     * @param string $url
+     * @param string       $url
      * @return bool
      */
     protected function publishPage($response, $url)
@@ -200,7 +202,11 @@ class FilesystemPublisher extends Publisher
                 $filename = $urlParts['host'] . '/' . $filename;
             }
         }
-
-        return ((dirname($filename) == '/') ? '' : (dirname($filename) . '/')) . basename($filename);
+        $dirName = dirname($filename);
+        $prefix = '';
+        if ($dirName != '/' && $dirName != '.') {
+            $prefix = $dirName . '/';
+        }
+        return $prefix . basename($filename);
     }
 }

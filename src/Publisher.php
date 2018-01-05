@@ -73,7 +73,8 @@ abstract class Publisher implements StaticPublisher
         }
         try {
             // try to add all the server vars that would be needed to create a static cache
-            $request = HTTPRequestBuilder::createFromVariables([
+            $request = HTTPRequestBuilder::createFromVariables(
+                [
                 '_SERVER' => [
                     'REQUEST_URI' => isset($urlParts['path']) ? $urlParts['path'] : '',
                     'REQUEST_METHOD' => 'GET',
@@ -87,7 +88,9 @@ abstract class Publisher implements StaticPublisher
                 ],
                 '_GET' => $getVars,
                 '_POST' => [],
-            ], '');
+                ],
+                ''
+            );
             $kernel = new CoreKernel(BASE_PATH);
             $app = new HTTPApplication($kernel);
             $response = $app->handle($request);
@@ -110,7 +113,7 @@ abstract class Publisher implements StaticPublisher
      * @param string $age
      * @param string $lastModified
      * @param string $contentType
-     * @param int $statusCode
+     * @param int    $statusCode
      *
      * @return string
      */
@@ -143,6 +146,23 @@ abstract class Publisher implements StaticPublisher
         return str_replace(
             array('**DESTINATION**', '**STATUS_CODE**'),
             array($destination, $statusCode),
+            $template
+        );
+    }
+
+    /**
+     * @param string $destination
+     * @return string
+     */
+    protected function generateHTMLCacheRedirection($destination)
+    {
+        $templateResource = ModuleLoader::getModule('silverstripe/staticpublishqueue')
+            ->getResource('templates/CachedHTMLRedirection.tmpl');
+        $template = file_get_contents($templateResource->getPath());
+
+        return str_replace(
+            ['**DESTINATION**'],
+            [$destination],
             $template
         );
     }

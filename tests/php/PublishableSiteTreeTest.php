@@ -15,12 +15,6 @@ class PublishableSiteTreeTest extends SapphireTest
         PublishablePage::class => array(PublishableSiteTree::class)
     );
 
-    protected function setUp()
-    {
-        parent::setUp();
-        Config::modify()->set(StaticPagesQueue::class, 'realtime', true);
-    }
-
     public function testObjectsToUpdateOnPublish()
     {
         $parent = PublishablePage::create();

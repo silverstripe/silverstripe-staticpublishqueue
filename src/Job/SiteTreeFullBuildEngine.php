@@ -208,11 +208,11 @@ class SiteTreeFullBuildEngine implements QueuedJob
      *
      * is an inverse of the getJobData() method, but being explicit about what data is set
      *
-     * @param int $totalSteps
-     * @param int $currentStep
-     * @param boolean $isComplete
+     * @param int       $totalSteps
+     * @param int       $currentStep
+     * @param boolean   $isComplete
      * @param \stdClass $jobData
-     * @param array $messages
+     * @param array     $messages
      *
      * @see QueuedJob::getJobData();
      */

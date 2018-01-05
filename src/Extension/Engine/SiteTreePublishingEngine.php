@@ -106,8 +106,7 @@ class SiteTreePublishingEngine extends DataExtension
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
 
-        if (
-            $this->getOwner()->hasExtension(PublishableSiteTree::class)
+        if ($this->getOwner()->hasExtension(PublishableSiteTree::class)
             || $this->getOwner() instanceof StaticPublishingTrigger
         ) {
             $toUpdate = $this->getOwner()->objectsToUpdate($context);
@@ -141,78 +140,6 @@ class SiteTreePublishingEngine extends DataExtension
             }
             $this->toDelete = array();
         }
-    }
-
-    /**
-     * Converts the array of urls into an array of paths.
-     *
-     * This function is subsite-aware: these files could either sit in the top-level cache (no subsites),
-     * or sit in the subdirectories (main site and subsites).
-     *
-     * See BuildStaticCacheFromQueue::createCachedFiles for similar subsite-specific conditional handling.
-     *
-     * @TODO: this function tries to interface with dowstream FilesystemPublisher::urlsToPaths and fool it
-     * to work with Subsites. Ideally these two would be merged together to reduce complexity.
-     *
-     * @param array $queue An array of URLs to generate paths for.
-     *
-     * @returns StaticPagesQueue[] Map of url => path
-     */
-    public function convertUrlsToPathMap($queue)
-    {
-
-        // Inject static objects.
-        $director = Injector::inst()->get(Director::class);
-
-        $pathMap = array();
-        foreach ($queue as $item) {
-            /** @var DataObject $obj */
-            $obj = $item->CacheObject();
-            if (!$obj || !$obj->exists() || !$obj->hasExtension('SiteTreeSubsites')) {
-                // Normal processing for files directly in the cache folder.
-                $pathMap = array_merge($pathMap, $this->getOwner()->urlsToPaths(array($item->URLSegment)));
-            } else {
-                // Subsites support detected: figure out all files to delete in subdirectories.
-
-                Config::nest();
-
-                // Subsite page requested. Change behaviour to publish into directory.
-                // @todo - avoid modifying config at run time
-                Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', true);
-
-                // Pop the base-url segment from the url.
-                if (strpos($item->URLSegment, '/') === 0) {
-                    $cleanUrl = $director::makeRelative($item->URLSegment);
-                } else {
-                    $cleanUrl = $director::makeRelative('/' . $item->URLSegment);
-                }
-
-                // @todo all subsite integration
-                $subsite = $obj->Subsite();
-                if (!$subsite || !$subsite->ID) {
-                    // Main site page - but publishing into subdirectory.
-                    $staticBaseUrl = Config::inst()->get(FilesystemPublisher::class, 'static_base_url');
-                    $pathMap = array_merge(
-                        $pathMap,
-                        $this->owner->urlsToPaths(array($staticBaseUrl . '/' . $cleanUrl))
-                    );
-                } else {
-                    // Subsite page. Generate all domain variants registered with the subsite.
-                    foreach ($subsite->Domains() as $domain) {
-                        $pathMap = array_merge(
-                            $pathMap,
-                            $this->owner->urlsToPaths(
-                                array('http://' . $domain->Domain . $director::baseURL() . $cleanUrl)
-                            )
-                        );
-                    }
-                }
-
-                Config::unnest();
-            }
-        }
-
-        return $pathMap;
     }
 
     /**

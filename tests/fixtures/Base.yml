@@ -1,0 +1,32 @@
+SilverStripe\CMS\Model\SiteTree:
+  top1:
+    Title: top1
+  top2:
+    Title: top2
+  top3:
+    Title: top3
+  child1:
+    Title: child1
+    Parent: =>SilverStripe\CMS\Model\SiteTree.top1
+  child2:
+    Title: child2
+    Parent: =>SilverStripe\CMS\Model\SiteTree.top2
+  childchild1:
+    Title: childchild1
+    Parent: =>SilverStripe\CMS\Model\SiteTree.child1
+  childchild2:
+    Title: childchild2
+    Parent: =>SilverStripe\CMS\Model\SiteTree.child2
+  childchildchild1:
+    Title: childchildchild1
+    Parent: =>SilverStripe\CMS\Model\SiteTree.childchild1
+SilverStripe\CMS\Model\RedirectorPage:
+  redirector1:
+    Title: redirect1
+    Parent: =>SilverStripe\CMS\Model\SiteTree.childchild2
+    LinkTo: =>SilverStripe\CMS\Model\SiteTree.top2
+SilverStripe\CMS\Model\VirtualPage:
+  virtual1:
+    Title: virtual1
+    Parent: =>SilverStripe\CMS\Model\SiteTree.childchildchild1
+    CopyContentFrom: =>SilverStripe\CMS\Model\SiteTree.top3

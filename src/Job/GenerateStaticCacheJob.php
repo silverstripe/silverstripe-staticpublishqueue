@@ -72,15 +72,16 @@ class GenerateStaticCacheJob extends AbstractQueuedJob
 
     public function setObject(DataObject $object, $name = 'Object')
     {
-        if (
-            !$object->hasExtension(PublishableSiteTree::class)
+        if (!$object->hasExtension(PublishableSiteTree::class)
             && !$object instanceof StaticallyPublishable
         ) {
-            throw new \InvalidArgumentException(sprintf(
-                'Object of type "%s" does not implement "%s" interface',
-                get_class($object),
-                StaticallyPublishable::class
-            ));
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Object of type "%s" does not implement "%s" interface',
+                    get_class($object),
+                    StaticallyPublishable::class
+                )
+            );
         }
         parent::setObject($object, $name);
     }
