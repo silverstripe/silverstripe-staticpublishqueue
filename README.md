@@ -30,7 +30,7 @@ This will serve up the homepage of the second subsite on the first subsite's dom
 
 ## Requirements
 
-* SilverStripe 3.1
+* SilverStripe 4
 
 ## Essential configuration guide
 

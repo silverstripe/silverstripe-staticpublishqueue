@@ -13,7 +13,9 @@ use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublisher;
+use SilverStripe\View\ArrayData;
 use SilverStripe\View\Requirements;
 use SilverStripe\View\Requirements_Backend;
 use SilverStripe\View\SSViewer;
@@ -109,24 +111,24 @@ abstract class Publisher implements StaticPublisher
      * Generate the templated content for a PHP script that can serve up the
      * given piece of content with the given age and expiry.
      *
-     * @param string $content
-     * @param string $age
-     * @param string $lastModified
-     * @param string $contentType
-     * @param int    $statusCode
+     * @param HTTPResponse $response
      *
      * @return string
      */
-    protected function generatePHPCacheFile($content, $age, $lastModified, $contentType, $statusCode)
+    protected function generatePHPCacheFile($response)
     {
-        $templateResource = ModuleLoader::getModule('silverstripe/staticpublishqueue')
-            ->getResource('templates/CachedPHPPage.tmpl');
-        $template = file_get_contents($templateResource->getPath());
-        return str_replace(
-            array('**MAX_AGE**', '**LAST_MODIFIED**', '**CONTENT**', '**CONTENT_TYPE**', '**RESPONSE_CODE**'),
-            array((int)$age, $lastModified, $content, $contentType, $statusCode),
-            $template
-        );
+        $cacheConfig = [
+            'responseCode' => $response->getStatusCode(),
+            'headers' => [],
+        ];
+
+        foreach ($response->getHeaders() as $header => $value) {
+            if (!in_array($header, [ 'cache-control' ])) {
+                $cacheConfig['headers'][] = sprintf('%s: %s', $header, $value);
+            }
+        }
+
+        return "<?php\n\nreturn " . var_export($cacheConfig, true) . ';';
     }
 
     /**
@@ -156,26 +158,11 @@ abstract class Publisher implements StaticPublisher
      */
     protected function generateHTMLCacheRedirection($destination)
     {
-        $templateResource = ModuleLoader::getModule('silverstripe/staticpublishqueue')
-            ->getResource('templates/CachedHTMLRedirection.tmpl');
-        $template = file_get_contents($templateResource->getPath());
-
-        return str_replace(
-            ['**DESTINATION**'],
-            [$destination],
-            $template
-        );
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return array
-     */
-    public function getMetadata($url)
-    {
-        return array(
-            'Cache generated on ' . date('Y-m-d H:i:s T (O)', DBDatetime::now()->getTimestamp())
+        return SSViewer::execute_template(
+            'SilverStripe\\StaticPublishQueue\\HTMLRedirection',
+            ArrayData::create([
+                'URL' => DBField::create_field('Varchar', $destination),
+            ])
         );
     }
 }

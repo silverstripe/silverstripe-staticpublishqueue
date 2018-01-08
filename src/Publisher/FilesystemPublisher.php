@@ -73,9 +73,10 @@ class FilesystemPublisher extends Publisher
             user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
             return;
         }
+        $success = false;
         $response = $this->generatePageResponse($url);
         $statusCode = $response->getStatusCode();
-        $doPublish = $forcePublish || $statusCode < 400;
+        $doPublish = ($forcePublish && $this->getFileExtension() == 'php') || $statusCode < 400;
 
         if ($statusCode < 300) {
             // publish success response
@@ -84,7 +85,7 @@ class FilesystemPublisher extends Publisher
             // publish redirect response
             $success = $this->publishRedirect($response, $url);
         } elseif ($doPublish) {
-            // publish error page
+            // only publish error pages if we are able to send status codes via PHP
             $success = $this->publishPage($response, $url);
         }
         return [
@@ -102,38 +103,14 @@ class FilesystemPublisher extends Publisher
      */
     protected function publishRedirect($response, $url)
     {
+        $success = true;
         $path = $this->URLtoPath($url);
         $location = $response->getHeader('Location');
         if ($this->getFileExtension() === 'php') {
-            $content = $this->generatePHPCacheRedirection($location, $response->getStatusCode());
-        } else {
-            $absoluteURL = Convert::raw2htmlatt(Director::absoluteURL($location));
-            $content = $this->generateHTMLCacheRedirection($absoluteURL);
+            $phpContent = $this->generatePHPCacheFile($response);
+            $success = $this->saveToPath($phpContent, $path . '.php');
         }
-        return $this->saveToPath($content, $path);
-    }
-
-    /**
-     * @param HTTPResponse $response
-     * @param string       $url
-     * @return bool
-     */
-    protected function publishErrorPage($response, $url)
-    {
-        $path = $this->URLtoPath($url);
-        $path = dirname($path).DIRECTORY_SEPARATOR.'error-'.$response->getStatusCode().'.'.$this->getFileExtension();
-        if ($this->getFileExtension() === 'php') {
-            $content = $this->generatePHPCacheFile(
-                $response->getBody(),
-                HTTP::get_cache_age(),
-                date('Y-m-d H:i:s', DBDatetime::now()->getTimestamp()),
-                $response->getHeader('Content-Type'),
-                $response->getStatusCode()
-            );
-        } else {
-            $content = $response->getBody();
-        }
-        return $this->saveToPath($content, $path);
+        return $this->saveToPath($this->generateHTMLCacheRedirection($location), $path . '.html') && $success;
     }
 
     /**
@@ -143,19 +120,13 @@ class FilesystemPublisher extends Publisher
      */
     protected function publishPage($response, $url)
     {
+        $success = true;
         $path = $this->URLtoPath($url);
         if ($this->getFileExtension() === 'php') {
-            $content = $this->generatePHPCacheFile(
-                $response->getBody(),
-                HTTP::get_cache_age(),
-                date('Y-m-d H:i:s', DBDatetime::now()->getTimestamp()),
-                $response->getHeader('Content-Type'),
-                $response->getStatusCode()
-            );
-        } else {
-            $content = $response->getBody();
+            $phpContent = $this->generatePHPCacheFile($response);
+            $success = $this->saveToPath($phpContent, $path . '.php');
         }
-        return $this->saveToPath($content, $path);
+        return $this->saveToPath($response->getBody(), $path . '.html') && $success;
     }
 
     /**
@@ -190,9 +161,8 @@ class FilesystemPublisher extends Publisher
 
         // Normalize URLs
         $urlSegment = trim($urlSegment, '/');
-        $extension = $this->getFileExtension();
 
-        $filename = $urlSegment ? "$urlSegment.$extension" : "index.$extension";
+        $filename = $urlSegment ?: "index";
 
         if (FilesystemPublisher::config()->get('domain_based_caching')) {
             if (!$urlParts) {
