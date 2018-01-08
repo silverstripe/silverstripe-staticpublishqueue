@@ -3,6 +3,7 @@
 namespace SilverStripe\StaticPublishQueue\Test;
 
 use SilverStripe\Assets\Filesystem;
+use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
@@ -16,7 +17,7 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
 /**
  * Tests for the {@link FilesystemPublisher} class.
  *
- * @package staticpublisher
+ * @package staticpublishqueue
  */
 class FilesystemPublisherTest extends SapphireTest
 {
@@ -176,7 +177,7 @@ class FilesystemPublisherTest extends SapphireTest
         }
     }
 
-    public function testContentTypeHTML()
+    public function testOnlyHTML()
     {
         $this->logInWithPermission('ADMIN');
 
@@ -197,6 +198,98 @@ class FilesystemPublisherTest extends SapphireTest
             "<div class=\"statically-published\" style=\"display: none\"></div>",
             trim(file_get_contents($staticFilePath.'.html'))
         );
+        if (file_exists($fsp->getDestPath())) {
+            Filesystem::removeFolder($fsp->getDestPath());
+        }
+    }
+
+    public function testNoErrorPagesWhenHTMLOnly()
+    {
+        $this->logInWithPermission('ADMIN');
+
+        $fsp = FilesystemPublisher::create()
+            ->setFileExtension('html')
+            ->setDestFolder('cache/testing/');
+        $fsp->publishURL('not_really_there', true);
+        $this->assertFileNotExists($fsp->getDestPath() . 'not_really_there.html');
+        $this->assertFileNotExists($fsp->getDestPath() . 'not_really_there.php');
+
+        if (file_exists($fsp->getDestPath())) {
+            Filesystem::removeFolder($fsp->getDestPath());
+        }
+    }
+
+    public function testErrorPageWhenPHP()
+    {
+        $this->logInWithPermission('ADMIN');
+
+        $fsp = FilesystemPublisher::create()
+            ->setDestFolder('cache/testing/');
+        $fsp->publishURL('not_really_there', true);
+        $this->assertFileExists($fsp->getDestPath() . 'not_really_there.html');
+        $this->assertFileExists($fsp->getDestPath() . 'not_really_there.php');
+        $phpCacheConfig = require $fsp->getDestPath() . 'not_really_there.php';
+        $this->assertEquals(404, $phpCacheConfig['responseCode']);
+
+        if (file_exists($fsp->getDestPath())) {
+            Filesystem::removeFolder($fsp->getDestPath());
+        }
+    }
+
+    public function testRedirectorPageWhenPHP()
+    {
+        $this->logInWithPermission('ADMIN');
+
+        $fsp = FilesystemPublisher::create()
+            ->setDestFolder('cache/testing/');
+        $redirectorPage = RedirectorPage::create();
+        $redirectorPage->URLSegment = 'somewhere-else';
+        $redirectorPage->RedirectionType = 'External';
+        $redirectorPage->ExternalURL = 'silverstripe.org';
+        $redirectorPage->write();
+        $redirectorPage->publishRecursive();
+
+        $fsp->publishURL('somewhere-else', true);
+
+        $this->assertFileExists($fsp->getDestPath() . 'somewhere-else.html');
+        $this->assertContains(
+            'Click this link if your browser does not redirect you',
+            file_get_contents($fsp->getDestPath() . 'somewhere-else.html')
+        );
+        $this->assertFileExists($fsp->getDestPath() . 'somewhere-else.php');
+        $phpCacheConfig = require $fsp->getDestPath() . 'somewhere-else.php';
+        $this->assertEquals(301, $phpCacheConfig['responseCode']);
+        $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
+
+        if (file_exists($fsp->getDestPath())) {
+            Filesystem::removeFolder($fsp->getDestPath());
+        }
+    }
+
+    public function testRedirectorPageWhenHTMLOnly()
+    {
+        $this->logInWithPermission('ADMIN');
+
+        $fsp = FilesystemPublisher::create()
+            ->setFileExtension('html')
+            ->setDestFolder('cache/testing/');
+
+        $redirectorPage = RedirectorPage::create();
+        $redirectorPage->URLSegment = 'somewhere-else';
+        $redirectorPage->RedirectionType = 'External';
+        $redirectorPage->ExternalURL = 'silverstripe.org';
+        $redirectorPage->write();
+        $redirectorPage->publishRecursive();
+
+        $fsp->publishURL('somewhere-else', true);
+
+        $this->assertFileExists($fsp->getDestPath() . 'somewhere-else.html');
+        $this->assertContains(
+            'Click this link if your browser does not redirect you',
+            file_get_contents($fsp->getDestPath() . 'somewhere-else.html')
+        );
+        $this->assertFileNotExists($fsp->getDestPath() . 'somewhere-else.php');
+
         if (file_exists($fsp->getDestPath())) {
             Filesystem::removeFolder($fsp->getDestPath());
         }
