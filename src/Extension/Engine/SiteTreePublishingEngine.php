@@ -136,51 +136,15 @@ class SiteTreePublishingEngine extends DataExtension
             foreach ($this->toDelete as $queueItem) {
                 $job = new DeleteStaticCacheJob();
                 $job->setObject($queueItem);
+
+                $jobData = new \stdClass();
+                $jobData->URLsToProcess = $job->findAffectedURLs();
+
+                $job->setJobData(0, 0, false, $jobData, []);
+
                 $queue->queueJob($job);
             }
             $this->toDelete = array();
-        }
-    }
-
-    /**
-     * Remove the stale variants of the cache files.
-     *
-     * @param array $paths List of paths relative to the cache root.
-     */
-    public function deleteStaleFiles($paths)
-    {
-        foreach ($paths as $path) {
-            // Delete the "stale" file.
-            $lastDot = strrpos($path, '.'); //find last dot
-            if ($lastDot !== false) {
-                $stalePath = substr($path, 0, $lastDot) . '.stale' . substr($path, $lastDot);
-                $this->owner->deleteFromCacheDir($stalePath);
-            }
-        }
-    }
-
-    /**
-     * Remove the cache files.
-     *
-     * @param array $paths List of paths relative to the cache root.
-     */
-    public function deleteRegularFiles($paths)
-    {
-        foreach ($paths as $path) {
-            $this->owner->deleteFromCacheDir($path);
-        }
-    }
-
-    /**
-     * Helper method for deleting existing files in the cache directory.
-     *
-     * @param string $path Path relative to the cache root.
-     */
-    public function deleteFromCacheDir($path)
-    {
-        $cacheBaseDir = $this->owner->getDestDir();
-        if (file_exists($cacheBaseDir . '/' . $path)) {
-            @unlink($cacheBaseDir . '/' . $path);
         }
     }
 }

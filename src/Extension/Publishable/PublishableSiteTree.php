@@ -4,7 +4,6 @@ namespace SilverStripe\StaticPublishQueue\Extension\Publishable;
 
 use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\VirtualPage;
-use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
@@ -29,26 +28,26 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
     /**
      * @param array $context
-     * @return ArrayList
+     * @return array
      */
     public function objectsToUpdate($context)
     {
-        $list = ArrayList::create();
+        $list = [];
         switch ($context['action']) {
             case 'publish':
                 // Trigger refresh of the page itself.
-                $list->push($this->getOwner());
+                $list[] = $this->getOwner();
 
                 // Refresh the parent.
                 if ($this->getOwner()->ParentID) {
-                    $list->push($this->getOwner()->Parent());
+                    $list[] = $this->getOwner()->Parent();
                 }
 
                 // Refresh related virtual pages.
                 $virtuals = $this->getOwner()->getMyVirtualPages();
                 if ($virtuals->exists()) {
                     foreach ($virtuals as $virtual) {
-                        $list->push($virtual);
+                        $list[] = $virtual;
                     }
                 }
                 break;
@@ -56,7 +55,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             case 'unpublish':
                 // Refresh the parent
                 if ($this->owner->ParentID) {
-                    $list->push($this->owner->Parent());
+                    $list[] = $this->owner->Parent();
                 }
                 break;
         }
@@ -65,21 +64,21 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
     /**
      * @param array $context
-     * @return ArrayList
+     * @return array
      */
     public function objectsToDelete($context)
     {
-        $list = ArrayList::create();
+        $list = [];
         switch ($context['action']) {
             case 'unpublish':
                 // Trigger cache removal for this page.
-                $list->push($this->getOwner());
+                $list[] = $this->getOwner();
 
                 // Trigger removal of the related virtual pages.
                 $virtuals = $this->getOwner()->getMyVirtualPages();
                 if ($virtuals->exists()) {
                     foreach ($virtuals as $virtual) {
-                        $list->push($virtual);
+                        $list[] = $virtual;
                     }
                 }
                 break;

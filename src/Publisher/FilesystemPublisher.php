@@ -63,6 +63,21 @@ class FilesystemPublisher extends Publisher
         return $this->fileExtension;
     }
 
+    public function purgeURL($url)
+    {
+        if (!$url) {
+            user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
+            return;
+        }
+        $path = $this->URLtoPath($url);
+        $success = $this->deleteFromPath($path . '.html') && $this->deleteFromPath($path . '.php');
+        return [
+            'success' => $success,
+            'url' => $url,
+            'path' => $this->getDestPath() . DIRECTORY_SEPARATOR . $path,
+        ];
+    }
+
     /**
      * @param string $url
      * @return array A result array
@@ -142,6 +157,18 @@ class FilesystemPublisher extends Publisher
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
         Filesystem::makeFolder(dirname($publishPath));
         return file_put_contents($publishPath, $content) !== false;
+    }
+
+    protected function deleteFromPath($filePath)
+    {
+        $deletePath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
+        if (file_exists($deletePath)) {
+            $success = unlink($deletePath);
+        } else {
+            $success = true;
+        }
+        Filesystem::remove_folder_if_empty(dirname($deletePath));
+        return $success;
     }
 
     protected function URLtoPath($url)
