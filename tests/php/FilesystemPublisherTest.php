@@ -46,20 +46,20 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath = $reflection->getMethod('URLtoPath');
         $urlToPath->setAccessible(true);
 
-        $fsp = FilesystemPublisher::create()->setFileExtension('html');
+        $fsp = FilesystemPublisher::create();
 
         $this->assertEquals(
-            'index.html',
+            'index',
             $urlToPath->invokeArgs($fsp, ['/'])
         );
 
         $this->assertEquals(
-            'about-us.html',
+            'about-us',
             $urlToPath->invokeArgs($fsp, ['about-us'])
         );
 
         $this->assertEquals(
-            'parent/child.html',
+            'parent/child',
             $urlToPath->invokeArgs($fsp, ['parent/child'])
         );
     }
@@ -70,23 +70,23 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath = $reflection->getMethod('URLtoPath');
         $urlToPath->setAccessible(true);
 
-        $fsp = FilesystemPublisher::create()->setFileExtension('html');
+        $fsp = FilesystemPublisher::create();
 
         $url = Director::absoluteBaseUrl();
         $this->assertEquals(
-            'index.html',
+            'index',
             $urlToPath->invokeArgs($fsp, [$url])
         );
 
         $url = Director::absoluteBaseUrl() . 'about-us';
         $this->assertEquals(
-            'about-us.html',
+            'about-us',
             $urlToPath->invokeArgs($fsp, [$url])
         );
 
         $url = Director::absoluteBaseUrl() . 'parent/child';
         $this->assertEquals(
-            'parent/child.html',
+            'parent/child',
             $urlToPath->invokeArgs($fsp, [$url])
         );
     }
@@ -103,19 +103,19 @@ class FilesystemPublisherTest extends SapphireTest
 
         $url = 'http://domain1.com/';
         $this->assertEquals(
-            'domain1.com/index.html',
+            'domain1.com/index',
             $urlToPath->invokeArgs($fsp, [$url])
         );
 
         $url = 'http://domain1.com/about-us';
         $this->assertEquals(
-            'domain1.com/about-us.html',
+            'domain1.com/about-us',
             $urlToPath->invokeArgs($fsp, [$url])
         );
 
         $url = 'http://domain2.com/parent/child';
         $this->assertEquals(
-            'domain2.com/parent/child.html',
+            'domain2.com/parent/child',
             $urlToPath->invokeArgs($fsp, [$url])
         );
     }
@@ -148,13 +148,14 @@ class FilesystemPublisherTest extends SapphireTest
         $fsp->publishURL($level2_1->Link(), true);
         $static2_1FilePath = $fsp->getDestPath().$urlToPath->invokeArgs($fsp, [$level2_1->Link()]);
 
-        $this->assertFileExists($static2_1FilePath);
+        $this->assertFileExists($static2_1FilePath.'.html');
+        $this->assertFileExists($static2_1FilePath.'.php');
         $this->assertContains(
             'current',
-            file_get_contents($static2_1FilePath)
+            file_get_contents($static2_1FilePath.'.html')
         );
 
-        $level2_2 = new StaticPublisherTestPage();
+        $level2_2 = StaticPublisherTestPage::create();
         $level2_2->URLSegment = 'test-level-2-2';
         $level2_2->ParentID = $level1->ID;
         $level2_2->write();
@@ -163,10 +164,11 @@ class FilesystemPublisherTest extends SapphireTest
         $fsp->publishURL($level2_2->Link(), true);
         $static2_2FilePath = $fsp->getDestPath().$urlToPath->invokeArgs($fsp, [$level2_2->Link()]);
 
-        $this->assertFileExists($static2_2FilePath);
+        $this->assertFileExists($static2_2FilePath.'.html');
+        $this->assertFileExists($static2_2FilePath.'.php');
         $this->assertContains(
             'linkcurrent',
-            file_get_contents($static2_2FilePath)
+            file_get_contents($static2_2FilePath.'.html')
         );
 
         if (file_exists($fsp->getDestPath())) {
@@ -181,18 +183,19 @@ class FilesystemPublisherTest extends SapphireTest
         $fsp = FilesystemPublisher::create()
             ->setFileExtension('html')
             ->setDestFolder('cache/testing/');
-        $level1 = new StaticPublisherTestPage();
+        $level1 = StaticPublisherTestPage::create();
         $level1->URLSegment = 'mimetype';
         $level1->write();
         $level1->publishRecursive();
 
         $fsp->publishURL($level1->Link(), true);
-        $staticFilePath = $fsp->getDestPath().'mimetype.html';
+        $staticFilePath = $fsp->getDestPath().'mimetype';
 
-        $this->assertFileExists($staticFilePath);
+        $this->assertFileExists($staticFilePath.'.html');
+        $this->assertFileNotExists($staticFilePath.'.php');
         $this->assertEquals(
             "<div class=\"statically-published\" style=\"display: none\"></div>",
-            trim(file_get_contents($staticFilePath))
+            trim(file_get_contents($staticFilePath.'.html'))
         );
         if (file_exists($fsp->getDestPath())) {
             Filesystem::removeFolder($fsp->getDestPath());
