@@ -15,13 +15,6 @@ class DeleteStaticCacheJob extends Job
         return 'Remove a set of static pages from the cache';
     }
 
-    public function setup()
-    {
-        parent::setup();
-        $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
-        $this->addMessage('Purging URLS ' . var_export(array_keys($this->URLsToProcess), true));
-    }
-
     /**
      * Do some processing yourself!
      */

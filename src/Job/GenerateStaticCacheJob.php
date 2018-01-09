@@ -15,15 +15,6 @@ class GenerateStaticCacheJob extends Job
         return 'Generate a set of static pages from URLs';
     }
 
-    public function setup()
-    {
-        parent::setup();
-        $this->URLsToProcess = $this->findAffectedURLs();
-        $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
-        $this->addMessage('Building for ' . (string)$this->getObject());
-        $this->addMessage('Building URLS ' . var_export(array_keys($this->URLsToProcess), true));
-    }
-
     /**
      * Do some processing yourself!
      */
