@@ -203,6 +203,48 @@ class FilesystemPublisherTest extends SapphireTest
         }
     }
 
+    public function testPurgeURL()
+    {
+        $this->logInWithPermission('ADMIN');
+
+        $fsp = FilesystemPublisher::create()
+            ->setDestFolder('cache/testing/');
+        $level1 = StaticPublisherTestPage::create();
+        $level1->URLSegment = 'to-be-purged';
+        $level1->write();
+        $level1->publishRecursive();
+
+        $fsp->publishURL('to-be-purged', true);
+        $this->assertFileExists($fsp->getDestPath().'to-be-purged.html');
+        $this->assertFileExists($fsp->getDestPath().'to-be-purged.php');
+
+        $fsp->purgeURL('to-be-purged');
+        $this->assertFileNotExists($fsp->getDestPath().'to-be-purged.html');
+        $this->assertFileNotExists($fsp->getDestPath().'to-be-purged.php');
+    }
+
+    public function testPurgeURLAfterSwitchingExtensions()
+    {
+        $this->logInWithPermission('ADMIN');
+
+        $fsp = FilesystemPublisher::create()
+            ->setDestFolder('cache/testing/');
+        $level1 = StaticPublisherTestPage::create();
+        $level1->URLSegment = 'purge-me';
+        $level1->write();
+        $level1->publishRecursive();
+
+        $fsp->publishURL('purge-me', true);
+        $this->assertFileExists($fsp->getDestPath().'purge-me.html');
+        $this->assertFileExists($fsp->getDestPath().'purge-me.php');
+
+        $fsp->setFileExtension('html');
+
+        $fsp->purgeURL('purge-me');
+        $this->assertFileNotExists($fsp->getDestPath().'purge-me.html');
+        $this->assertFileNotExists($fsp->getDestPath().'purge-me.php');
+    }
+
     public function testNoErrorPagesWhenHTMLOnly()
     {
         $this->logInWithPermission('ADMIN');
