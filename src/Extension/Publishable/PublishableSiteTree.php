@@ -96,6 +96,6 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         } else {
             $link = $this->getOwner()->Link();
         }
-        return array($link => 0);
+        return [$link => 0];
     }
 }

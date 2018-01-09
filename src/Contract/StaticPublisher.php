@@ -15,4 +15,9 @@ interface StaticPublisher
      * @return array A result array
      */
     public function purgeURL($url);
+
+    /**
+     * @return array
+     */
+    public function getPublishedURLs();
 }

@@ -206,4 +206,48 @@ class FilesystemPublisher extends Publisher
         }
         return $prefix . basename($filename);
     }
+
+    protected function pathToURL($path)
+    {
+        if (strpos($path, $this->getDestPath()) === 0) {
+            //Strip off the full path of the cache dir from the front
+            $path = substr($path, strlen($this->getDestPath()));
+        }
+        $path = ltrim($path, '/');
+
+        if (strpos($path, $this->getDestFolder()) === 0) {
+            //Strip off the cache dir from the front
+            $path = substr($path, strlen($this->getDestFolder()));
+        }
+
+        // Strip off the file extension
+        $relativeURL = ltrim(substr($path, 0 , (strrpos($path, "."))), '/');
+
+        return $relativeURL == 'index' ? '' : $relativeURL;
+    }
+
+    public function getPublishedURLs($dir = null, &$result = [])
+    {
+        if ($dir == null) {
+            $dir = $this->getDestPath();
+        }
+
+        $root = scandir($dir);
+        foreach($root as $fileOrDir)
+        {
+            if ($fileOrDir === '.' || $fileOrDir === '..') {
+                continue;
+            }
+            $fullPath = $dir . DIRECTORY_SEPARATOR . $fileOrDir;
+            if (is_file($fullPath)) {
+                $result[] = $this->pathToURL($fullPath);
+                continue;
+            }
+
+            if (is_dir($fullPath)) {
+                $this->getPublishedURLs($fullPath, $result);
+            }
+        }
+        return array_values(array_unique($result));
+    }
 }
