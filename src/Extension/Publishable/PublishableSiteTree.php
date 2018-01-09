@@ -54,8 +54,8 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
             case 'unpublish':
                 // Refresh the parent
-                if ($this->owner->ParentID) {
-                    $list[] = $this->owner->Parent();
+                if ($this->getOwner()->ParentID) {
+                    $list[] = $this->getOwner()->Parent();
                 }
                 break;
         }

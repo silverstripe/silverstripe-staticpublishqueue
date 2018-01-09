@@ -37,21 +37,4 @@ class SiteTreePublishingEngineTest extends SapphireTest
             $obj->getToDelete()->first()->url
         );
     }
-
-    public function testDeleteStaleFiles()
-    {
-        $stub = $this->getMockBuilder(StaticPublishingTriggerPage::class)
-            ->setMethods(['deleteFromCacheDir'])
-            ->getMock();
-
-        $stub->expects($this->at(0))
-            ->method('deleteFromCacheDir')
-            ->with($this->equalTo('xyzzy.stale.html'));
-
-        $stub->expects($this->at(1))
-            ->method('deleteFromCacheDir')
-            ->with($this->equalTo('foo/bar/baz.stale.html'));
-
-        $stub->deleteStaleFiles(['xyzzy.html', 'foo/bar/baz.html']);
-    }
 }
