@@ -221,7 +221,7 @@ class FilesystemPublisher extends Publisher
         }
 
         // Strip off the file extension
-        $relativeURL = ltrim(substr($path, 0 , (strrpos($path, "."))), '/');
+        $relativeURL = ltrim(substr($path, 0, (strrpos($path, "."))), '/');
 
         return $relativeURL == 'index' ? '' : $relativeURL;
     }
@@ -233,8 +233,7 @@ class FilesystemPublisher extends Publisher
         }
 
         $root = scandir($dir);
-        foreach($root as $fileOrDir)
-        {
+        foreach ($root as $fileOrDir) {
             if ($fileOrDir === '.' || $fileOrDir === '..') {
                 continue;
             }

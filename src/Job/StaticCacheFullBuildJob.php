@@ -94,6 +94,4 @@ class StaticCacheFullBuildJob extends Job
 
         return array_unique($urls);
     }
-
-
 }

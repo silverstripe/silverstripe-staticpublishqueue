@@ -181,7 +181,6 @@ class FilesystemPublisherTest extends SapphireTest
             'linkcurrent',
             file_get_contents($static2_2FilePath.'.html')
         );
-
     }
 
     public function testOnlyHTML()
@@ -259,7 +258,6 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->publishURL('not_really_there', true);
         $this->assertFileNotExists($this->fsp->getDestPath() . 'not_really_there.html');
         $this->assertFileNotExists($this->fsp->getDestPath() . 'not_really_there.php');
-
     }
 
     public function testErrorPageWhenPHP()
@@ -273,7 +271,6 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'not_really_there.php';
         $this->assertEquals(404, $phpCacheConfig['responseCode']);
-
     }
 
     public function testRedirectorPageWhenPHP()
@@ -300,7 +297,6 @@ class FilesystemPublisherTest extends SapphireTest
         $phpCacheConfig = require $this->fsp->getDestPath() . 'somewhere-else.php';
         $this->assertEquals(301, $phpCacheConfig['responseCode']);
         $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
-
     }
 
     public function testRedirectorPageWhenHTMLOnly()
@@ -326,7 +322,6 @@ class FilesystemPublisherTest extends SapphireTest
             file_get_contents($this->fsp->getDestPath() . 'somewhere-else.html')
         );
         $this->assertFileNotExists($this->fsp->getDestPath() . 'somewhere-else.php');
-
     }
 
     public function testPathToURL()
