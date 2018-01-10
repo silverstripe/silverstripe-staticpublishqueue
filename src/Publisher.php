@@ -54,9 +54,6 @@ abstract class Publisher implements StaticPublisher
      */
     public function generatePageResponse($url)
     {
-        if ($url == "") {
-            $url = "/";
-        }
         if (Director::is_relative_url($url)) {
             $url = Director::absoluteURL($url);
         }

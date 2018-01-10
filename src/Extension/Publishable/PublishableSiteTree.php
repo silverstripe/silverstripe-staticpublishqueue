@@ -91,11 +91,6 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
      */
     public function urlsToCache()
     {
-        if ($this->getOwner() instanceof RedirectorPage) {
-            $link = $this->getOwner()->regularLink();
-        } else {
-            $link = $this->getOwner()->Link();
-        }
-        return [$link => 0];
+        return [$this->getOwner()->RelativeLink() => 0];
     }
 }

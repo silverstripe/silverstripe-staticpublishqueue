@@ -7,7 +7,6 @@ use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Publisher;
-use SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher;
 use SilverStripe\Versioned\Versioned;
 
 /**
@@ -15,7 +14,6 @@ use SilverStripe\Versioned\Versioned;
  */
 class StaticCacheFullBuildJob extends Job
 {
-
     /**
      * @return string
      */
@@ -32,17 +30,11 @@ class StaticCacheFullBuildJob extends Job
         return md5(static::class);
     }
 
-    /**
-     * A list of all the published URLs before the task is run
-     * @var array
-     */
-    private $publishedURLs;
-
     public function setup()
     {
         parent::setup();
-        $this->publishedURLs = Publisher::singleton()->getPublishedURLs();
         $this->URLsToProcess = $this->getAllLivePageURLs();
+        $this->URLsToCleanUp = [];
         $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
         $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
     }
@@ -65,13 +57,21 @@ class StaticCacheFullBuildJob extends Job
             }
         }
         if (empty($this->jobData->URLsToProcess)) {
-            $publishedURLs = Publisher::singleton()->getPublishedURLs();
-            $scraps = array_diff($this->publishedURLs, $publishedURLs);
-            foreach ($scraps as $staleURL) {
-                Publisher::singleton()->purgeURL($staleURL);
+            $trimSlashes = function ($value) {
+                return trim($value, '/');
+            };
+            $this->jobData->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs());
+            $this->jobData->ProcessedURLs = array_map($trimSlashes, $this->jobData->ProcessedURLs);
+            $this->jobData->URLsToCleanUp = array_diff($this->jobData->publishedURLs, $this->jobData->ProcessedURLs);
+            foreach ($this->jobData->URLsToCleanUp as $staleURL) {
+                $staleURL = $staleURL == '' ? '/' : $staleURL;
+                $purgeMeta = Publisher::singleton()->purgeURL($staleURL);
+                if (!empty($purgeMeta['success'])) {
+                    unset($this->jobData->URLsToCleanUp[$staleURL]);
+                }
             }
-            $this->isComplete = true;
         };
+        $this->isComplete = empty($this->jobData->URLsToProcess) && empty($this->jobData->URLsToCleanUp);
     }
 
     /**
@@ -91,7 +91,6 @@ class StaticCacheFullBuildJob extends Job
         // if (class_exists(Subsite::class)) {
         //     Subsite::disable_subsite_filter(true);
         // }
-
-        return array_unique($urls);
+        return $urls;
     }
 }
