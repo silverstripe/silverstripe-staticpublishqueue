@@ -7,4 +7,9 @@
         <exclude name="PSR1.Methods.CamelCapsMethodName" />
         <exclude name="PSR1.Files.SideEffects.FoundWithSymbols" />
     </rule>
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="1" />
+        </properties>
+    </rule>
 </ruleset>

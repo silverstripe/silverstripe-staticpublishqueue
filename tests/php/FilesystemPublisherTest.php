@@ -152,13 +152,13 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->fsp->publishURL($level1->Link(), true);
         $this->fsp->publishURL($level2_1->Link(), true);
-        $static2_1FilePath = $this->fsp->getDestPath().$urlToPath->invokeArgs($this->fsp, [$level2_1->Link()]);
+        $static2_1FilePath = $this->fsp->getDestPath() . $urlToPath->invokeArgs($this->fsp, [$level2_1->Link()]);
 
-        $this->assertFileExists($static2_1FilePath.'.html');
-        $this->assertFileExists($static2_1FilePath.'.php');
+        $this->assertFileExists($static2_1FilePath . '.html');
+        $this->assertFileExists($static2_1FilePath . '.php');
         $this->assertContains(
             'current',
-            file_get_contents($static2_1FilePath.'.html')
+            file_get_contents($static2_1FilePath . '.html')
         );
 
         $level2_2 = StaticPublisherTestPage::create();
@@ -168,13 +168,13 @@ class FilesystemPublisherTest extends SapphireTest
         $level2_2->publishRecursive();
 
         $this->fsp->publishURL($level2_2->Link(), true);
-        $static2_2FilePath = $this->fsp->getDestPath().$urlToPath->invokeArgs($this->fsp, [$level2_2->Link()]);
+        $static2_2FilePath = $this->fsp->getDestPath() . $urlToPath->invokeArgs($this->fsp, [$level2_2->Link()]);
 
-        $this->assertFileExists($static2_2FilePath.'.html');
-        $this->assertFileExists($static2_2FilePath.'.php');
+        $this->assertFileExists($static2_2FilePath . '.html');
+        $this->assertFileExists($static2_2FilePath . '.php');
         $this->assertContains(
             'linkcurrent',
-            file_get_contents($static2_2FilePath.'.html')
+            file_get_contents($static2_2FilePath . '.html')
         );
     }
 
@@ -190,13 +190,13 @@ class FilesystemPublisherTest extends SapphireTest
         $level1->publishRecursive();
 
         $this->fsp->publishURL($level1->Link(), true);
-        $staticFilePath = $this->fsp->getDestPath().'mimetype';
+        $staticFilePath = $this->fsp->getDestPath() . 'mimetype';
 
-        $this->assertFileExists($staticFilePath.'.html');
-        $this->assertFileNotExists($staticFilePath.'.php');
+        $this->assertFileExists($staticFilePath . '.html');
+        $this->assertFileNotExists($staticFilePath . '.php');
         $this->assertEquals(
             "<div class=\"statically-published\" style=\"display: none\"></div>",
-            trim(file_get_contents($staticFilePath.'.html'))
+            trim(file_get_contents($staticFilePath . '.html'))
         );
     }
 
@@ -210,12 +210,12 @@ class FilesystemPublisherTest extends SapphireTest
         $level1->publishRecursive();
 
         $this->fsp->publishURL('to-be-purged', true);
-        $this->assertFileExists($this->fsp->getDestPath().'to-be-purged.html');
-        $this->assertFileExists($this->fsp->getDestPath().'to-be-purged.php');
+        $this->assertFileExists($this->fsp->getDestPath() . 'to-be-purged.html');
+        $this->assertFileExists($this->fsp->getDestPath() . 'to-be-purged.php');
 
         $this->fsp->purgeURL('to-be-purged');
-        $this->assertFileNotExists($this->fsp->getDestPath().'to-be-purged.html');
-        $this->assertFileNotExists($this->fsp->getDestPath().'to-be-purged.php');
+        $this->assertFileNotExists($this->fsp->getDestPath() . 'to-be-purged.html');
+        $this->assertFileNotExists($this->fsp->getDestPath() . 'to-be-purged.php');
     }
 
     public function testPurgeURLAfterSwitchingExtensions()
@@ -228,14 +228,14 @@ class FilesystemPublisherTest extends SapphireTest
         $level1->publishRecursive();
 
         $this->fsp->publishURL('purge-me', true);
-        $this->assertFileExists($this->fsp->getDestPath().'purge-me.html');
-        $this->assertFileExists($this->fsp->getDestPath().'purge-me.php');
+        $this->assertFileExists($this->fsp->getDestPath() . 'purge-me.html');
+        $this->assertFileExists($this->fsp->getDestPath() . 'purge-me.php');
 
         $this->fsp->setFileExtension('html');
 
         $this->fsp->purgeURL('purge-me');
-        $this->assertFileNotExists($this->fsp->getDestPath().'purge-me.html');
-        $this->assertFileNotExists($this->fsp->getDestPath().'purge-me.php');
+        $this->assertFileNotExists($this->fsp->getDestPath() . 'purge-me.html');
+        $this->assertFileNotExists($this->fsp->getDestPath() . 'purge-me.php');
     }
 
     public function testNoErrorPagesWhenHTMLOnly()

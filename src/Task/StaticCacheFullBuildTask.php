@@ -43,7 +43,7 @@ class StaticCacheFullBuildTask extends BuildTask
                 'There is already a %s in the queue, added %s %s',
                 StaticCacheFullBuildJob::class,
                 $existing->Created,
-                $existing->StartAfter ? 'and set to start after '.$existing->StartAfter : ''
+                $existing->StartAfter ? 'and set to start after ' . $existing->StartAfter : ''
             ));
             return false;
         }
@@ -55,14 +55,14 @@ class StaticCacheFullBuildTask extends BuildTask
 
             // move to tomorrow if the starttime has passed today
             if ($now->Time24() > $startTime) {
-                $timestamp = strtotime($today.' '.$startTime.' +1 day');
+                $timestamp = strtotime($today . ' ' . $startTime . ' +1 day');
                 $dayWord = 'tomorrow';
             } else {
-                $timestamp = strtotime($today.' '.$startTime);
+                $timestamp = strtotime($today . ' ' . $startTime);
                 $dayWord = 'today';
             }
             $startAfter = (new \DateTime())->setTimestamp($timestamp);
-            $thisTimeTomorrow = (new \DateTime())->setTimestamp(strtotime($now.' +1 day'))->getTimestamp();
+            $thisTimeTomorrow = (new \DateTime())->setTimestamp(strtotime($now . ' +1 day'))->getTimestamp();
 
             // sanity check that we are in the next 24 hours - prevents some weird stuff sneaking through
             if ($startAfter->getTimestamp() > $thisTimeTomorrow || $startAfter->getTimestamp() < $now->getTimestamp()) {
