@@ -8,6 +8,12 @@ use SilverStripe\StaticPublishQueue\Publisher;
 class DeleteStaticCacheJob extends Job
 {
     /**
+     * @var int
+     * @config
+     */
+    private static $chunk_size = 2000;
+
+    /**
      * @return string
      */
     public function getTitle()
