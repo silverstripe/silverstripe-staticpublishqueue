@@ -109,6 +109,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
     /**
      * Collect all changes for the given context.
+     *
+     * @param array $context
      */
     public function collectChanges($context)
     {

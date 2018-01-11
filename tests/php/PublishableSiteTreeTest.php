@@ -2,16 +2,73 @@
 
 namespace SilverStripe\StaticPublishQueue\Test;
 
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\ArrayList;
+use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Test\PublishableSiteTreeTest\Model\PublishablePage;
 
 class PublishableSiteTreeTest extends SapphireTest
 {
+    protected $usesDatabase = true;
+
     protected static $required_extensions = [
         PublishablePage::class => [PublishableSiteTree::class]
     ];
+
+    public function testObjectToUpdateOnSiteTreeReorganise()
+    {
+        // build a mock of the extension overriding flushChanges to prevent writing to the queue
+        $mockExtension = $this->getMockBuilder(SiteTreePublishingEngine::class)
+            ->setMethods([
+                'flushChanges',
+            ])
+            ->getMock();
+
+        $getURL = function ($value) {
+            return $value->URLSegment;
+        };
+
+        // IF YOU'RE OF A NERVOUS DISPOSITION, LOOK AWAY NOT
+        // stub the flushChanges method and make sure that each call is able to assert the correct items are in the
+        $mockExtension->expects($this->exactly(3))->method('flushChanges')->willReturnOnConsecutiveCalls(
+            new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(function () use ($mockExtension, $getURL) {
+                $this->assertEmpty($mockExtension->getToDelete());
+                $mockExtension->setToDelete([]);
+                $this->assertEquals(['stub'], array_map($getURL, $mockExtension->getToUpdate()));
+                $mockExtension->setToUpdate([]);
+            }),
+            new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(function () use ($mockExtension, $getURL) {
+                $this->assertEquals(['stub'], array_map($getURL, $mockExtension->getToDelete()));
+                $mockExtension->setToDelete([]);
+                $this->assertEmpty($mockExtension->getToUpdate());
+                $mockExtension->setToUpdate([]);
+            }),
+            new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(function () use ($mockExtension, $getURL) {
+                $this->assertEmpty($mockExtension->getToDelete());
+                $mockExtension->setToDelete([]);
+                $this->assertEquals(['stub-a-lub-a-dub-dub'], array_map($getURL, $mockExtension->getToUpdate()));
+                $mockExtension->setToUpdate([]);
+            })
+        );
+
+        // register our extension instance so it's applied to all SiteTree objects
+        Injector::inst()->registerService($mockExtension, SiteTreePublishingEngine::class);
+
+        $page = new PublishablePage;
+        $page->URLSegment = 'stub';
+
+        // publish the page
+        $page->write();
+        $page->publishRecursive();
+
+        // change the URL and go again
+        $page->URLSegment = 'stub-a-lub-a-dub-dub';
+        $page->write();
+        $page->publishRecursive();
+    }
 
     public function testObjectsToUpdateOnPublish()
     {
