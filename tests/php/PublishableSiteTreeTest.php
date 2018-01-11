@@ -2,7 +2,6 @@
 
 namespace SilverStripe\StaticPublishQueue\Test;
 
-use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\ArrayList;
@@ -18,44 +17,13 @@ class PublishableSiteTreeTest extends SapphireTest
         PublishablePage::class => [PublishableSiteTree::class]
     ];
 
-    public function testObjectToUpdateOnSiteTreeReorganise()
+    public function testObjectsToUpdateOnURLSegmentChange()
     {
-        // build a mock of the extension overriding flushChanges to prevent writing to the queue
-        $mockExtension = $this->getMockBuilder(SiteTreePublishingEngine::class)
-            ->setMethods([
-                'flushChanges',
-            ])
-            ->getMock();
-
-        $getURL = function ($value) {
-            return $value->URLSegment;
-        };
-
-        // IF YOU'RE OF A NERVOUS DISPOSITION, LOOK AWAY NOT
-        // stub the flushChanges method and make sure that each call is able to assert the correct items are in the
-        $mockExtension->expects($this->exactly(3))->method('flushChanges')->willReturnOnConsecutiveCalls(
-            new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(function () use ($mockExtension, $getURL) {
-                $this->assertEmpty($mockExtension->getToDelete());
-                $mockExtension->setToDelete([]);
-                $this->assertEquals(['stub'], array_map($getURL, $mockExtension->getToUpdate()));
-                $mockExtension->setToUpdate([]);
-            }),
-            new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(function () use ($mockExtension, $getURL) {
-                $this->assertEquals(['stub'], array_map($getURL, $mockExtension->getToDelete()));
-                $mockExtension->setToDelete([]);
-                $this->assertEmpty($mockExtension->getToUpdate());
-                $mockExtension->setToUpdate([]);
-            }),
-            new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(function () use ($mockExtension, $getURL) {
-                $this->assertEmpty($mockExtension->getToDelete());
-                $mockExtension->setToDelete([]);
-                $this->assertEquals(['stub-a-lub-a-dub-dub'], array_map($getURL, $mockExtension->getToUpdate()));
-                $mockExtension->setToUpdate([]);
-            })
-        );
-
-        // register our extension instance so it's applied to all SiteTree objects
-        Injector::inst()->registerService($mockExtension, SiteTreePublishingEngine::class);
+        $this->setExpectedFlushChangesOutput([
+            [[], ['stub/']],
+            [['stub/'], []],
+            [[], ['stub-a-lub-a-dub-dub/']]
+        ]);
 
         $page = new PublishablePage;
         $page->URLSegment = 'stub';
@@ -66,6 +34,69 @@ class PublishableSiteTreeTest extends SapphireTest
 
         // change the URL and go again
         $page->URLSegment = 'stub-a-lub-a-dub-dub';
+        $page->write();
+        $page->publishRecursive();
+    }
+
+    public function testObjectsToUpdateOnURLSegmentChangeWithParents()
+    {
+        $this->setExpectedFlushChangesOutput([
+            [[], ['parent/']],
+            [[], ['parent/stub/', 'parent/']],
+            [['parent/stub/'], ['parent/']],
+            [[], ['parent/stub-a-lub-a-dub-dub/', 'parent/']]
+        ]);
+
+        $parent = new PublishablePage;
+        $parent->URLSegment = 'parent';
+        $parent->write();
+        $parent->publishRecursive();
+
+        $page = new PublishablePage;
+        $page->URLSegment = 'stub';
+        $page->ParentID = $parent->ID;
+
+        // publish the page
+        $page->write();
+        $page->publishRecursive();
+
+        // change the URL and go again
+        $page->URLSegment = 'stub-a-lub-a-dub-dub';
+        $page->write();
+        $page->publishRecursive();
+    }
+
+    public function testObjectsToUpdateOnSiteTreeRearrange()
+    {
+        $this->setExpectedFlushChangesOutput([
+            [[], ['parent/']],
+            [[], ['parent/stub/', 'parent/']],
+            [['parent/stub/'], ['parent/']],
+            [[], ['stub/']],
+            [['stub/'], []],
+            [[], ['parent/stub/', 'parent/']],
+        ]);
+
+        $parent = new PublishablePage;
+        $parent->URLSegment = 'parent';
+        $parent->write();
+        $parent->publishRecursive();
+
+        $page = new PublishablePage;
+        $page->URLSegment = 'stub';
+        $page->ParentID = $parent->ID;
+
+        // publish the page
+        $page->write();
+        $page->publishRecursive();
+
+        // move to root
+        $page->ParentID = 0;
+        $page->write();
+        $page->publishRecursive();
+
+        // move back
+        $page->ParentID = $parent->ID;
         $page->write();
         $page->publishRecursive();
     }
@@ -186,5 +217,68 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->assertContains($stub, $objects);
         $this->assertContains($redir, $objects);
         $this->assertCount(2, $objects);
+    }
+
+    /**
+     * Takes in a map of urls we expect to be deleted and updated on each successive flushChanges call
+     * [
+     *   [['deleted'], ['updated']], // first time its called
+     *   [['deleted'], ['updated']], // second time its called
+     * ]
+     * @param $map
+     */
+    protected function setExpectedFlushChangesOutput($map)
+    {
+        // build a mock of the extension overriding flushChanges to prevent writing to the queue
+        $mockExtension = $this->getMockBuilder(SiteTreePublishingEngine::class)
+            ->setMethods(['flushChanges'])
+            ->getMock();
+
+        // IF YOU'RE OF A NERVOUS DISPOSITION, LOOK AWAY NOW
+        // stub the flushChanges method and make sure that each call is able to assert the correct items are in the
+        $mockExtension
+            ->expects($this->exactly(count($map)))
+            ->method('flushChanges')
+            ->willReturnOnConsecutiveCalls(...$this->transformMapToCallback($map, $mockExtension));
+
+        // register our extension instance so it's applied to all SiteTree objects
+        Injector::inst()->registerService($mockExtension, SiteTreePublishingEngine::class);
+    }
+
+    /**
+     * Transforms the array [['deleted'], ['updated']] into callbacks with assertions
+     * @param $map
+     * @param $mockExtension
+     * @return array
+     */
+    protected function transformMapToCallback($map, $mockExtension)
+    {
+        $getURL = function ($value) {
+            return $value->RelativeLink();
+        };
+
+        $callbacks = [];
+        $count = 0;
+        foreach ($map as $urls) {
+            ++$count;
+            list($toDelete, $toUpdate) = $urls;
+            $callbacks[] = new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(
+                function () use ($toDelete, $toUpdate, $mockExtension, $getURL, $count) {
+                    $this->assertEquals(
+                        $toDelete,
+                        array_map($getURL, $mockExtension->getToDelete()),
+                        'Failed on delete, iteration ' . $count
+                    );
+                    $mockExtension->setToDelete([]);
+                    $this->assertEquals(
+                        $toUpdate,
+                        array_map($getURL, $mockExtension->getToUpdate()),
+                        'Failed on update, iteration ' . $count
+                    );
+                    $mockExtension->setToUpdate([]);
+                }
+            );
+        }
+        return $callbacks;
     }
 }

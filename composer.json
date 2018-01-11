@@ -17,11 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "SilverStripe\\StaticPublishQueue\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
+            "SilverStripe\\StaticPublishQueue\\": "src/",
             "SilverStripe\\StaticPublishQueue\\Test\\": "tests/php/"
         }
     },
