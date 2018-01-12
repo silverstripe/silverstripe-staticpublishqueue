@@ -131,8 +131,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testMenu2LinkingMode()
     {
-        $this->logInWithPermission('ADMIN');
-
         SSViewer::set_themes(null);
 
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
@@ -180,8 +178,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testOnlyHTML()
     {
-        $this->logInWithPermission('ADMIN');
-
         $this->fsp->setFileExtension('html');
 
         $level1 = StaticPublisherTestPage::create();
@@ -202,8 +198,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testPurgeURL()
     {
-        $this->logInWithPermission('ADMIN');
-
         $level1 = StaticPublisherTestPage::create();
         $level1->URLSegment = 'to-be-purged';
         $level1->write();
@@ -220,8 +214,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testPurgeURLAfterSwitchingExtensions()
     {
-        $this->logInWithPermission('ADMIN');
-
         $level1 = StaticPublisherTestPage::create();
         $level1->URLSegment = 'purge-me';
         $level1->write();
@@ -240,8 +232,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testNoErrorPagesWhenHTMLOnly()
     {
-        $this->logInWithPermission('ADMIN');
-
         $this->fsp->setFileExtension('html');
 
         $this->fsp->publishURL('not_really_there', true);
@@ -251,8 +241,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testErrorPageWhenPHP()
     {
-        $this->logInWithPermission('ADMIN');
-
         $this->fsp->publishURL('not_really_there', true);
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.html');
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.php');
@@ -262,8 +250,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testRedirectorPageWhenPHP()
     {
-        $this->logInWithPermission('ADMIN');
-
         $redirectorPage = RedirectorPage::create();
         $redirectorPage->URLSegment = 'somewhere-else';
         $redirectorPage->RedirectionType = 'External';
@@ -286,8 +272,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testRedirectorPageWhenHTMLOnly()
     {
-        $this->logInWithPermission('ADMIN');
-
         $this->fsp->setFileExtension('html');
 
         $redirectorPage = RedirectorPage::create();
@@ -336,8 +320,6 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testGetPublishedURLs()
     {
-        $this->logInWithPermission('ADMIN');
-
         $level1 = StaticPublisherTestPage::create();
         $level1->URLSegment = 'find-me';
         $level1->write();

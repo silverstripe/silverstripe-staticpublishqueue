@@ -2,6 +2,8 @@
 
 namespace SilverStripe\StaticPublishQueue\Test;
 
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\ArrayList;
@@ -9,13 +11,22 @@ use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Test\PublishableSiteTreeTest\Model\PublishablePage;
 
+
 class PublishableSiteTreeTest extends SapphireTest
 {
     protected $usesDatabase = true;
 
     protected static $required_extensions = [
-        PublishablePage::class => [PublishableSiteTree::class]
+        SiteTree::class => [
+            PublishableSiteTree::class,
+        ],
     ];
+
+    protected function setUp()
+    {
+        parent::setUp();
+        Config::modify()->merge(SiteTree::class, 'allowed_children', [PublishablePage::class]);
+    }
 
     public function testObjectsToUpdateOnURLSegmentChange()
     {
@@ -78,11 +89,13 @@ class PublishableSiteTreeTest extends SapphireTest
         ]);
 
         $parent = new PublishablePage;
+
         $parent->URLSegment = 'parent';
         $parent->write();
         $parent->publishRecursive();
 
         $page = new PublishablePage;
+
         $page->URLSegment = 'stub';
         $page->ParentID = $parent->ID;
 
@@ -103,7 +116,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToUpdateOnPublish()
     {
-        $parent = PublishablePage::create();
+        $parent = new PublishablePage;
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(
@@ -129,7 +142,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToUpdateOnUnpublish()
     {
-        $parent = PublishablePage::create();
+        $parent = new PublishablePage;
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(
@@ -159,14 +172,14 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToDeleteOnPublish()
     {
-        $stub = PublishablePage::create();
+        $stub = new PublishablePage;
         $objects = $stub->objectsToDelete(['action' => 'publish']);
         $this->assertEmpty($objects);
     }
 
     public function testObjectsToDeleteOnUnpublish()
     {
-        $stub = PublishablePage::create();
+        $stub = new PublishablePage;
         $stub->Title = 'stub';
         $objects = $stub->objectsToDelete(['action' => 'unpublish']);
         $this->assertContains($stub, $objects);
@@ -175,7 +188,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToUpdateOnPublishIfVirtualExists()
     {
-        $redir = PublishablePage::create();
+        $redir = new PublishablePage;
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(['getMyVirtualPages'])
@@ -197,7 +210,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToDeleteOnUnpublishIfVirtualExists()
     {
-        $redir = PublishablePage::create();
+        $redir = new PublishablePage;
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(['getMyVirtualPages'])
