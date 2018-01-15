@@ -3,6 +3,7 @@
 namespace SilverStripe\StaticPublishQueue;
 
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\Extensible;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
@@ -11,6 +12,7 @@ use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 abstract class Job extends AbstractQueuedJob
 {
     use Configurable;
+    use Extensible;
 
     /**
      * @var int

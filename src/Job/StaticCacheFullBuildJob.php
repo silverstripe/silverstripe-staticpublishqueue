@@ -37,6 +37,7 @@ class StaticCacheFullBuildJob extends Job
         $this->URLsToCleanUp = [];
         $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
         $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
+        $this->addMessage(var_export(array_keys($this->URLsToProcess), true));
     }
 
     /**
@@ -81,12 +82,15 @@ class StaticCacheFullBuildJob extends Job
     protected function getAllLivePageURLs()
     {
         $urls = [];
+        $this->extend('beforeGetAllLivePageURLs', $urls);
         $livePages = Versioned::get_by_stage(SiteTree::class, Versioned::LIVE);
         foreach ($livePages as $page) {
             if ($page->hasExtension(PublishableSiteTree::class) || $page instanceof StaticallyPublishable) {
                 $urls = array_merge($urls, $page->urlsToCache());
             }
         }
+
+        $this->extend('afterGetAllLivePageURLs', $urls);
         // @TODO look here when integrating subsites
         // if (class_exists(Subsite::class)) {
         //     Subsite::disable_subsite_filter(true);
