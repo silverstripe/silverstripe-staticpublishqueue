@@ -20,7 +20,10 @@
         "psr-4": {
             "SilverStripe\\StaticPublishQueue\\": "src/",
             "SilverStripe\\StaticPublishQueue\\Test\\": "tests/php/"
-        }
+        },
+        "files": [
+            "includes/functions.php"
+        ]
     },
     "extra": {
         "branch-alias": {

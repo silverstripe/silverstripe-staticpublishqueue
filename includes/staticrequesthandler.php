@@ -2,24 +2,27 @@
 
 namespace SilverStripe\StaticPublishQueue;
 
-function pathMapping($uri, $cacheDir) {
-    $uri = trim($uri, '/');
-    if (!$uri) {
-        $uri = 'index';
-    }
-    return $cacheDir . DIRECTORY_SEPARATOR . $uri;
-}
+include_once __DIR__ . '/functions.php';
 
-return function($cacheDir, $urlMapping = null) {
+return function($cacheDir, $urlMapping = null)
+{
     if (isset($_COOKIE['bypassStaticCache'])) {
         return false;
     }
+
+    // Convert into a full URL
+    $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80;
+    $https = $port === '443' || isset($_SERVER['HTTPS']) || isset($_SERVER['HTTPS']);
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
     $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
+    $url = $https ? 'https://' : 'http://';
+    $url .= $host . $uri;
+
     if (is_callable($urlMapping)) {
-        $cachePath = $urlMapping($uri, $cacheDir);
+        $cachePath = $cacheDir . DIRECTORY_SEPARATOR. $urlMapping($url);
     } else {
-        $cachePath = pathMapping($uri, $cacheDir);
+        $cachePath = $cacheDir . DIRECTORY_SEPARATOR . URLtoPath($url);
     }
 
     //check for directory traversal attack
