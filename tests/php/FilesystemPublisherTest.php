@@ -6,8 +6,10 @@ use SilverStripe\Assets\Filesystem;
 use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Director;
+use SilverStripe\Control\HTTPApplication;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Dev\TestKernel;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher;
 use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\StaticPublisherTestPage;
@@ -42,7 +44,17 @@ class FilesystemPublisherTest extends SapphireTest
         Config::modify()->set(Director::class, 'alternate_base_url', 'http://foo/');
         Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
 
-        $this->fsp = FilesystemPublisher::create()->setDestFolder('cache/testing/');
+        $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)
+            ->setMethods(['getApp'])
+            ->getMock();
+        $mockFSP->setDestFolder('cache/testing/');
+        $mockFSP->method('getApp')->willReturnCallback(function () {
+            $kernel = new TestKernel(BASE_PATH);
+            $app = new HTTPApplication($kernel);
+            return $app;
+        });
+
+        $this->fsp = $mockFSP;
     }
 
     protected function tearDown()

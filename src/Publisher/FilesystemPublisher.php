@@ -5,8 +5,10 @@ namespace SilverStripe\StaticPublishQueue\Publisher;
 use SilverStripe\Assets\Filesystem;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTP;
+use SilverStripe\Control\HTTPApplication;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Convert;
+use SilverStripe\Core\CoreKernel;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\StaticPublishQueue\Publisher;
 

@@ -7,5 +7,4 @@ use SilverStripe\Dev\TestOnly;
 
 class PublishablePage extends SiteTree implements TestOnly
 {
-
 }

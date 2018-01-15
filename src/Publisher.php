@@ -65,6 +65,7 @@ abstract class Publisher implements StaticPublisher
         }
         // back up requirements backend
         $origRequirements = Requirements::backend();
+        $origThemes = SSViewer::get_themes();
         Requirements::set_backend(Requirements_Backend::create());
         $themes = self::config()->get('static_publisher_themes');
         if ($themes) {
@@ -90,14 +91,13 @@ abstract class Publisher implements StaticPublisher
                 ],
                 ''
             );
-            $kernel = new CoreKernel(BASE_PATH);
-            $app = new HTTPApplication($kernel);
+            $app = $this->getApp();
             $response = $app->handle($request);
         } catch (HTTPResponse_Exception $e) {
             $response = $e->getResponse();
         } finally {
             // restore backends
-            SSViewer::set_themes(null);
+            SSViewer::set_themes($origThemes);
             Requirements::set_backend($origRequirements);
             DataObject::singleton()->flushCache();
         }
@@ -161,5 +161,13 @@ abstract class Publisher implements StaticPublisher
                 'URL' => DBField::create_field('Varchar', $destination),
             ])
         );
+    }
+
+    protected function getApp()
+    {
+        $kernel = new CoreKernel(BASE_PATH);
+        $app = new HTTPApplication($kernel);
+
+        return $app;
     }
 }

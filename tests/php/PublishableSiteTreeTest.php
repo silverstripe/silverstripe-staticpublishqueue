@@ -3,14 +3,12 @@
 namespace SilverStripe\StaticPublishQueue\Test;
 
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Test\PublishableSiteTreeTest\Model\PublishablePage;
-
 
 class PublishableSiteTreeTest extends SapphireTest
 {
@@ -22,11 +20,9 @@ class PublishableSiteTreeTest extends SapphireTest
         ],
     ];
 
-    protected function setUp()
-    {
-        parent::setUp();
-        Config::modify()->merge(SiteTree::class, 'allowed_children', [PublishablePage::class]);
-    }
+    protected static $extra_dataobjects = [
+        PublishablePage::class
+    ];
 
     public function testObjectsToUpdateOnURLSegmentChange()
     {
