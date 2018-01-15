@@ -19,10 +19,15 @@ return function($cacheDir, $urlMapping = null)
     $url = $https ? 'https://' : 'http://';
     $url .= $host . $uri;
 
+
     if (is_callable($urlMapping)) {
         $cachePath = $cacheDir . DIRECTORY_SEPARATOR. $urlMapping($url);
     } else {
         $cachePath = $cacheDir . DIRECTORY_SEPARATOR . URLtoPath($url);
+    }
+
+    if (!$cachePath) {
+        return false;
     }
 
     //check for directory traversal attack
