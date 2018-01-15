@@ -8,14 +8,10 @@ use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 
 class StaticallyPublishablePage extends SiteTree implements TestOnly, StaticallyPublishable
 {
+    private static $table_name = 'SPQ_StaticallyPublishablePage';
 
     public $url;
     public $prio;
-
-    public function getClassName()
-    {
-        return 'StaticallyPublishableTest';
-    }
 
     public function getID()
     {

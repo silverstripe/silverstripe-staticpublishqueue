@@ -21,7 +21,7 @@ class PublishableSiteTreeTest extends SapphireTest
     ];
 
     protected static $extra_dataobjects = [
-        PublishablePage::class
+        PublishablePage::class,
     ];
 
     public function testObjectsToUpdateOnURLSegmentChange()

@@ -91,7 +91,7 @@ abstract class Publisher implements StaticPublisher
                 ],
                 ''
             );
-            $app = $this->getApp();
+            $app = $this->getHTTPApplication();
             $response = $app->handle($request);
         } catch (HTTPResponse_Exception $e) {
             $response = $e->getResponse();
@@ -102,6 +102,15 @@ abstract class Publisher implements StaticPublisher
             DataObject::singleton()->flushCache();
         }
         return $response;
+    }
+
+    /**
+     * @return HTTPApplication
+     */
+    protected function getHTTPApplication()
+    {
+        $kernel = new CoreKernel(BASE_PATH);
+        return new HTTPApplication($kernel);
     }
 
     /**
@@ -161,13 +170,5 @@ abstract class Publisher implements StaticPublisher
                 'URL' => DBField::create_field('Varchar', $destination),
             ])
         );
-    }
-
-    protected function getApp()
-    {
-        $kernel = new CoreKernel(BASE_PATH);
-        $app = new HTTPApplication($kernel);
-
-        return $app;
     }
 }

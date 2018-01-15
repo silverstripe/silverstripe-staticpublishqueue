@@ -44,17 +44,15 @@ class FilesystemPublisherTest extends SapphireTest
         Config::modify()->set(Director::class, 'alternate_base_url', 'http://foo/');
         Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
 
-        $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)
-            ->setMethods(['getApp'])
-            ->getMock();
-        $mockFSP->setDestFolder('cache/testing/');
-        $mockFSP->method('getApp')->willReturnCallback(function () {
-            $kernel = new TestKernel(BASE_PATH);
-            $app = new HTTPApplication($kernel);
-            return $app;
+        $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)->setMethods([
+            'getHTTPApplication',
+        ])->getMock();
+
+        $mockFSP->method('getHTTPApplication')->willReturnCallback(function () {
+            return new HTTPApplication(new TestKernel(BASE_PATH));
         });
 
-        $this->fsp = $mockFSP;
+        $this->fsp = $mockFSP->setDestFolder('cache/testing/');
     }
 
     protected function tearDown()
@@ -149,12 +147,12 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath = $reflection->getMethod('URLtoPath');
         $urlToPath->setAccessible(true);
 
-        $level1 = StaticPublisherTestPage::create();
+        $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'test-level-1';
         $level1->write();
         $level1->publishRecursive();
 
-        $level2_1 = StaticPublisherTestPage::create();
+        $level2_1 = new StaticPublisherTestPage();
         $level2_1->URLSegment = 'test-level-2-1';
         $level2_1->ParentID = $level1->ID;
         $level2_1->write();
@@ -171,7 +169,7 @@ class FilesystemPublisherTest extends SapphireTest
             file_get_contents($static2_1FilePath . '.html')
         );
 
-        $level2_2 = StaticPublisherTestPage::create();
+        $level2_2 = new StaticPublisherTestPage();
         $level2_2->URLSegment = 'test-level-2-2';
         $level2_2->ParentID = $level1->ID;
         $level2_2->write();
@@ -192,7 +190,7 @@ class FilesystemPublisherTest extends SapphireTest
     {
         $this->fsp->setFileExtension('html');
 
-        $level1 = StaticPublisherTestPage::create();
+        $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'mimetype';
         $level1->write();
         $level1->publishRecursive();
@@ -210,7 +208,7 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testPurgeURL()
     {
-        $level1 = StaticPublisherTestPage::create();
+        $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'to-be-purged';
         $level1->write();
         $level1->publishRecursive();
@@ -226,7 +224,7 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testPurgeURLAfterSwitchingExtensions()
     {
-        $level1 = StaticPublisherTestPage::create();
+        $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'purge-me';
         $level1->write();
         $level1->publishRecursive();
@@ -332,7 +330,7 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testGetPublishedURLs()
     {
-        $level1 = StaticPublisherTestPage::create();
+        $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'find-me';
         $level1->write();
         $level1->publishRecursive();
@@ -340,7 +338,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->publishURL('find-me', true);
         $this->assertEquals(['find-me'], $this->fsp->getPublishedURLs());
 
-        $level2_1 = StaticPublisherTestPage::create();
+        $level2_1 = new StaticPublisherTestPage();
         $level2_1->URLSegment = 'find-me-child';
         $level2_1->ParentID = $level1->ID;
         $level2_1->write();

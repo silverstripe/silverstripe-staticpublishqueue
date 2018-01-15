@@ -9,6 +9,7 @@ use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 
 class StaticPublishingTriggerPage extends SiteTree implements TestOnly, StaticPublishingTrigger
 {
+    private static $table_name = 'SPQ_StaticPublishingTriggerPage';
 
     public function generatePublishable($url, $prio)
     {
