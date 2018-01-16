@@ -2,7 +2,7 @@ server {
         listen 80;
         server_name mywebsite.dev;
 
-        root /home/stig/mywebsite2011;
+        root /home/www/mywebsite;
         index index.php index.html;
 
         # Any assets file, serve up directly. Never pass through to apache
@@ -16,9 +16,9 @@ server {
 
         # Otherwise, see if the file exists and serve if so, pass through if not (but regexs below take precedence over this)
         # This checks if the static cache has been built, and server that static html.
-        # Order is the 'fresh' copy, then the 'stale copy', an actual file somewhere and at last pass it down to the webserver
+        # Order is the php copy, then the html copy, an actual file somewhere and at last pass it down to the webserver
         location / {
-                try_files /cache/$request_uri.html /cache/$request_uri.stale.html $uri @passthrough;
+                try_files /cache/$request_uri.php /cache/$request_uri.html $uri @passthrough;
                 open_file_cache max=1000 inactive=120s;
                 open_file_cache_valid 5;
                 expires 5;

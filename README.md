@@ -2,27 +2,13 @@
 
 ## Brief
 
-This module provides an API for your project to be able to generate a static HTML cache of your pages to enhance
-security (by blocking off the interactive backend requests via your server configuration) and performance (by serving
-just HTML).
+This module provides an API for your project to be able to generate a static cache of your pages to enhance
+security (by blocking off the interactive backend requests via your server configuration) and performance 
+(by not booting SilverStripe in order to serve requests).
 
-It provides a queue implementation that:
+It generates the cache files using the QueuedJobs module.
 
-* allows to rebuild files selectively
-* avoids the issues of rebuilding potentially hundreds of related pages synchronously once a page is saved in the CMS.
-As the queue is worked off outside of any visitor views or CMS author actions, it allows for a more fine grained control
-over the queue, prioritization of URLs, detection of queue duplicates, etc.
-
-The module is optimized for high responsiveness in scenarios where a single edit might trigger hundreds of page
-rebuilds, through batching the queue population as well as allowing to run the queue processing task as a continuous
-background task (similar to a Unix daemon).
-
-<div class="warning" markdown="1">
-Important security note for subsites: when using this module with subsites the separation between the subsites is not
-enforced - the files simply reside in subdirectories. Unless you restrict access on the webserver side it will be
-possible to cross the subsite boundary, e.g. by hitting `http://onesubsite.co.nz/cache/secondsubsite.co.nz/index.html`.
-This will serve up the homepage of the second subsite on the first subsite's domain.
-</div>
+[Docs](docs/en/index.md)
 
 ## Maintainers
 
@@ -34,35 +20,7 @@ This will serve up the homepage of the second subsite on the first subsite's dom
 
 ## Essential configuration guide
 
-By default the module is not applying any of its decorators, and will not affect the behaviour of your application. You
-need to configure the module and the webserver before use - this section will walk you through the configuration
-activities that you need to perform.
-
-### Applying extensions
-
-Module comes with some basic implementations to use out of the box (see "Reference" section below for information about
-provided interfaces). You can apply these implementations using the config system to make all your Pages publishable:
-
-	---
-	Name: mysiteconfig_redirector
-	After: 'staticpublishqueue/*'
-	---
-	RedirectorPage:
-	  extensions:
-	    - PublishableRedirectorPage
-	---
-	Name: mysiteconfig_staticpublishqueue
-	After: 'staticpublishqueue/*','#mysiteconfig_redirector'
-	---
-	SiteTree:
-	  extensions:
-	    - PublishableSiteTree
-	    - SiteTreePublishingEngine
-	    - FilesystemPublisher('cache', 'html')
-
-The order is significant - PublishableRedirectorPage needs to be applied before the `mysiteconfig_staticpublishqueue`,
-because it needs to override the default `PublishableSiteTree` (hence the use of the "After" directives of the config
-system).
+By default the module will apply the extension to any SiteTree objects.
 
 ### BaseURL
 
@@ -103,16 +61,6 @@ mysite/stale-static-main.php and if no cached file exists pass it on to Apache b
 
 These are just examples and don't pay too much attention to the security of the system. You will need to customise these
 for your critical systems.
-
-### Setting up the builder as a cronjob
-
-Recommended cronjob entries to go into a crontab:
-
-	# Cronjob for processing the static publishing queue
-	* * * * * www-data /sites/my-website/www/framework/sake dev/tasks/BuildStaticCacheFromQueue daemon=1 verbose=0 >> /tmp/buildstaticcache.log
-
-	# Rebuild the entire static cache at 1am every night".
-	0 1 * * * www-data /sites/my-website/www/framework/sake dev/tasks/SiteTreeFullBuildEngine flush=all
 
 ## Reference
 

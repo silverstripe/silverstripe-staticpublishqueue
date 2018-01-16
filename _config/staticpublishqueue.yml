@@ -1,9 +1,6 @@
 ---
 Name: staticpublishqueue
 ---
-SilverStripe\StaticPublishQueue\Extension\Publisher\FilesystemPublisher:
-  include_caching_metadata: true
-  disable_realtime: true
 SilverStripe\Core\Injector\Injector:
   SilverStripe\StaticPublishQueue\Publisher:
     class: SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher
