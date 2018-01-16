@@ -13,5 +13,5 @@ You'll need to configure a cron job or equivalent to process the queue:
 Which will ensure that the `GenerateStaticCacheJob`s are processed quickly.
 
 Without further configuration, your site won't serve the static cache files. 
-See [handling requests](docs/en/handling_requests.md) for details on how to 
+See [handling requests](handling_requests.md) for details on how to 
 make sure you are passing through to the statically cached files.
