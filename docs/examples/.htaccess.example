@@ -39,13 +39,6 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule .* /cache/%1.html [L]
 
-	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
-	RewriteCond %{QUERY_STRING} ^$
-	RewriteCond %{REQUEST_URI} /(.*[^/])/?$
-	RewriteCond %{DOCUMENT_ROOT}/cache/%1.stale.html -f
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule .* /cache/%1.stale.html [L]
-
 	# Cached content - homepage (site in root of a domain)
 	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
 	RewriteCond %{QUERY_STRING} ^$
@@ -53,13 +46,6 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteCond %{DOCUMENT_ROOT}/cache/index.html -f
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule .* /cache/index.html [L]
-
-	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
-	RewriteCond %{QUERY_STRING} ^$
-	RewriteCond %{REQUEST_URI} ^/?$
-	RewriteCond %{DOCUMENT_ROOT}/cache/index.stale.html -f
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule .* /cache/index.stale.html [L]
 
 	# Config for site in a subdirectory
 	# (remove the following four rules if site is on root of a domain. E.g. test.com rather than test.com/my-site)
@@ -71,13 +57,6 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule .* cache/%2.html [L]
 
-	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
-	RewriteCond %{QUERY_STRING} ^$
-	RewriteCond %{REQUEST_URI} /(.*[^/])/(.*[^/])/?$
-	RewriteCond %{DOCUMENT_ROOT}/%1/cache/%2.stale.html -f
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule .* cache/%2.stale.html [L]
-
 	# Cached content - homepage (site in sub-directory)
 	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
 	RewriteCond %{QUERY_STRING} ^$
@@ -85,14 +64,6 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteCond %{DOCUMENT_ROOT}/%1/cache/index.html -f
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule .* cache/index.html [L]
-
-	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
-	RewriteCond %{QUERY_STRING} ^$
-	RewriteCond %{REQUEST_URI} ^/(.*[^/])/?$
-	RewriteCond %{DOCUMENT_ROOT}/%1/cache/index.stale.html -f
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule .* cache/index.stale.html [L]
-
 
 	## DYNAMIC CONFIG
 

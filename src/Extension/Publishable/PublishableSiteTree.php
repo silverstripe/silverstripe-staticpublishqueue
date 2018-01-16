@@ -24,7 +24,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
     public function getMyVirtualPages()
     {
-        return VirtualPage::get()->filter(array('CopyContentFrom.ID' => $this->owner->ID));
+        return VirtualPage::get()->filter(['CopyContentFrom.ID' => $this->owner->ID]);
     }
 
     /**

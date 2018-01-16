@@ -32,16 +32,9 @@ abstract class Publisher implements StaticPublisher
     private static $static_publisher_themes = [];
 
     /**
-     * @var string
-     *
-     * @config
-     */
-    private static $static_base_url = null;
-
-    /**
      * @config
      *
-     * @var Boolean Use domain based cacheing (put cache files into a domain subfolder)
+     * @var Boolean Use domain based caching (put cache files into a domain subfolder)
      * This must be true if you are using this with the "subsites" module.
      * Please note that this form of caching requires all URLs to be provided absolute
      * (not relative to the webroot) via {@link SiteTree->AbsoluteLink()}.

@@ -5,3 +5,5 @@
 [Building the Cache](building_the_cache.md)
 
 [Handling Requests](handling_requests.md)
+
+[Advanced Configuration](advanced_configuration.md)
