@@ -1,5 +1,9 @@
 # Static Publisher with Queue
 
+[![Build Status](https://travis-ci.org/silverstripe/silverstripe-staticpublishqueue.svg?branch=master)](https://travis-ci.org/silverstripe/silverstripe-staticpublishqueue)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe/silverstripe-staticpublishqueue/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe/silverstripe-staticpublishqueue/?branch=master)
+[![Code Coverage](https://codecov.io/gh/silverstripe/silverstripe-staticpublishqueue/branch/master/graph/badge.svg)](https://codecov.io/gh/silverstripe/silverstripe-staticpublishqueue/branch/master)
+
 ## Brief
 
 This module provides an API for your project to be able to generate a static cache of your pages to enhance
