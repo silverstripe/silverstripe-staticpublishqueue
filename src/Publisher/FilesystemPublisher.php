@@ -170,7 +170,7 @@ class FilesystemPublisher extends Publisher
 
     protected function URLtoPath($url)
     {
-        return URLtoPath($url, FilesystemPublisher::config()->get('domain_based_caching'));
+        return URLtoPath($url, BASE_URL, FilesystemPublisher::config()->get('domain_based_caching'));
     }
 
     protected function pathToURL($path)

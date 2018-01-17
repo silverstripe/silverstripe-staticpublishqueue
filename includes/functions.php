@@ -3,7 +3,7 @@
 namespace SilverStripe\StaticPublishQueue;
 
 if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
-    function URLtoPath($url, $domainBasedCaching = false)
+    function URLtoPath($url, $baseURL = '', $domainBasedCaching = false)
     {
         // parse_url() is not multibyte safe, see https://bugs.php.net/bug.php?id=52923.
         // We assume that the URL hsa been correctly encoded either on storage (for SiteTree->URLSegment),
@@ -12,8 +12,8 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
 
         // Remove base folders from the URL if webroot is hosted in a subfolder)
         $path = isset($urlParts['path']) ? $urlParts['path'] : '';
-        if (mb_substr(mb_strtolower($path), 0, mb_strlen(BASE_URL)) == mb_strtolower(BASE_URL)) {
-            $urlSegment = mb_substr($path, mb_strlen(BASE_URL));
+        if (mb_substr(mb_strtolower($path), 0, mb_strlen($baseURL)) == mb_strtolower($baseURL)) {
+            $urlSegment = mb_substr($path, mb_strlen($baseURL));
         } else {
             $urlSegment = $path;
         }
