@@ -24,7 +24,8 @@ class FilesystemPublisher extends Publisher
      */
     public function getDestPath()
     {
-        return BASE_PATH . '/' . $this->getDestFolder();
+        $base = defined('PUBLIC_PATH') ? PUBLIC_PATH : BASE_PATH;
+        return $base . DIRECTORY_SEPARATOR . $this->getDestFolder();
     }
 
     public function setDestFolder($destFolder)
