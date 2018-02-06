@@ -58,11 +58,16 @@ abstract class Publisher implements StaticPublisher
         }
         // back up requirements backend
         $origRequirements = Requirements::backend();
-        $origThemes = SSViewer::get_themes();
         Requirements::set_backend(Requirements_Backend::create());
-        $themes = self::config()->get('static_publisher_themes');
-        if ($themes) {
-            SSViewer::set_themes($themes);
+
+        $origThemes = SSViewer::get_themes();
+        $staticThemes = self::config()->get('static_publisher_themes');
+        if ($staticThemes) {
+            SSViewer::set_themes($staticThemes);
+        } else {
+            // get the themes raw from config to prevent the "running from the CMS" problem where no themes are live
+            $rawThemes = SSViewer::config()->uninherited('themes');
+            SSViewer::set_themes($rawThemes);
         }
         try {
             // try to add all the server vars that would be needed to create a static cache
@@ -77,7 +82,7 @@ abstract class Publisher implements StaticPublisher
                     'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
                     'REQUEST_TIME_FLOAT' => (float) DBDatetime::now()->getTimestamp(),
                     'HTTP_HOST' => $urlParts['host'],
-                    'HTTP_USER_AGENT' => 'silverstripe/staticpublisher',
+                    'HTTP_USER_AGENT' => 'silverstripe/staticpublishqueue',
                 ],
                 '_GET' => $getVars,
                 '_POST' => [],
