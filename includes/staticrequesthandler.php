@@ -21,14 +21,16 @@ return function($cacheDir, $urlMapping = null)
 
 
     if (is_callable($urlMapping)) {
-        $cachePath = $cacheDir . DIRECTORY_SEPARATOR. $urlMapping($url);
+        $path = $urlMapping($url);
     } else {
-        $cachePath = $cacheDir . DIRECTORY_SEPARATOR . URLtoPath($url);
+        $path = URLtoPath($url);
     }
 
-    if (!$cachePath) {
+    if (!$path) {
         return false;
     }
+
+    $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $path;
 
     //check for directory traversal attack
     $realCacheDir = realpath($cacheDir);

@@ -67,12 +67,18 @@ class FilesystemPublisher extends Publisher
             user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
             return;
         }
-        $path = $this->URLtoPath($url);
-        $success = $this->deleteFromPath($path . '.html') && $this->deleteFromPath($path . '.php');
+        if ($path = $this->URLtoPath($url)) {
+            $success = $this->deleteFromPath($path . '.html') && $this->deleteFromPath($path . '.php');
+            return [
+                'success' => $success,
+                'url' => $url,
+                'path' => $this->getDestPath() . DIRECTORY_SEPARATOR . $path,
+            ];
+        }
         return [
-            'success' => $success,
+            'success' => false,
             'url' => $url,
-            'path' => $this->getDestPath() . DIRECTORY_SEPARATOR . $path,
+            'path' => false,
         ];
     }
 
@@ -117,13 +123,15 @@ class FilesystemPublisher extends Publisher
     protected function publishRedirect($response, $url)
     {
         $success = true;
-        $path = $this->URLtoPath($url);
-        $location = $response->getHeader('Location');
-        if ($this->getFileExtension() === 'php') {
-            $phpContent = $this->generatePHPCacheFile($response);
-            $success = $this->saveToPath($phpContent, $path . '.php');
+        if ($path = $this->URLtoPath($url)) {
+            $location = $response->getHeader('Location');
+            if ($this->getFileExtension() === 'php') {
+                $phpContent = $this->generatePHPCacheFile($response);
+                $success = $this->saveToPath($phpContent, $path . '.php');
+            }
+            return $this->saveToPath($this->generateHTMLCacheRedirection($location), $path . '.html') && $success;
         }
-        return $this->saveToPath($this->generateHTMLCacheRedirection($location), $path . '.html') && $success;
+        return false;
     }
 
     /**
@@ -134,12 +142,14 @@ class FilesystemPublisher extends Publisher
     protected function publishPage($response, $url)
     {
         $success = true;
-        $path = $this->URLtoPath($url);
-        if ($this->getFileExtension() === 'php') {
-            $phpContent = $this->generatePHPCacheFile($response);
-            $success = $this->saveToPath($phpContent, $path . '.php');
+        if ($path = $this->URLtoPath($url)) {
+            if ($this->getFileExtension() === 'php') {
+                $phpContent = $this->generatePHPCacheFile($response);
+                $success = $this->saveToPath($phpContent, $path . '.php');
+            }
+            return $this->saveToPath($response->getBody(), $path . '.html') && $success;
         }
-        return $this->saveToPath($response->getBody(), $path . '.html') && $success;
+        return false;
     }
 
     /**

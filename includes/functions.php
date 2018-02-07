@@ -10,6 +10,10 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         // or through URL collection (for controller method names etc.).
         $urlParts = @parse_url($url);
 
+        if (!empty($urlParts['query'])) {
+            return;
+        }
+
         // Remove base folders from the URL if webroot is hosted in a subfolder)
         $path = isset($urlParts['path']) ? $urlParts['path'] : '';
         if (mb_substr(mb_strtolower($path), 0, mb_strlen($baseURL)) == mb_strtolower($baseURL)) {
