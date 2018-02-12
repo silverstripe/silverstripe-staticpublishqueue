@@ -2,8 +2,6 @@
 
 namespace SilverStripe\StaticPublishQueue;
 
-include_once __DIR__ . '/functions.php';
-
 return function($cacheDir, $urlMapping = null)
 {
     if (isset($_COOKIE['bypassStaticCache'])) {

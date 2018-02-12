@@ -13,7 +13,7 @@ code block to your `index.php`:
 require __DIR__ . '/vendor/autoload.php';
 
 /** --- goes in here ---- */
-$requestHandler = require 'vendor/silverstripe/staticpublishqueue/includes/staticrequesthandler.php';
+$requestHandler = require 'staticrequesthandler.php';
 
 // successful cache hit
 if (false !== $requestHandler('cache')) {
@@ -27,7 +27,7 @@ if (false !== $requestHandler('cache')) {
 To walk through this a bit:
 
 ```php
-$requestHandler = require 'vendor/silverstripe/staticpublishqueue/includes/staticrequesthandler.php';
+$requestHandler = require 'staticrequesthandler.php';
 ```
 
 This includes the function from the static request handler that we 
