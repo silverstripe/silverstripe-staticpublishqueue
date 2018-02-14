@@ -8,6 +8,7 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPApplication;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Dev\TestKernel;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
@@ -41,8 +42,10 @@ class FilesystemPublisherTest extends SapphireTest
         parent::setUp();
 
         Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', false);
-        Config::modify()->set(Director::class, 'alternate_base_url', 'http://foo/');
         Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
+        Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com');
+
+        Environment::setEnv('SS_BASE_URL', 'http://example.com');
 
         $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)->setMethods([
             'getHTTPApplication',
@@ -301,31 +304,29 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileNotExists($this->fsp->getDestPath() . 'somewhere-else.php');
     }
 
-    public function testPathToURL()
+    /**
+     * @dataProvider providePathsToURL
+     */
+    public function testPathToURL($expected, $path)
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $pathToURL = $reflection->getMethod('pathToURL');
         $pathToURL->setAccessible(true);
 
         $this->assertEquals(
-            '/',
-            $pathToURL->invokeArgs($this->fsp, ['index.html'])
+            $expected,
+            $pathToURL->invoke($this->fsp, $path)
         );
+    }
 
-        $this->assertEquals(
-            'about-us',
-            $pathToURL->invokeArgs($this->fsp, ['about-us.html'])
-        );
-
-        $this->assertEquals(
-            'about-us',
-            $pathToURL->invokeArgs($this->fsp, ['about-us.php'])
-        );
-
-        $this->assertEquals(
-            'parent/child',
-            $pathToURL->invokeArgs($this->fsp, ['parent/child.html'])
-        );
+    public function providePathsToURL()
+    {
+        return [
+            ['http://example.com/', 'index.html'],
+            ['http://example.com/about-us', 'about-us.html'],
+            ['http://example.com/about-us', 'about-us.php'],
+            ['http://example.com/parent/child', 'parent/child.html'],
+        ];
     }
 
     public function testGetPublishedURLs()
@@ -336,7 +337,7 @@ class FilesystemPublisherTest extends SapphireTest
         $level1->publishRecursive();
 
         $this->fsp->publishURL('find-me', true);
-        $this->assertEquals(['find-me'], $this->fsp->getPublishedURLs());
+        $this->assertEquals(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
 
         $level2_1 = new StaticPublisherTestPage();
         $level2_1->URLSegment = 'find-me-child';
@@ -346,11 +347,11 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->fsp->publishURL($level2_1->Link(), true);
         $urls = $this->fsp->getPublishedURLs();
-        $this->assertContains('find-me', $urls);
-        $this->assertContains('find-me/find-me-child', $urls);
+        $this->assertContains('http://example.com/find-me', $urls);
+        $this->assertContains('http://example.com/find-me/find-me-child', $urls);
         $this->assertCount(2, $urls);
 
         $this->fsp->purgeURL('find-me');
-        $this->assertEquals(['find-me/find-me-child'], $this->fsp->getPublishedURLs());
+        $this->assertEquals(['http://example.com/find-me/find-me-child'], $this->fsp->getPublishedURLs());
     }
 }
