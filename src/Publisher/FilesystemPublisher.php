@@ -3,6 +3,7 @@
 namespace SilverStripe\StaticPublishQueue\Publisher;
 
 use SilverStripe\Assets\Filesystem;
+use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\URLtoPath;
@@ -191,10 +192,16 @@ class FilesystemPublisher extends Publisher
             $path = substr($path, strlen($this->getDestPath()));
         }
         $path = ltrim($path, '/');
+
         // Strip off the file extension
         $relativeURL = substr($path, 0, (strrpos($path, ".")));
 
-        return $relativeURL == 'index' ? '/' : $relativeURL;
+        if (FilesystemPublisher::config()->get('domain_based_caching')) {
+            // factor in the domain as the top dir
+            return Director::protocol() . $relativeURL;
+        }
+
+        return $relativeURL == 'index' ? Director::absoluteBaseURL() : Director::absoluteURL($relativeURL);
     }
 
     public function getPublishedURLs($dir = null, &$result = [])
