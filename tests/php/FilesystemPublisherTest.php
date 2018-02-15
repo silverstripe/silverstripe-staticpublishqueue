@@ -43,9 +43,7 @@ class FilesystemPublisherTest extends SapphireTest
 
         Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', false);
         Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
-        Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com');
-
-        Environment::setEnv('SS_BASE_URL', 'http://example.com');
+        Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com/');
 
         $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)->setMethods([
             'getHTTPApplication',
@@ -337,6 +335,9 @@ class FilesystemPublisherTest extends SapphireTest
         $level1->publishRecursive();
 
         $this->fsp->publishURL('find-me', true);
+        // We have to redeclare this config because the testkernel wipes it when we generate the page response
+        Director::config()->set('alternate_base_url', 'http://example.com');
+
         $this->assertEquals(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
 
         $level2_1 = new StaticPublisherTestPage();
@@ -346,6 +347,8 @@ class FilesystemPublisherTest extends SapphireTest
         $level2_1->publishRecursive();
 
         $this->fsp->publishURL($level2_1->Link(), true);
+        Director::config()->set('alternate_base_url', 'http://example.com');
+
         $urls = $this->fsp->getPublishedURLs();
         $this->assertContains('http://example.com/find-me', $urls);
         $this->assertContains('http://example.com/find-me/find-me-child', $urls);
