@@ -4,10 +4,10 @@ By default, the extensions `SiteTreePublishingEngine` and `PublishableSiteTree`
 are applied to `SiteTree`, so as soon as the module is installed, it should 
 be ready to go.
 
-You'll need to configure a cron job or equivalent to process the queue:
+You'll need to configure a cron job or equivalent to process the queue (if you haven't already):
 
 ```bash
-*/1 * * * * php /path/to/silverstripe/vendor/bin/sake dev/tasks/ProcessJobQueueTask
+* * * * * php /path/to/silverstripe/vendor/bin/sake dev/tasks/ProcessJobQueueTask
 ```
 
 Which will ensure that the `GenerateStaticCacheJob`s are processed quickly.
@@ -16,8 +16,9 @@ Without further configuration, your site won't serve the static cache files.
 See [handling requests](handling_requests.md) for details on how to 
 make sure you are passing through to the statically cached files.
 
-Out of the box, the publisher will create a simple `.php` file and an `.html` file. To
-only generate `.html`, you can set the config flag:
+Out of the box, the publisher will create a simple `.php` file, which contains
+meta information about the cached page and an `.html` file. To only generate
+`.html`, you can set the config flag:
 
 ```yaml
 

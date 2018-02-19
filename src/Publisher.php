@@ -136,27 +136,6 @@ abstract class Publisher implements StaticPublisher
     }
 
     /**
-     * Generate the templated content for a PHP script that can serve up a 301
-     * redirect to the given destination.
-     *
-     * @param string $destination
-     *
-     * @return string
-     */
-    protected function generatePHPCacheRedirection($destination, $statusCode)
-    {
-        $templateResource = ModuleLoader::getModule('silverstripe/staticpublishqueue')
-            ->getResource('templates/CachedPHPRedirection.tmpl');
-        $template = file_get_contents($templateResource->getPath());
-
-        return str_replace(
-            array('**DESTINATION**', '**STATUS_CODE**'),
-            array($destination, $statusCode),
-            $template
-        );
-    }
-
-    /**
      * @param string $destination
      * @return string
      */

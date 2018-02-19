@@ -10,6 +10,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         // or through URL collection (for controller method names etc.).
         $urlParts = @parse_url($url);
 
+        // query strings are not yet supported so we need to bail is there is one present
         if (!empty($urlParts['query'])) {
             return;
         }

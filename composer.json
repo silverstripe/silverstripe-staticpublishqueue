@@ -1,14 +1,13 @@
 {
     "name": "silverstripe/staticpublishqueue",
     "description": "Static publishing queue to create static versions of pages for enhanced performance and security",
+    "license": "BSD-3-Clause",
     "type": "silverstripe-vendormodule",
     "keywords": ["silverstripe", "static", "html", "security", "performance", "static-publishing", "caching", "cache", "static-caching", "static-cache", "queue", "publishing"],
     "require": {
         "silverstripe/framework": "^4.0.2",
         "silverstripe/cms": "^4",
-        "silverstripe/assets": "^1",
         "silverstripe/config": "^1",
-        "silverstripe/errorpage": "^1",
         "symbiote/silverstripe-queuedjobs": "^4.0.6",
         "silverstripe/versioned": "^1.0.2"
     },

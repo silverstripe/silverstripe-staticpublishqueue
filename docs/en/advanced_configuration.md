@@ -28,9 +28,9 @@ there are ways to get better performance from the module if you're willing to ac
 ### Invoke the static request handler before the composer autoloader
 
 The composer autoloader allows us to include the `staticrequesthandler.php` file without knowledge of where it lives in
-the filesystem as we make use of the `include-path` property. However, the composer autoloader can become take up the
-majority of the processing time when serving a static page. As such you can tightly couple to the vendor path to provide
-a performance benefit.
+the filesystem as we make use of the [`include-path` property](https://getcomposer.org/doc/04-schema.md#include-path).
+However, the composer autoloader can take up the majority of the processing time when serving a static page. As such you
+can tightly couple to the vendor path to provide a performance benefit.
 
 To do so, make your `index.php` file look like this (NB: if you're running using the `public` folder (SS 4.1+), you'll
 need to use `../vendor/` instead of `vendor/` for the require paths):
