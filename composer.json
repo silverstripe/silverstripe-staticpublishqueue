@@ -8,5 +8,10 @@
 		"silverstripe/cms": "^3.1.0",
 		"silverstripe/gridfieldajaxrefresh": "dev-master"
 	},
+	"extra": {
+		"branch-alias": {
+			"3.x-dev": "3.4.x-dev"
+		}
+	},
 	"minimum-stability": "dev"
 }
