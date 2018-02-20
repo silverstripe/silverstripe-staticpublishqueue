@@ -43,6 +43,7 @@ abstract class Publisher implements StaticPublisher
 
     /**
      * @param string $url
+     *
      * @return HTTPResponse
      */
     public function generatePageResponse($url)
@@ -73,19 +74,19 @@ abstract class Publisher implements StaticPublisher
             // try to add all the server vars that would be needed to create a static cache
             $request = HTTPRequestBuilder::createFromVariables(
                 [
-                '_SERVER' => [
-                    'REQUEST_URI' => isset($urlParts['path']) ? $urlParts['path'] : '',
-                    'REQUEST_METHOD' => 'GET',
-                    'REMOTE_ADDR' => '127.0.0.1',
-                    'HTTPS' => $urlParts['scheme'] == 'https' ? 'on' : 'off',
-                    'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
-                    'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
-                    'REQUEST_TIME_FLOAT' => (float) DBDatetime::now()->getTimestamp(),
-                    'HTTP_HOST' => $urlParts['host'],
-                    'HTTP_USER_AGENT' => 'silverstripe/staticpublishqueue',
-                ],
-                '_GET' => $getVars,
-                '_POST' => [],
+                    '_SERVER' => [
+                        'REQUEST_URI' => isset($urlParts['path']) ? $urlParts['path'] : '',
+                        'REQUEST_METHOD' => 'GET',
+                        'REMOTE_ADDR' => '127.0.0.1',
+                        'HTTPS' => $urlParts['scheme'] == 'https' ? 'on' : 'off',
+                        'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
+                        'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
+                        'REQUEST_TIME_FLOAT' => (float)DBDatetime::now()->getTimestamp(),
+                        'HTTP_HOST' => $urlParts['host'],
+                        'HTTP_USER_AGENT' => 'silverstripe/staticpublishqueue',
+                    ],
+                    '_GET' => $getVars,
+                    '_POST' => [],
                 ],
                 ''
             );
@@ -127,7 +128,7 @@ abstract class Publisher implements StaticPublisher
         ];
 
         foreach ($response->getHeaders() as $header => $value) {
-            if (!in_array($header, [ 'cache-control' ])) {
+            if (!in_array($header, ['cache-control'])) {
                 $cacheConfig['headers'][] = sprintf('%s: %s', $header, $value);
             }
         }
@@ -137,6 +138,7 @@ abstract class Publisher implements StaticPublisher
 
     /**
      * @param string $destination
+     *
      * @return string
      */
     protected function generateHTMLCacheRedirection($destination)

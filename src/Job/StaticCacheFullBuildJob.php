@@ -19,7 +19,7 @@ class StaticCacheFullBuildJob extends Job
      */
     public function getTitle()
     {
-        return 'Generate a static pages for all URLs';
+        return 'Generate static pages for all URLs';
     }
 
     /**
