@@ -65,5 +65,11 @@ checks:
     assignment_of_null_return: true
     argument_type_checks: true
 
+build:
+  nodes:
+    analysis:
+      tests:
+        override: [php-scrutinizer-run]
+
 filter:
-  paths: [code/*, tests/*]
+  paths: [src/*, tests/*]
