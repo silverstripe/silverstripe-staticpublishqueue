@@ -192,14 +192,13 @@ class FilesystemPublisher extends Publisher
             $path = substr($path, strlen($this->getDestPath()));
         }
 
-        // Strip off the file extension
+        // Strip off the file extension and leading /
         $relativeURL = substr($path, 0, (strrpos($path, ".")));
+        $relativeURL = ltrim($relativeURL, '/');
 
         if (FilesystemPublisher::config()->get('domain_based_caching')) {
             // factor in the domain as the top dir
-            $absoluteURL = ltrim($relativeURL, '/');
-
-            return Director::protocol() . $absoluteURL;
+            return Director::protocol() . $relativeURL;
         }
 
         return $relativeURL == 'index' ? Director::absoluteBaseURL() : Director::absoluteURL($relativeURL);

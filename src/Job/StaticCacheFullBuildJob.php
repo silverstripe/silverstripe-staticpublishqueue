@@ -64,8 +64,8 @@ class StaticCacheFullBuildJob extends Job
             $this->jobData->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs());
             $this->jobData->ProcessedURLs = array_map($trimSlashes, $this->jobData->ProcessedURLs);
             $this->jobData->URLsToCleanUp = array_diff($this->jobData->publishedURLs, $this->jobData->ProcessedURLs);
+
             foreach ($this->jobData->URLsToCleanUp as $staleURL) {
-                $staleURL = $staleURL == '' ? '/' : $staleURL;
                 $purgeMeta = Publisher::singleton()->purgeURL($staleURL);
                 if (!empty($purgeMeta['success'])) {
                     unset($this->jobData->URLsToCleanUp[$staleURL]);

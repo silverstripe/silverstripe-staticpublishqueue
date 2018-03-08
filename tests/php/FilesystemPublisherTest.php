@@ -313,7 +313,7 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->assertEquals(
             $expected,
-            $pathToURL->invoke($this->fsp, $path)
+            $pathToURL->invoke($this->fsp, $this->fsp->getDestPath() . $path)
         );
     }
 
