@@ -176,7 +176,7 @@ class FilesystemPublisher extends Publisher
         } else {
             $success = true;
         }
-        Filesystem::remove_folder_if_empty(dirname($deletePath));
+
         return $success;
     }
 
