@@ -42,6 +42,13 @@ abstract class Publisher implements StaticPublisher
     private static $domain_based_caching = false;
 
     /**
+     * @config
+     *
+     * @var Boolean Add a timestamp to the statically published output for HTML files
+     */
+    private static $add_timestamp = false;
+
+    /**
      * @param string $url
      *
      * @return HTTPResponse
@@ -92,6 +99,10 @@ abstract class Publisher implements StaticPublisher
             );
             $app = $this->getHTTPApplication();
             $response = $app->handle($request);
+
+            if ($this->config()->get('add_timestamp') === true) {
+                $response->setBody(str_replace('</html>', "<!-- " . DBDateTime::now() . " -->\n</html>", $response->getBody()));
+            }
         } catch (HTTPResponse_Exception $e) {
             $response = $e->getResponse();
         } finally {
