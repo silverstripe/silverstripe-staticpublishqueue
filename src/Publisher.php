@@ -106,8 +106,8 @@ abstract class Publisher implements StaticPublisher
                         '</html>',
                         "<!-- " . DBDateTime::now()->Full() . " -->\n</html>",
                         $response->getBody()
-                        )
-                    );
+                    )
+                );
             }
         } catch (HTTPResponse_Exception $e) {
             $response = $e->getResponse();
