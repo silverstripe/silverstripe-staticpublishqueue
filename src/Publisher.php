@@ -100,8 +100,14 @@ abstract class Publisher implements StaticPublisher
             $app = $this->getHTTPApplication();
             $response = $app->handle($request);
 
-            if ($this->config()->get('add_timestamp') === true) {
-                $response->setBody(str_replace('</html>', "<!-- " . DBDateTime::now() . " -->\n</html>", $response->getBody()));
+            if ($this->config()->get('add_timestamp') === true) {                
+                $response->setBody(
+                    str_replace(
+                        '</html>', 
+                        "<!-- " . DBDateTime::now()->Full() . " -->\n</html>", 
+                        $response->getBody()
+                        )
+                    );
             }
         } catch (HTTPResponse_Exception $e) {
             $response = $e->getResponse();
