@@ -39,7 +39,7 @@ By default, all pages which inherit from `SiteTree` will be included in the stat
 You can exclude pages from being statically generated on a class-by-class basis by adding a `urlsToCache()` method to your page class which returns an empty array:
 
 ```php
-class myPage extends Page 
+class MyFormPage extends Page 
 {
 
     public function urlsToCache() {
