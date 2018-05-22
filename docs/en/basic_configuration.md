@@ -33,6 +33,21 @@ SilverStripe\Core\Injector\Injector:
       fileExtension: html
 ```
 
+## Excluding page types
+By default, all pages which inherit from `SiteTree` will be included in the static publishing system.  This can cause issues on some pages, especially those which contain a CSRF token (eg. forms) since the token will also be cached and hence prevent submissions from being validated.
+
+You can exclude pages from being statically generated on a class-by-class basis by adding a `urlsToCache()` method to your page class which returns an empty array:
+
+```php
+class MyFormPage extends Page 
+{
+
+    public function urlsToCache() {
+        return [];
+    }
+}
+```
+
 ## Available interfaces
 
 This module comes with two essential interfaces: `StaticPublishingTrigger` and `StaticallyPublishable`. This interfaces
