@@ -9,7 +9,7 @@
 This module provides an API for your project to be able to generate a static cache of your pages to enhance
 performance by not booting SilverStripe in order to serve requests.
 
-It generates the cache files using the [QueuedJobs module]().
+It generates the cache files using the [QueuedJobs module](https://github.com/symbiote/silverstripe-queuedjobs).
 
 [Docs](docs/en/index.md)
 
