@@ -72,3 +72,21 @@ action. This module provides the following engine:
 
 * `SiteTreePublishingEngine` - regenerates the static cache files after a page is published/unpublished. This makes use
 of both interfaces as object trigger refresh of other objects.
+
+## Cache information / Debugging
+
+If required, a timestamp can be added to the generated HTML to show when the file was created.  The timestamp is added as an HTML comment immediately before the closing `</html>` tag (on pages which do not include this tag, enabling this functionality will have no effect).
+
+This functionality can be enabled in the module by adding a configuration setting to your project, eg:
+
+```yaml
+
+---
+Name: mystaticpublishqueueconfig
+---
+
+SilverStripe\StaticPublishQueue\Publisher:
+  add_timestamp: true
+```
+
+Note: Changing this setting does not have an instant effect on the cached pages.  The timestamp will only be added/removed when the cached page is regenerated.
