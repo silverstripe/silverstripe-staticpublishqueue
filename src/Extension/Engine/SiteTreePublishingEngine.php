@@ -9,6 +9,7 @@ use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use SilverStripe\Core\Injector\Injector;
 
 /**
  * This extension couples to the StaticallyPublishable and StaticPublishingTrigger implementations
@@ -139,7 +140,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
         $queue = QueuedJobService::singleton();
         if (!empty($this->toUpdate)) {
             foreach ($this->toUpdate as $queueItem) {
-                $job = new GenerateStaticCacheJob();
+                $job = Injector::inst()->create(GenerateStaticCacheJob::class);
 
                 $jobData = new \stdClass();
                 $urls = $queueItem->urlsToCache();
@@ -157,7 +158,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
         if (!empty($this->toDelete)) {
             foreach ($this->toDelete as $queueItem) {
-                $job = new DeleteStaticCacheJob();
+                $job = Injector::inst()->create(DeleteStaticCacheJob::class);
 
                 $jobData = new \stdClass();
                 $urls = $queueItem->urlsToCache();
