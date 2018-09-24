@@ -32,6 +32,7 @@ class GenerateStaticCacheJob extends Job
                 unset($this->jobData->URLsToProcess[$url]);
             }
         }
+        $this->currentStep++;
         $this->isComplete = empty($this->jobData->URLsToProcess);
     }
 }
