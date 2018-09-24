@@ -16,7 +16,7 @@ It generates the cache files using the [QueuedJobs module](https://github.com/sy
 
 ## Maintainers
 
-* Ed Linklater <ed@silverstripe.com>
+* Ed Linklater <ed@somar.co.nz>
 
 ## Requirements
 
