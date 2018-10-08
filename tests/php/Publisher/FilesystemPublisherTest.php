@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\StaticPublishQueue\Test;
+namespace SilverStripe\StaticPublishQueue\Test\Publisher;
 
 use SilverStripe\Assets\Filesystem;
 use SilverStripe\CMS\Model\RedirectorPage;
@@ -8,7 +8,6 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPApplication;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Dev\TestKernel;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
