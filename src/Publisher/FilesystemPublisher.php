@@ -163,9 +163,18 @@ class FilesystemPublisher extends Publisher
         if (empty($content)) {
             return false;
         }
+
+        // Write to a temporary file first
+        $temporaryPath = tempnam(TEMP_PATH, 'filesystempublisher_');
+        if (file_put_contents($temporaryPath, $content) === false) {
+            return false;
+        }
+
+        // Move the temporary file to the desired location (prevents unlocked files from being read during write)
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
         Filesystem::makeFolder(dirname($publishPath));
-        return file_put_contents($publishPath, $content) !== false;
+
+        return rename($temporaryPath, $publishPath);
     }
 
     protected function deleteFromPath($filePath)
