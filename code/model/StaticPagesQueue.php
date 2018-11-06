@@ -50,6 +50,7 @@ class StaticPagesQueue extends DataObject {
 	 */
 	public static $indexes = array(
 		'freshness_priority_created' => '(Freshness, Priority, Created)',
+		'URLSegment' => true,
 	);
 
 	/**
