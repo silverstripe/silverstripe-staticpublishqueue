@@ -78,7 +78,7 @@ impact of redirect pages.
 #### Serve HTML via Apache
 
 To serve the HTML files via apache without invoking PHP you'll need to modify the default `.htaccess` rules that come
-with SilverStripe. Please see our [`.htacces` example](../examples/.htaccess.example).
+with SilverStripe. Please see our [`.htaccess` example](../examples/.htaccess.example).
 
 #### Serve HTML via Nginx
 
