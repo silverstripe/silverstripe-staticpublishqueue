@@ -98,8 +98,7 @@ class URLArrayObject extends ArrayObject {
 			//only add URLs of a certain length and only add URLs not already added
 			if (!empty($URLSegment) &&
 			    strlen($URLSegment) > 0 &&
-			    !isset($urlsAlreadyProcessed[$URLSegment]) &&
-				substr($URLSegment,0,4) != "http") {    //URLs isn't to an external site
+			    !isset($urlsAlreadyProcessed[$URLSegment])) {
 
 				//check to make sure this page isn't excluded from the cache
 				if (!$this->excludeFromCache($URLSegment)) {
