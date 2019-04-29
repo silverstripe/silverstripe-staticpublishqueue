@@ -47,6 +47,15 @@ class StaticCacheFullBuildJob extends Job
     {
         $chunkSize = self::config()->get('chunk_size');
         $count = 0;
+
+        // Remove any URLs which have already been processed
+        if ($this->jobData->ProcessedURLs) {
+            $this->jobData->URLsToProcess = array_diff_key(
+                $this->jobData->URLsToProcess,
+                $this->jobData->ProcessedURLs
+            );
+        }
+
         foreach ($this->jobData->URLsToProcess as $url => $priority) {
             if (++$count > $chunkSize) {
                 break;
