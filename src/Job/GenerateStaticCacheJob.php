@@ -5,6 +5,12 @@ namespace SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Publisher;
 
+/**
+ * Class GenerateStaticCacheJob
+ * add pages to static cache based on list of URLs
+ *
+ * @package SilverStripe\StaticPublishQueue\Job
+ */
 class GenerateStaticCacheJob extends Job
 {
     /**
@@ -16,23 +22,19 @@ class GenerateStaticCacheJob extends Job
     }
 
     /**
-     * Do some processing yourself!
+     * @param string $url
+     * @param int $priority
      */
-    public function process()
+    protected function processUrl($url, $priority)
     {
-        $chunkSize = self::config()->get('chunk_size');
-        $count = 0;
-        foreach ($this->jobData->URLsToProcess as $url => $priority) {
-            if (++$count > $chunkSize) {
-                break;
-            }
-            $meta = Publisher::singleton()->publishURL($url, true);
-            if (!empty($meta['success'])) {
-                $this->jobData->ProcessedURLs[$url] = $url;
-                unset($this->jobData->URLsToProcess[$url]);
-            }
+        $meta = Publisher::singleton()->publishURL($url, true);
+        $meta = (is_array($meta)) ? $meta : [];
+        if (array_key_exists('success', $meta) && $meta['success']) {
+            $this->markUrlAsProcessed($url);
+
+            return;
         }
-        $this->currentStep++;
-        $this->isComplete = empty($this->jobData->URLsToProcess);
+
+        $this->handleFailedUrl($url, $meta);
     }
 }

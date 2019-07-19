@@ -2,14 +2,14 @@
 
 namespace SilverStripe\StaticPublishQueue\Extension\Engine;
 
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
+use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
-use Symbiote\QueuedJobs\Services\QueuedJobService;
-use SilverStripe\Core\Injector\Injector;
 
 /**
  * This extension couples to the StaticallyPublishable and StaticPublishingTrigger implementations
@@ -27,14 +27,14 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      *
      * @var array
      */
-    private $toUpdate = array();
+    private $toUpdate = [];
 
     /**
      * Queues the urls to be deleted as part of a next flush operation.
      *
      * @var array
      */
-    private $toDelete = array();
+    private $toDelete = [];
 
     /**
      * @return array
@@ -73,7 +73,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     }
 
     /**
-     * @param \SilverStripe\CMS\Model\SiteTree|null $original
+     * @param SiteTree|null $original
      */
     public function onAfterPublish(&$original)
     {
@@ -100,9 +100,9 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
     public function onBeforeUnpublish()
     {
-        $context = array(
-            'action' => 'unpublish'
-        );
+        $context = [
+            'action' => 'unpublish',
+        ];
         $this->collectChanges($context);
     }
 
@@ -137,41 +137,35 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      */
     public function flushChanges()
     {
-        $queue = QueuedJobService::singleton();
-        if (!empty($this->toUpdate)) {
-            foreach ($this->toUpdate as $queueItem) {
-                $job = Injector::inst()->create(GenerateStaticCacheJob::class);
+        $toUpdate = $this->toUpdate;
+        $toDelete = $this->toDelete;
 
-                $jobData = new \stdClass();
-                $urls = $queueItem->urlsToCache();
-                ksort($urls);
-                $jobData->URLsToProcess = $urls;
+        if (count($toUpdate) > 0) {
+            $urls = [];
 
-                $job->setJobData(0, 0, false, $jobData, [
-                    'Building URLs: ' . var_export(array_keys($jobData->URLsToProcess), true)
-                ]);
-
-                $queue->queueJob($job);
+            /** @var StaticallyPublishable $item */
+            foreach ($toUpdate as $item) {
+                $itemUrls = $item->urlsToCache();
+                $itemUrls = array_keys($itemUrls);
+                $urls = array_merge($urls, $itemUrls);
             }
-            $this->toUpdate = array();
+
+            GenerateStaticCacheJob::singleton()->queueJobsFromData($urls, 'Building URLs');
+            $this->toUpdate = [];
         }
 
-        if (!empty($this->toDelete)) {
-            foreach ($this->toDelete as $queueItem) {
-                $job = Injector::inst()->create(DeleteStaticCacheJob::class);
+        if (count($toDelete) > 0) {
+            $urls = [];
 
-                $jobData = new \stdClass();
-                $urls = $queueItem->urlsToCache();
-                ksort($urls);
-                $jobData->URLsToProcess = $urls;
-
-                $job->setJobData(0, 0, false, $jobData, [
-                    'Purging URLs: ' . var_export(array_keys($jobData->URLsToProcess), true)
-                ]);
-
-                $queue->queueJob($job);
+            /** @var StaticallyPublishable $item */
+            foreach ($toUpdate as $item) {
+                $itemUrls = $item->urlsToCache();
+                $itemUrls = array_keys($itemUrls);
+                $urls = array_merge($urls, $itemUrls);
             }
-            $this->toDelete = array();
+
+            DeleteStaticCacheJob::singleton()->queueJobsFromData($urls, 'Purging URLs');
+            $this->toDelete = [];
         }
     }
 }

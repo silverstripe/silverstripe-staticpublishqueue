@@ -5,10 +5,11 @@
     "type": "silverstripe-vendormodule",
     "keywords": ["silverstripe", "static", "html", "security", "performance", "static-publishing", "caching", "cache", "static-caching", "static-cache", "queue", "publishing"],
     "require": {
+        "php": "^7.1",
         "silverstripe/framework": "^4.0.2",
         "silverstripe/cms": "^4",
         "silverstripe/config": "^1",
-        "symbiote/silverstripe-queuedjobs": "^4.0.6",
+        "symbiote/silverstripe-queuedjobs": "^4.5.0",
         "silverstripe/versioned": "^1.0.2"
     },
     "require-dev": {
