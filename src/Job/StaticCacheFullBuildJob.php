@@ -80,7 +80,14 @@ class StaticCacheFullBuildJob extends Job
 
         if (count($this->URLsToProcess) === 0) {
             $trimSlashes = function ($value) {
-                return trim($value, '/');
+                $value = trim($value, '/');
+
+                // We want to trim the schema from the beginning as they map to the same place
+                // anyway.
+                $value = ltrim($value, 'http://');
+                $value = ltrim($value, 'https://');
+
+                return $value;
             };
 
             // List of all URLs which have a static cache file

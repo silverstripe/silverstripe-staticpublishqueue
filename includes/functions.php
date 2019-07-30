@@ -66,6 +66,9 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
 
         if ($domainBasedCaching) {
             // factor in the domain as the top dir
+            if (substr($relativeURL, -6) === '/index') {
+                $relativeURL = substr($relativeURL, 0, strlen($relativeURL) - 5);
+            }
             return \SilverStripe\Control\Director::protocol() . $relativeURL;
         }
 
