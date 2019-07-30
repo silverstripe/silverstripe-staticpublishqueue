@@ -9,6 +9,7 @@ use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Control\HTTPResponse_Exception;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\CoreKernel;
+use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
@@ -85,6 +86,11 @@ abstract class Publisher implements StaticPublisher
             SSViewer::set_themes($rawThemes);
         }
         try {
+            $ssl = Environment::getEnv('SS_STATIC_FORCE_SSL');
+            if (is_null($ssl)) {
+                $ssl = $urlParts['scheme'] == 'https' ? true : false;
+            }
+
             // try to add all the server vars that would be needed to create a static cache
             $request = HTTPRequestBuilder::createFromVariables(
                 [
@@ -92,7 +98,7 @@ abstract class Publisher implements StaticPublisher
                         'REQUEST_URI' => isset($urlParts['path']) ? $urlParts['path'] : '',
                         'REQUEST_METHOD' => 'GET',
                         'REMOTE_ADDR' => '127.0.0.1',
-                        'HTTPS' => $urlParts['scheme'] === 'https' ? 'on' : 'off',
+                        'HTTPS' => $ssl ? 'on' : 'off',
                         'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
                         'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
                         'REQUEST_TIME_FLOAT' => (float) DBDatetime::now()->getTimestamp(),
