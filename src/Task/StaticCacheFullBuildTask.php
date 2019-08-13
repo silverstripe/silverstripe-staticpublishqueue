@@ -4,6 +4,7 @@ namespace SilverStripe\StaticPublishQueue\Task;
 
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\FieldType\DBDatetime;
@@ -23,7 +24,7 @@ class StaticCacheFullBuildTask extends BuildTask
      */
     public function run($request)
     {
-        $job = new StaticCacheFullBuildJob();
+        $job = Injector::inst()->create(StaticCacheFullBuildJob::class);
         $signature = $job->getSignature();
 
         // see if we already have this job in a queue
