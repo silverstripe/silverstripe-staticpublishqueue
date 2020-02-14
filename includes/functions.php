@@ -44,3 +44,26 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         return $prefix . basename($filename);
     }
 }
+
+if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
+    function PathToURL($path, $destPath, $domainBasedCaching = false)
+    {
+        if (strpos($path, $destPath) === 0) {
+            //Strip off the full path of the cache dir from the front
+            $path = substr($path, strlen($destPath));
+        }
+
+        // Strip off the file extension and leading /
+        $relativeURL = substr($path, 0, (strrpos($path, ".")));
+        $relativeURL = ltrim($relativeURL, '/');
+
+        if ($domainBasedCaching) {
+            // factor in the domain as the top dir
+            return \SilverStripe\Control\Director::protocol() . $relativeURL;
+        }
+
+        return $relativeURL == 'index'
+            ? \SilverStripe\Control\Director::absoluteBaseURL()
+            : \SilverStripe\Control\Director::absoluteURL($relativeURL);
+    }
+}
