@@ -14,10 +14,6 @@ It generates the cache files using the [QueuedJobs module](https://github.com/sy
 
 [Docs](docs/en/index.md)
 
-## Maintainers
-
-* Ed Linklater <ed@somar.co.nz>
-
 ## Requirements
 
 * "silverstripe/framework": "^4.0.2",
