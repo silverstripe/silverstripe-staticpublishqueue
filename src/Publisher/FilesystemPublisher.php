@@ -213,7 +213,7 @@ class FilesystemPublisher extends Publisher
             }
             $fullPath = $dir . DIRECTORY_SEPARATOR . $fileOrDir;
             // we know html will always be generated, this prevents double ups
-            if (is_file($fullPath) && pathinfo($fullPath)['extension'] == 'html') {
+            if (is_file($fullPath) && pathinfo($fullPath, PATHINFO_EXTENSION) == 'html') {
                 $result[] = $this->pathToURL($fullPath);
                 continue;
             }
