@@ -4,8 +4,8 @@ namespace SilverStripe\StaticPublishQueue\Publisher;
 
 use SilverStripe\Assets\Filesystem;
 use SilverStripe\Control\HTTPResponse;
-use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\PathToURL;
+use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\URLtoPath;
 
 class FilesystemPublisher extends Publisher
@@ -173,7 +173,29 @@ class FilesystemPublisher extends Publisher
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
         Filesystem::makeFolder(dirname($publishPath));
 
-        return rename($temporaryPath, $publishPath);
+        $successWithPublish = rename($temporaryPath, $publishPath);
+        if ($successWithPublish) {
+            if (FilesystemPublisher::config()->get('use_gzip_compression')) {
+                $publishPath = $this->compressFile($publishPath);
+            }
+        }
+        return file_exists($publishPath);
+    }
+
+    /**
+     * Compress the html file and store it gzipped
+     *
+     * @param string $publishPath
+     * @return string The path of the compressed file
+     */
+    protected function compressFile($publishPath)
+    {
+        $data = file_get_contents($publishPath);
+        $gzData = gzencode($data, 9);
+        $gzPublishPath = $publishPath . '.gz';
+        unlink($gzPublishPath);
+        file_put_contents($gzPublishPath, $gzData);
+        return $gzPublishPath;
     }
 
     protected function deleteFromPath($filePath)
@@ -183,6 +205,9 @@ class FilesystemPublisher extends Publisher
             $success = unlink($deletePath);
         } else {
             $success = true;
+        }
+        if (file_exists($deletePath . '.gz')) {
+            $success = unlink($deletePath . '.gz') && $success;
         }
 
         return $success;

@@ -18,6 +18,7 @@
         "publishing"
     ],
     "require": {
+        "ext-zlib": "*",
         "silverstripe/framework": "^4.0.2",
         "silverstripe/cms": "^4",
         "silverstripe/config": "^1",

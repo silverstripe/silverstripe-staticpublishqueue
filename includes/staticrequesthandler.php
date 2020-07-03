@@ -62,7 +62,12 @@ return function ($cacheDir, $urlMapping = null)
             return true;
         }
         header('ETag: ' . $etag);
-        readfile($cachePath . '.html');
+        if (strpos(strtolower($_SERVER['HTTP_ACCEPT_ENCODING']), 'gzip') !== false && file_exists($cachePath . '.html.gz')) {
+            header('Content-Encoding: gzip', true);
+            readfile($cachePath . '.html.gz');
+        } else {
+            readfile($cachePath . '.html');
+        }
     }
     return true;
 };
