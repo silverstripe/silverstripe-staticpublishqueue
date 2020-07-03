@@ -69,8 +69,8 @@ For the best performance you can have your webserver (eg: Apache, Nginx, etc) se
 
 The primary drawback of this is that the cached HTTP Headers will no longer work (as they are sent to the browser by
 PHP). This means redirects will use meta refresh tags and/or javascript to forward users to new URLs (which will have
-an SEO and usability impact for you site); other headers that may be required by your application will also not be
-served.
+an SEO and usability impact for you site); other headers that may be required by your application won't be
+served either.
 
 You should consider implementing a redirect map at the server level (eg: in you `.htaccess` file) to avoid any negative
 impact of redirect pages.
