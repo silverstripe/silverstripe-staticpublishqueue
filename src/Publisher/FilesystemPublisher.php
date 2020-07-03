@@ -21,6 +21,12 @@ class FilesystemPublisher extends Publisher
     protected $fileExtension = 'php';
 
     /**
+     *
+     * @var bool
+     */
+    private static $use_gzip = false;
+
+    /**
      * @return string
      */
     public function getDestPath()
