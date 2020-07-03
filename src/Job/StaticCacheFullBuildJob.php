@@ -14,6 +14,16 @@ use SilverStripe\Versioned\Versioned;
  */
 class StaticCacheFullBuildJob extends Job
 {
+    public function setup()
+    {
+        parent::setup();
+        $this->URLsToProcess = $this->getAllLivePageURLs();
+        $this->URLsToCleanUp = [];
+        $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
+        $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
+        $this->addMessage(var_export(array_keys($this->URLsToProcess), true));
+    }
+
     /**
      * @return string
      */
@@ -28,16 +38,6 @@ class StaticCacheFullBuildJob extends Job
     public function getSignature()
     {
         return md5(static::class);
-    }
-
-    public function setup()
-    {
-        parent::setup();
-        $this->URLsToProcess = $this->getAllLivePageURLs();
-        $this->URLsToCleanUp = [];
-        $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
-        $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
-        $this->addMessage(var_export(array_keys($this->URLsToProcess), true));
     }
 
     /**
@@ -56,12 +56,12 @@ class StaticCacheFullBuildJob extends Job
             );
         }
 
-        foreach ($this->jobData->URLsToProcess as $url => $priority) {
+        foreach (array_keys($this->jobData->URLsToProcess) as $url) {
             if (++$count > $chunkSize) {
                 break;
             }
             $meta = Publisher::singleton()->publishURL($url, true);
-            if (!empty($meta['success'])) {
+            if (! empty($meta['success'])) {
                 $this->jobData->ProcessedURLs[$url] = $url;
                 unset($this->jobData->URLsToProcess[$url]);
             }
@@ -76,16 +76,15 @@ class StaticCacheFullBuildJob extends Job
 
             foreach ($this->jobData->URLsToCleanUp as $staleURL) {
                 $purgeMeta = Publisher::singleton()->purgeURL($staleURL);
-                if (!empty($purgeMeta['success'])) {
+                if (! empty($purgeMeta['success'])) {
                     unset($this->jobData->URLsToCleanUp[$staleURL]);
                 }
             }
-        };
+        }
         $this->isComplete = empty($this->jobData->URLsToProcess) && empty($this->jobData->URLsToCleanUp);
     }
 
     /**
-     *
      * @return array
      */
     protected function getAllLivePageURLs()

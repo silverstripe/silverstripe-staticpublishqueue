@@ -10,7 +10,6 @@ use SilverStripe\Control\HTTPResponse_Exception;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\CoreKernel;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\FieldType\DBField;
@@ -34,7 +33,7 @@ abstract class Publisher implements StaticPublisher
     /**
      * @config
      *
-     * @var Boolean Use domain based caching (put cache files into a domain subfolder)
+     * @var boolean Use domain based caching (put cache files into a domain subfolder)
      * This must be true if you are using this with the "subsites" module.
      * Please note that this form of caching requires all URLs to be provided absolute
      * (not relative to the webroot) via {@link SiteTree->AbsoluteLink()}.
@@ -44,7 +43,7 @@ abstract class Publisher implements StaticPublisher
     /**
      * @config
      *
-     * @var Boolean Add a timestamp to the statically published output for HTML files
+     * @var boolean Add a timestamp to the statically published output for HTML files
      */
     private static $add_timestamp = false;
 
@@ -59,7 +58,7 @@ abstract class Publisher implements StaticPublisher
             $url = Director::absoluteURL($url);
         }
         $urlParts = parse_url($url);
-        if (!empty($urlParts['query'])) {
+        if (! empty($urlParts['query'])) {
             parse_str($urlParts['query'], $getVars);
         } else {
             $getVars = [];
@@ -85,10 +84,10 @@ abstract class Publisher implements StaticPublisher
                         'REQUEST_URI' => isset($urlParts['path']) ? $urlParts['path'] : '',
                         'REQUEST_METHOD' => 'GET',
                         'REMOTE_ADDR' => '127.0.0.1',
-                        'HTTPS' => $urlParts['scheme'] == 'https' ? 'on' : 'off',
+                        'HTTPS' => $urlParts['scheme'] === 'https' ? 'on' : 'off',
                         'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
                         'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
-                        'REQUEST_TIME_FLOAT' => (float)DBDatetime::now()->getTimestamp(),
+                        'REQUEST_TIME_FLOAT' => (float) DBDatetime::now()->getTimestamp(),
                         'HTTP_HOST' => $urlParts['host'],
                         'HTTP_USER_AGENT' => 'silverstripe/staticpublishqueue',
                     ],
@@ -104,7 +103,7 @@ abstract class Publisher implements StaticPublisher
                 $response->setBody(
                     str_replace(
                         '</html>',
-                        "<!-- " . DBDateTime::now()->Full() . " -->\n</html>",
+                        '<!-- ' . DBDateTime::now()->Full() . " -->\n</html>",
                         $response->getBody()
                     )
                 );
@@ -145,7 +144,7 @@ abstract class Publisher implements StaticPublisher
         ];
 
         foreach ($response->getHeaders() as $header => $value) {
-            if (!in_array($header, ['cache-control'])) {
+            if (! in_array($header, ['cache-control'], true)) {
                 $cacheConfig['headers'][] = sprintf('%s: %s', $header, $value);
             }
         }

@@ -4,12 +4,12 @@ namespace SilverStripe\StaticPublishQueue\Extension\Engine;
 
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
-use SilverStripe\Core\Injector\Injector;
 
 /**
  * This extension couples to the StaticallyPublishable and StaticPublishingTrigger implementations
@@ -27,14 +27,14 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      *
      * @var array
      */
-    private $toUpdate = array();
+    private $toUpdate = [];
 
     /**
      * Queues the urls to be deleted as part of a next flush operation.
      *
      * @var array
      */
-    private $toDelete = array();
+    private $toDelete = [];
 
     /**
      * @return array
@@ -81,8 +81,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension
         // then this is eht equivalent of an unpublish and publish as far as the
         // static publisher is concerned
         if ($original && (
-                $original->ParentID != $this->getOwner()->ParentID
-                || $original->URLSegment != $this->getOwner()->URLSegment
+                $original->ParentID !== $this->getOwner()->ParentID
+                || $original->URLSegment !== $this->getOwner()->URLSegment
             )
         ) {
             $context = [
@@ -100,9 +100,9 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
     public function onBeforeUnpublish()
     {
-        $context = array(
-            'action' => 'unpublish'
-        );
+        $context = [
+            'action' => 'unpublish',
+        ];
         $this->collectChanges($context);
     }
 
@@ -138,7 +138,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     public function flushChanges()
     {
         $queue = QueuedJobService::singleton();
-        if (!empty($this->toUpdate)) {
+        if (! empty($this->toUpdate)) {
             foreach ($this->toUpdate as $queueItem) {
                 $job = Injector::inst()->create(GenerateStaticCacheJob::class);
 
@@ -148,15 +148,15 @@ class SiteTreePublishingEngine extends SiteTreeExtension
                 $jobData->URLsToProcess = $urls;
 
                 $job->setJobData(0, 0, false, $jobData, [
-                    'Building URLs: ' . var_export(array_keys($jobData->URLsToProcess), true)
+                    'Building URLs: ' . var_export(array_keys($jobData->URLsToProcess), true),
                 ]);
 
                 $queue->queueJob($job);
             }
-            $this->toUpdate = array();
+            $this->toUpdate = [];
         }
 
-        if (!empty($this->toDelete)) {
+        if (! empty($this->toDelete)) {
             foreach ($this->toDelete as $queueItem) {
                 $job = Injector::inst()->create(DeleteStaticCacheJob::class);
 
@@ -166,12 +166,12 @@ class SiteTreePublishingEngine extends SiteTreeExtension
                 $jobData->URLsToProcess = $urls;
 
                 $job->setJobData(0, 0, false, $jobData, [
-                    'Purging URLs: ' . var_export(array_keys($jobData->URLsToProcess), true)
+                    'Purging URLs: ' . var_export(array_keys($jobData->URLsToProcess), true),
                 ]);
 
                 $queue->queueJob($job);
             }
-            $this->toDelete = array();
+            $this->toDelete = [];
         }
     }
 }

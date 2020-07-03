@@ -2,7 +2,6 @@
 
 namespace SilverStripe\StaticPublishQueue\Extension\Publishable;
 
-use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\VirtualPage;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
@@ -21,7 +20,6 @@ use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
  */
 class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger
 {
-
     public function getMyVirtualPages()
     {
         return VirtualPage::get()->filter(['CopyContentFrom.ID' => $this->owner->ID]);

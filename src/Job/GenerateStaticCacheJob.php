@@ -22,12 +22,12 @@ class GenerateStaticCacheJob extends Job
     {
         $chunkSize = self::config()->get('chunk_size');
         $count = 0;
-        foreach ($this->jobData->URLsToProcess as $url => $priority) {
+        foreach (array_keys($this->jobData->URLsToProcess) as $url) {
             if (++$count > $chunkSize) {
                 break;
             }
             $meta = Publisher::singleton()->publishURL($url, true);
-            if (!empty($meta['success'])) {
+            if (! empty($meta['success'])) {
                 $this->jobData->ProcessedURLs[$url] = $url;
                 unset($this->jobData->URLsToProcess[$url]);
             }

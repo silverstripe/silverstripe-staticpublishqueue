@@ -14,7 +14,6 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 class StaticCacheFullBuildTask extends BuildTask
 {
-
     /**
      * Queue up a StaticCacheFullBuildJob
      * Check for startAfter param and do some sanity checking
@@ -33,7 +32,7 @@ class StaticCacheFullBuildTask extends BuildTask
             'JobStatus' => [
                 QueuedJob::STATUS_NEW,
                 QueuedJob::STATUS_INIT,
-            ]
+            ],
         ];
 
         $existing = DataList::create(QueuedJobDescriptor::class)->filter($filter)->first();
@@ -82,7 +81,7 @@ class StaticCacheFullBuildTask extends BuildTask
         }
 
         $job->setJobData(0, 0, false, new \stdClass(), [
-            'Building static cache for full site'
+            'Building static cache for full site',
         ]);
         QueuedJobService::singleton()->queueJob($job, $startAfter ? $startAfter->format('Y-m-d H:i:s') : null);
 
