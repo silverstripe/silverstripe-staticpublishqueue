@@ -3,10 +3,9 @@
 namespace SilverStripe\StaticPublishQueue\Publisher;
 
 use SilverStripe\Assets\Filesystem;
-use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPResponse;
-use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\PathToURL;
+use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\URLtoPath;
 
 class FilesystemPublisher extends Publisher
@@ -44,7 +43,7 @@ class FilesystemPublisher extends Publisher
     public function setFileExtension($fileExtension)
     {
         $fileExtension = strtolower($fileExtension);
-        if (!in_array($fileExtension, ['html', 'php'])) {
+        if (! in_array($fileExtension, ['html', 'php'], true)) {
             throw new \InvalidArgumentException(
                 sprintf(
                     'Bad file extension "%s" passed to %s::%s',
@@ -65,8 +64,8 @@ class FilesystemPublisher extends Publisher
 
     public function purgeURL($url)
     {
-        if (!$url) {
-            user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
+        if (! $url) {
+            user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
             return;
         }
         if ($path = $this->URLtoPath($url)) {
@@ -90,14 +89,14 @@ class FilesystemPublisher extends Publisher
      */
     public function publishURL($url, $forcePublish = false)
     {
-        if (!$url) {
-            user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
+        if (! $url) {
+            user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
             return;
         }
         $success = false;
         $response = $this->generatePageResponse($url);
         $statusCode = $response->getStatusCode();
-        $doPublish = ($forcePublish && $this->getFileExtension() == 'php') || $statusCode < 400;
+        $doPublish = ($forcePublish && $this->getFileExtension() === 'php') || $statusCode < 400;
 
         if ($statusCode < 300) {
             // publish success response
@@ -115,6 +114,31 @@ class FilesystemPublisher extends Publisher
             'responsecode' => $statusCode,
             'url' => $url,
         ];
+    }
+
+    public function getPublishedURLs($dir = null, &$result = [])
+    {
+        if ($dir === null) {
+            $dir = $this->getDestPath();
+        }
+
+        $root = scandir($dir);
+        foreach ($root as $fileOrDir) {
+            if (strpos($fileOrDir, '.') === 0) {
+                continue;
+            }
+            $fullPath = $dir . DIRECTORY_SEPARATOR . $fileOrDir;
+            // we know html will always be generated, this prevents double ups
+            if (is_file($fullPath) && pathinfo($fullPath, PATHINFO_EXTENSION) === 'html') {
+                $result[] = $this->pathToURL($fullPath);
+                continue;
+            }
+
+            if (is_dir($fullPath)) {
+                $this->getPublishedURLs($fullPath, $result);
+            }
+        }
+        return $result;
     }
 
     /**
@@ -175,7 +199,14 @@ class FilesystemPublisher extends Publisher
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
         Filesystem::makeFolder(dirname($publishPath));
 
-        return rename($temporaryPath, $publishPath);
+        $successWithPublish = rename($temporaryPath, $publishPath);
+        if ($successWithPublish) {
+            if (FilesystemPublisher::config()->get('use_gzip')) {
+                exec('gzip ' . $publishPath);
+                $publishPath .= '.gz';
+            }
+        }
+        return file_exists($publishPath);
     }
 
     protected function deleteFromPath($filePath)
@@ -198,30 +229,5 @@ class FilesystemPublisher extends Publisher
     protected function pathToURL($path)
     {
         return PathToURL($path, $this->getDestPath(), FilesystemPublisher::config()->get('domain_based_caching'));
-    }
-
-    public function getPublishedURLs($dir = null, &$result = [])
-    {
-        if ($dir == null) {
-            $dir = $this->getDestPath();
-        }
-
-        $root = scandir($dir);
-        foreach ($root as $fileOrDir) {
-            if (strpos($fileOrDir, '.') === 0) {
-                continue;
-            }
-            $fullPath = $dir . DIRECTORY_SEPARATOR . $fileOrDir;
-            // we know html will always be generated, this prevents double ups
-            if (is_file($fullPath) && pathinfo($fullPath, PATHINFO_EXTENSION) == 'html') {
-                $result[] = $this->pathToURL($fullPath);
-                continue;
-            }
-
-            if (is_dir($fullPath)) {
-                $this->getPublishedURLs($fullPath, $result);
-            }
-        }
-        return $result;
     }
 }
