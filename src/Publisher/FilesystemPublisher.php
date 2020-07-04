@@ -21,10 +21,9 @@ class FilesystemPublisher extends Publisher
     protected $fileExtension = 'php';
 
     /**
-     *
      * @var bool
      */
-    private static $use_gzip = false;
+    private static $use_gzip_compression = false;
 
     /**
      * @return string
@@ -185,11 +184,12 @@ class FilesystemPublisher extends Publisher
     }
 
     /**
+     * returns true on access and false on failure
      * @param string $content
      * @param string $filePath
      * @return bool
      */
-    protected function saveToPath($content, $filePath)
+    protected function saveToPath($content, $filePath): bool
     {
         if (empty($content)) {
             return false;
@@ -207,8 +207,9 @@ class FilesystemPublisher extends Publisher
 
         $successWithPublish = rename($temporaryPath, $publishPath);
         if ($successWithPublish) {
-            if (FilesystemPublisher::config()->get('use_gzip')) {
-                exec('gzip ' . $publishPath);
+            if (FilesystemPublisher::config()->get('use_gzip_compression')) {
+                //we keep the html file for now ... so use second parameter to achieve this.
+                exec('gzip ' . $publishPath . ' ' . $publishPath . '.gz');
                 $publishPath .= '.gz';
             }
         }
