@@ -1,7 +1,7 @@
 # Basic Configuration
 
-By default, the extensions `SiteTreePublishingEngine` and `PublishableSiteTree` 
-are applied to `SiteTree`, so as soon as the module is installed, it should 
+By default, the extensions `SiteTreePublishingEngine` and `PublishableSiteTree`
+are applied to `SiteTree`, so as soon as the module is installed, it should
 be ready to go.
 
 You'll need to configure a cron job or equivalent to process the queue (if you haven't already):
@@ -12,8 +12,8 @@ You'll need to configure a cron job or equivalent to process the queue (if you h
 
 Which will ensure that the `GenerateStaticCacheJob`s are processed quickly.
 
-Without further configuration, your site won't serve the static cache files. 
-See [handling requests](handling_requests.md) for details on how to 
+Without further configuration, your site won't serve the static cache files.
+See [handling requests](handling_requests.md) for details on how to
 make sure you are passing through to the statically cached files.
 
 Out of the box, the publisher will create a simple `.php` file, which contains
@@ -32,6 +32,18 @@ SilverStripe\Core\Injector\Injector:
     properties:
       fileExtension: html
 ```
+### adding gzip compression
+
+Adding the gzip compression will make your site even faster and add even less
+overhead to your server.
+
+Add the following to your yml config to turn it on:
+
+```yml
+SilverStripe\StaticPublishQueue\Publisher\FileSystemPublisher:
+  use_gzip_compression: true
+```
+and adjust your nginx / apache redirects accordingly.
 
 ## Excluding page types
 By default, all pages which inherit from `SiteTree` will be included in the static publishing system.  This can cause issues on some pages, especially those which contain a CSRF token (eg. forms) since the token will also be cached and hence prevent submissions from being validated.
@@ -39,7 +51,7 @@ By default, all pages which inherit from `SiteTree` will be included in the stat
 You can exclude pages from being statically generated on a class-by-class basis by adding a `urlsToCache()` method to your page class which returns an empty array:
 
 ```php
-class MyFormPage extends Page 
+class MyFormPage extends Page
 {
 
     public function urlsToCache() {
@@ -58,8 +70,8 @@ of some change of state. An example here is a `Page` with some associated object
 trigger republishing of the `Page`, but they are not themselves published.
 
 `StaticallyPublishable` complements the trigger. It is assigned to objects which want to be statically published.
-Objects are able to claim any amount of URLs (including their own, and also any sub-urls). If you need to trigger 
-republishing or URLs assigned to another objects, implement the `StaticPublishingTrigger`. In our example of `Page` 
+Objects are able to claim any amount of URLs (including their own, and also any sub-urls). If you need to trigger
+republishing or URLs assigned to another objects, implement the `StaticPublishingTrigger`. In our example of `Page`
 with related objects, the Page would be publishable, but the objects wouldn't.
 
 Most of the time the Objects will be both acting as triggers (e.g. for themselves) and as publishable objects
@@ -75,7 +87,9 @@ of both interfaces as object trigger refresh of other objects.
 
 ## Cache information / Debugging
 
-If required, a timestamp can be added to the generated HTML to show when the file was created.  The timestamp is added as an HTML comment immediately before the closing `</html>` tag (on pages which do not include this tag, enabling this functionality will have no effect).
+If required, a timestamp can be added to the generated HTML to show when the file was created.
+The timestamp is added as an HTML comment immediately before the closing `</html>` tag
+(on pages which do not include this tag, enabling this functionality will have no effect).
 
 This functionality can be enabled in the module by adding a configuration setting to your project, eg:
 
