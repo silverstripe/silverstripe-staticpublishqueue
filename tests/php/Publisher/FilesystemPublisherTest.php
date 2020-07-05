@@ -25,16 +25,16 @@ class FilesystemPublisherTest extends SapphireTest
 {
     protected $usesDatabase = true;
 
-    /**
-     * @var FilesystemPublisher
-     */
-    private $fsp = null;
-
     protected static $required_extensions = [
         SiteTree::class => [
             PublishableSiteTree::class,
         ],
     ];
+
+    /**
+     * @var FilesystemPublisher
+     */
+    private $fsp = null;
 
     protected function setUp()
     {
@@ -69,17 +69,17 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath = $reflection->getMethod('URLtoPath');
         $urlToPath->setAccessible(true);
 
-        $this->assertEquals(
+        $this->assertSame(
             'index',
             $urlToPath->invokeArgs($this->fsp, ['/'])
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             'about-us',
             $urlToPath->invokeArgs($this->fsp, ['about-us'])
         );
 
-        $this->assertEquals(
+        $this->assertSame(
             'parent/child',
             $urlToPath->invokeArgs($this->fsp, ['parent/child'])
         );
@@ -92,19 +92,19 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath->setAccessible(true);
 
         $url = Director::absoluteBaseUrl();
-        $this->assertEquals(
+        $this->assertSame(
             'index',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = Director::absoluteBaseUrl() . 'about-us';
-        $this->assertEquals(
+        $this->assertSame(
             'about-us',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = Director::absoluteBaseUrl() . 'parent/child';
-        $this->assertEquals(
+        $this->assertSame(
             'parent/child',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
@@ -121,19 +121,19 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->setFileExtension('html');
 
         $url = 'http://domain1.com/';
-        $this->assertEquals(
+        $this->assertSame(
             'domain1.com/index',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = 'http://domain1.com/about-us';
-        $this->assertEquals(
+        $this->assertSame(
             'domain1.com/about-us',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = 'http://domain2.com/parent/child';
-        $this->assertEquals(
+        $this->assertSame(
             'domain2.com/parent/child',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
@@ -200,8 +200,8 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->assertFileExists($staticFilePath . '.html');
         $this->assertFileNotExists($staticFilePath . '.php');
-        $this->assertEquals(
-            "<div class=\"statically-published\" style=\"display: none\"></div>",
+        $this->assertSame(
+            '<div class="statically-published" style="display: none"></div>',
             trim(file_get_contents($staticFilePath . '.html'))
         );
     }
@@ -255,7 +255,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.html');
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'not_really_there.php';
-        $this->assertEquals(404, $phpCacheConfig['responseCode']);
+        $this->assertSame(404, $phpCacheConfig['responseCode']);
     }
 
     public function testRedirectorPageWhenPHP()
@@ -276,7 +276,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'somewhere-else.php';
-        $this->assertEquals(301, $phpCacheConfig['responseCode']);
+        $this->assertSame(301, $phpCacheConfig['responseCode']);
         $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
     }
 
@@ -310,7 +310,7 @@ class FilesystemPublisherTest extends SapphireTest
         $pathToURL = $reflection->getMethod('pathToURL');
         $pathToURL->setAccessible(true);
 
-        $this->assertEquals(
+        $this->assertSame(
             $expected,
             $pathToURL->invoke($this->fsp, $this->fsp->getDestPath() . $path)
         );
@@ -337,7 +337,7 @@ class FilesystemPublisherTest extends SapphireTest
         // We have to redeclare this config because the testkernel wipes it when we generate the page response
         Director::config()->set('alternate_base_url', 'http://example.com');
 
-        $this->assertEquals(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
+        $this->assertSame(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
 
         $level2_1 = new StaticPublisherTestPage();
         $level2_1->URLSegment = 'find-me-child';
@@ -354,6 +354,6 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertCount(2, $urls);
 
         $this->fsp->purgeURL('find-me');
-        $this->assertEquals(['http://example.com/find-me/find-me-child'], $this->fsp->getPublishedURLs());
+        $this->assertSame(['http://example.com/find-me/find-me-child'], $this->fsp->getPublishedURLs());
     }
 }

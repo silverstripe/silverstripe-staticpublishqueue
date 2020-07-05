@@ -67,11 +67,11 @@ class FilesystemPublisher extends Publisher
         return $this->fileExtension;
     }
 
-    public function purgeURL($url)
+    public function purgeURL(string $url): array
     {
         if (! $url) {
             user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
-            return;
+            return [];
         }
         if ($path = $this->URLtoPath($url)) {
             $success = $this->deleteFromPath($path . '.html') && $this->deleteFromPath($path . '.php');
@@ -92,11 +92,11 @@ class FilesystemPublisher extends Publisher
      * @param string $url
      * @return array A result array
      */
-    public function publishURL($url, $forcePublish = false)
+    public function publishURL(string $url, ?bool $forcePublish = false): array
     {
         if (! $url) {
             user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
-            return;
+            return [];
         }
         $success = false;
         $response = $this->generatePageResponse($url);
@@ -121,7 +121,7 @@ class FilesystemPublisher extends Publisher
         ];
     }
 
-    public function getPublishedURLs($dir = null, &$result = [])
+    public function getPublishedURLs(?string $dir = null, array &$result = []): array
     {
         if ($dir === null) {
             $dir = $this->getDestPath();

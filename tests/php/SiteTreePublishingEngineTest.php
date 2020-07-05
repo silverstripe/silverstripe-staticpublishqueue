@@ -7,17 +7,16 @@ use SilverStripe\StaticPublishQueue\Test\SiteTreePublishingEngineTest\Model\Stat
 
 class SiteTreePublishingEngineTest extends SapphireTest
 {
-
     public function testCollectChangesForPublishing()
     {
         $obj = StaticPublishingTriggerPage::create();
         $obj->collectChanges(['action' => 'publish']);
 
-        $this->assertEquals(
+        $this->assertSame(
             '/updateOnPublish',
             $obj->getToUpdate()->first()->url
         );
-        $this->assertEquals(
+        $this->assertSame(
             '/deleteOnPublish',
             $obj->getToDelete()->first()->url
         );
@@ -28,11 +27,11 @@ class SiteTreePublishingEngineTest extends SapphireTest
         $obj = StaticPublishingTriggerPage::create();
         $obj->collectChanges(['action' => 'unpublish']);
 
-        $this->assertEquals(
+        $this->assertSame(
             '/updateOnUnpublish',
             $obj->getToUpdate()->first()->url
         );
-        $this->assertEquals(
+        $this->assertSame(
             '/deleteOnUnpublish',
             $obj->getToDelete()->first()->url
         );

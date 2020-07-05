@@ -63,7 +63,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     }
 
     /**
-     * @param $toDelete
+     * @param mixed $toDelete
      * @return $this
      */
     public function setToDelete($toDelete)
@@ -116,7 +116,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      *
      * @param array $context
      */
-    public function collectChanges($context)
+    public function collectChanges(array $context)
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();

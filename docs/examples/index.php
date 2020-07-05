@@ -12,18 +12,18 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require __DIR__ . '/../vendor/autoload.php';
 } else {
     header('HTTP/1.1 500 Internal Server Error');
-    echo "autoload.php not found";
+    echo 'autoload.php not found';
     exit(1);
 }
 
 $requestHandler = require 'staticrequesthandler.php';
 
 // successful cache hit
-if (false !== $requestHandler('cache')) {
+if ($requestHandler('cache') !== false) {
     die;
-} else {
-    header('X-Cache-Miss: ' . date(\Datetime::COOKIE));
 }
+    header('X-Cache-Miss: ' . date(\Datetime::COOKIE));
+
 
 // Build request and detect flush
 $request = HTTPRequestBuilder::createFromEnvironment();

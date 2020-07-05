@@ -29,10 +29,10 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->setExpectedFlushChangesOutput([
             [[], ['stub/']],
             [['stub/'], []],
-            [[], ['stub-a-lub-a-dub-dub/']]
+            [[], ['stub-a-lub-a-dub-dub/']],
         ]);
 
-        $page = new PublishablePage;
+        $page = new PublishablePage();
         $page->URLSegment = 'stub';
 
         // publish the page
@@ -51,15 +51,15 @@ class PublishableSiteTreeTest extends SapphireTest
             [[], ['parent/']],
             [[], ['parent/stub/', 'parent/']],
             [['parent/stub/'], ['parent/']],
-            [[], ['parent/stub-a-lub-a-dub-dub/', 'parent/']]
+            [[], ['parent/stub-a-lub-a-dub-dub/', 'parent/']],
         ]);
 
-        $parent = new PublishablePage;
+        $parent = new PublishablePage();
         $parent->URLSegment = 'parent';
         $parent->write();
         $parent->publishRecursive();
 
-        $page = new PublishablePage;
+        $page = new PublishablePage();
         $page->URLSegment = 'stub';
         $page->ParentID = $parent->ID;
 
@@ -84,13 +84,13 @@ class PublishableSiteTreeTest extends SapphireTest
             [[], ['parent/stub/', 'parent/']],
         ]);
 
-        $parent = new PublishablePage;
+        $parent = new PublishablePage();
 
         $parent->URLSegment = 'parent';
         $parent->write();
         $parent->publishRecursive();
 
-        $page = new PublishablePage;
+        $page = new PublishablePage();
 
         $page->URLSegment = 'stub';
         $page->ParentID = $parent->ID;
@@ -112,7 +112,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToUpdateOnPublish()
     {
-        $parent = new PublishablePage;
+        $parent = new PublishablePage();
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(
@@ -138,7 +138,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToUpdateOnUnpublish()
     {
-        $parent = new PublishablePage;
+        $parent = new PublishablePage();
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(
@@ -168,14 +168,14 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToDeleteOnPublish()
     {
-        $stub = new PublishablePage;
+        $stub = new PublishablePage();
         $objects = $stub->objectsToDelete(['action' => 'publish']);
         $this->assertEmpty($objects);
     }
 
     public function testObjectsToDeleteOnUnpublish()
     {
-        $stub = new PublishablePage;
+        $stub = new PublishablePage();
         $stub->Title = 'stub';
         $objects = $stub->objectsToDelete(['action' => 'unpublish']);
         $this->assertContains($stub, $objects);
@@ -184,7 +184,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToUpdateOnPublishIfVirtualExists()
     {
-        $redir = new PublishablePage;
+        $redir = new PublishablePage();
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(['getMyVirtualPages'])
@@ -206,7 +206,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
     public function testObjectsToDeleteOnUnpublishIfVirtualExists()
     {
-        $redir = new PublishablePage;
+        $redir = new PublishablePage();
 
         $stub = $this->getMockBuilder(PublishablePage::class)
             ->setMethods(['getMyVirtualPages'])
@@ -273,13 +273,13 @@ class PublishableSiteTreeTest extends SapphireTest
             list($toDelete, $toUpdate) = $urls;
             $callbacks[] = new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(
                 function () use ($toDelete, $toUpdate, $mockExtension, $getURL, $count) {
-                    $this->assertEquals(
+                    $this->assertSame(
                         $toDelete,
                         array_map($getURL, $mockExtension->getToDelete()),
                         'Failed on delete, iteration ' . $count
                     );
                     $mockExtension->setToDelete([]);
-                    $this->assertEquals(
+                    $this->assertSame(
                         $toUpdate,
                         array_map($getURL, $mockExtension->getToUpdate()),
                         'Failed on update, iteration ' . $count

@@ -2,8 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue;
 
-return function($cacheDir, $urlMapping = null)
-{
+return function ($cacheDir, $urlMapping = null) {
     // allow content authors to avoid static cache via cookie
     if (isset($_COOKIE['bypassStaticCache'])) {
         return false;
@@ -18,22 +17,23 @@ return function($cacheDir, $urlMapping = null)
     $url = $https ? 'https://' : 'http://';
     $url .= $host . $uri;
 
-
     if (is_callable($urlMapping)) {
         $path = $urlMapping($url);
     } else {
         $path = URLtoPath($url);
     }
 
-    if (!$path) {
+    if (! $path) {
         return false;
     }
 
     $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $path;
-    if(file_exists($cachePath . '.html')) {
+    $hasHTMLFile = false;
+    $hasGZIPFile = false;
+    if (file_exists($cachePath . '.html')) {
         $hasHTMLFile = true;
         $cachePath .= '.html';
-    } elseif(file_exists($cachePath . '.html.gz')) {
+    } elseif (file_exists($cachePath . '.html.gz')) {
         $cachePath .= '.html.gz';
         $hasGZIPFile = true;
     }
@@ -50,21 +50,21 @@ return function($cacheDir, $urlMapping = null)
 
     if (file_exists($cachePath . '.php')) {
         $cacheConfig = require $cachePath . '.php';
-    } elseif (!$hasGZIPFile && !$hasHTMLFile) {
+    } elseif (! $hasGZIPFile && ! $hasHTMLFile) {
         return false;
     }
     header('X-Cache-Hit: ' . date(\DateTime::COOKIE));
-    if (!empty($cacheConfig['responseCode'])) {
+    if (! empty($cacheConfig['responseCode'])) {
         header('HTTP/1.1 ' . $cacheConfig['responseCode']);
     }
-    if (!empty($cacheConfig['headers'])) {
+    if (! empty($cacheConfig['headers'])) {
         foreach ($cacheConfig['headers'] as $header) {
             header($header, true);
         }
     }
     if ($hasHTMLFile || $hasGZIPFile) {
         $etag = '"' . md5_file($cachePath) . '"';
-        if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag) {
+        if (! empty($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] === $etag) {
             header('HTTP/1.1 304', true);
             return true;
         }

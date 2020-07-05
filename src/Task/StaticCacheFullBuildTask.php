@@ -19,9 +19,9 @@ class StaticCacheFullBuildTask extends BuildTask
      * Check for startAfter param and do some sanity checking
      *
      * @param HTTPRequest $request
-     * @return
+     * @return bool
      */
-    public function run($request)
+    public function run($request): bool
     {
         $job = new StaticCacheFullBuildJob();
         $signature = $job->getSignature();
@@ -37,7 +37,7 @@ class StaticCacheFullBuildTask extends BuildTask
 
         $existing = DataList::create(QueuedJobDescriptor::class)->filter($filter)->first();
 
-        if ($existing && $existing->ID) {
+        if ($existing && $existing->exists()) {
             $this->log(sprintf(
                 'There is already a %s in the queue, added %s %s',
                 StaticCacheFullBuildJob::class,

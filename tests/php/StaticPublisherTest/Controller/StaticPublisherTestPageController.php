@@ -8,12 +8,11 @@ use SilverStripe\Dev\TestOnly;
 
 class StaticPublisherTestPageController extends PageController implements TestOnly
 {
-
     /**
      * @var array
      * @config
      */
-    private static $allowed_actions = array('json');
+    private static $allowed_actions = ['json'];
 
     /**
      * @return HTTPResponse

@@ -8,10 +8,11 @@ use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 
 class StaticallyPublishablePage extends SiteTree implements TestOnly, StaticallyPublishable
 {
-    private static $table_name = 'SPQ_StaticallyPublishablePage';
-
     public $url;
+
     public $prio;
+
+    private static $table_name = 'SPQ_StaticallyPublishablePage';
 
     public function getID()
     {
@@ -20,6 +21,6 @@ class StaticallyPublishablePage extends SiteTree implements TestOnly, Statically
 
     public function urlsToCache()
     {
-        return array($this->url => $this->prio);
+        return [$this->url => $this->prio];
     }
 }

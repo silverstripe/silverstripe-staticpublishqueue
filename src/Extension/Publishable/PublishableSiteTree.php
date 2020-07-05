@@ -29,7 +29,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
      * @param array $context
      * @return array
      */
-    public function objectsToUpdate($context)
+    public function objectsToUpdate(array $context): array
     {
         $list = [];
         switch ($context['action']) {
@@ -65,7 +65,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
      * @param array $context
      * @return array
      */
-    public function objectsToDelete($context)
+    public function objectsToDelete(array $context): array
     {
         $list = [];
         switch ($context['action']) {

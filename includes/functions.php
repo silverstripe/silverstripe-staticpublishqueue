@@ -2,10 +2,10 @@
 
 namespace SilverStripe\StaticPublishQueue;
 
-if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
+if (! function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
     function URLtoPath($url, $baseURL = '', $domainBasedCaching = false)
     {
-	$url = str_replace('?stage=Live', '?', $url);
+        $url = str_replace('?stage=Live', '?', $url);
 
         // parse_url() is not multibyte safe, see https://bugs.php.net/bug.php?id=52923.
         // We assume that the URL hsa been correctly encoded either on storage (for SiteTree->URLSegment),
@@ -13,13 +13,13 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         $urlParts = @parse_url($url);
 
         // query strings are not yet supported so we need to bail is there is one present
-        if (!empty($urlParts['query'])) {
+        if (! empty($urlParts['query'])) {
             return;
         }
 
         // Remove base folders from the URL if webroot is hosted in a subfolder)
         $path = isset($urlParts['path']) ? $urlParts['path'] : '';
-        if (mb_substr(mb_strtolower($path), 0, mb_strlen($baseURL)) == mb_strtolower($baseURL)) {
+        if (mb_substr(mb_strtolower($path), 0, mb_strlen($baseURL)) === mb_strtolower($baseURL)) {
             $urlSegment = mb_substr($path, mb_strlen($baseURL));
         } else {
             $urlSegment = $path;
@@ -28,10 +28,10 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         // Normalize URLs
         $urlSegment = trim($urlSegment, '/');
 
-        $filename = $urlSegment ?: "index";
+        $filename = $urlSegment ?: 'index';
 
         if ($domainBasedCaching) {
-            if (!$urlParts) {
+            if (! $urlParts) {
                 throw new \LogicException('Unable to parse URL');
             }
             if (isset($urlParts['host'])) {
@@ -40,14 +40,14 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         }
         $dirName = dirname($filename);
         $prefix = '';
-        if ($dirName != '/' && $dirName != '.') {
+        if ($dirName !== '/' && $dirName !== '.') {
             $prefix = $dirName . '/';
         }
         return $prefix . basename($filename);
     }
 }
 
-if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
+if (! function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
     function PathToURL($path, $destPath, $domainBasedCaching = false)
     {
         if (strpos($path, $destPath) === 0) {
@@ -56,7 +56,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
         }
 
         // Strip off the file extension and leading /
-        $relativeURL = substr($path, 0, (strrpos($path, ".")));
+        $relativeURL = substr($path, 0, strrpos($path, '.'));
         $relativeURL = ltrim($relativeURL, '/');
 
         if ($domainBasedCaching) {
@@ -64,7 +64,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
             return \SilverStripe\Control\Director::protocol() . $relativeURL;
         }
 
-        return $relativeURL == 'index'
+        return $relativeURL === 'index'
             ? \SilverStripe\Control\Director::absoluteBaseURL()
             : \SilverStripe\Control\Director::absoluteURL($relativeURL);
     }

@@ -14,16 +14,16 @@ interface StaticPublishingTrigger
      *
      * @param array $context An associative array with extra engine-specific information.
      *
-     * @return SS_List
+     * @return array|SS_List
      */
-    public function objectsToUpdate($context);
+    public function objectsToUpdate(array $context);
 
     /**
      * Provides a SS_list of objects that need to be deleted.
      *
      * @param array $context An associative array with extra engine-specific information.
      *
-     * @return SS_List
+     * @return array|SS_List
      */
-    public function objectsToDelete($context);
+    public function objectsToDelete(array $context);
 }
