@@ -49,6 +49,9 @@ class StaticCacheFullBuildJob extends Job
         $count = 0;
 
         // Remove any URLs which have already been processed
+        if (empty($this->jobData->ProcessedURLs)) {
+            $this->jobData->ProcessedURLs = [];
+        }
         if ($this->jobData->ProcessedURLs) {
             $this->jobData->URLsToProcess = array_diff_key(
                 $this->jobData->URLsToProcess,
@@ -57,11 +60,15 @@ class StaticCacheFullBuildJob extends Job
         }
 
         foreach (array_keys($this->jobData->URLsToProcess) as $url) {
+            $this->addMessage('Processing '.$url);
             if (++$count > $chunkSize) {
                 break;
             }
             $meta = Publisher::singleton()->publishURL($url, true);
-            if (! empty($meta['success'])) {
+            if (empty($meta['success'])) {
+                $this->addMessage('Error Publishing'. $url);
+            } else {
+                $this->addMessage('Success Publishing'. $url);
                 $this->jobData->ProcessedURLs[$url] = $url;
                 unset($this->jobData->URLsToProcess[$url]);
             }
