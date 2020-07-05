@@ -4,6 +4,8 @@ namespace SilverStripe\StaticPublishQueue\Publisher;
 
 use SilverStripe\Assets\Filesystem;
 use SilverStripe\Control\HTTPResponse;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Security\SecurityToken;
 use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\PathToURL;
 use function SilverStripe\StaticPublishQueue\URLtoPath;
@@ -148,11 +150,19 @@ class FilesystemPublisher extends Publisher
     {
         $success = true;
         if ($path = $this->URLtoPath($url)) {
+            $body = $response->getBody();
+            if ($this->config()->get('lazy_form_recognition')) {
+                $id = Config::inst()->get(SecurityToken::class, 'default_name') ?: 'SecurityID';
+                // little hack to make sure we do not include pages with live forms.
+                if (stripos($body, '<input type="hidden" name="' . $id . '"') !== false) {
+                    return false;
+                }
+            }
             if ($this->getFileExtension() === 'php') {
                 $phpContent = $this->generatePHPCacheFile($response);
                 $success = $this->saveToPath($phpContent, $path . '.php');
             }
-            return $this->saveToPath($response->getBody(), $path . '.html') && $success;
+            return $this->saveToPath($body, $path . '.html') && $success;
         }
         return false;
     }
