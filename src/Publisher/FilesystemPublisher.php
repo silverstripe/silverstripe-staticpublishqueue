@@ -174,6 +174,10 @@ class FilesystemPublisher extends Publisher
     {
         $success = true;
         if ($path = $this->URLtoPath($url)) {
+            // little hack to make sure we do not include pages with live forms.
+            if(stripos($response->getBody(), 'name="SecurityID"')) {
+                return false;
+            }
             if ($this->getFileExtension() === 'php') {
                 $phpContent = $this->generatePHPCacheFile($response);
                 $success = $this->saveToPath($phpContent, $path . '.php');
