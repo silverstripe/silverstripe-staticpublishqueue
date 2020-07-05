@@ -60,15 +60,15 @@ class StaticCacheFullBuildJob extends Job
         }
 
         foreach (array_keys($this->jobData->URLsToProcess) as $url) {
-            $this->addMessage('Processing '.$url);
+            $this->addMessage('Processing ' . $url);
             if (++$count > $chunkSize) {
                 break;
             }
             $meta = Publisher::singleton()->publishURL($url, true);
             if (empty($meta['success'])) {
-                $this->addMessage('Error Publishing'. $url);
+                $this->addMessage('Error Publishing' . $url);
             } else {
-                $this->addMessage('Success Publishing'. $url);
+                $this->addMessage('Success Publishing' . $url);
                 $this->jobData->ProcessedURLs[$url] = $url;
                 unset($this->jobData->URLsToProcess[$url]);
             }
