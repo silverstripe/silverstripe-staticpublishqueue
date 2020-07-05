@@ -11,8 +11,15 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         $urlParts = @parse_url($url);
 
         // query strings are not yet supported so we need to bail is there is one present
+        // except for some params, which we ignore
         if (!empty($urlParts['query'])) {
-            return;
+            parse_str($urlParts['query'], $queryParts);
+            if (!empty($queryParts['stage']) && $queryParts['stage'] === 'Live') {
+                unset($queryParts['stage']);
+            }
+            if (!empty($queryParts)) {
+                return;
+            }
         }
 
         // Remove base folders from the URL if webroot is hosted in a subfolder)
