@@ -18,12 +18,12 @@ class FilesystemPublisher extends Publisher
     /**
      * @var string
      */
-    protected $fileExtension = 'php';
+    protected $fileExtension = 'html';
 
     /**
      * @var bool
      */
-    private static $use_gzip_compression = false;
+    private static $use_gzip_compression = true;
 
     /**
      * @return string
@@ -204,12 +204,11 @@ class FilesystemPublisher extends Publisher
         // Move the temporary file to the desired location (prevents unlocked files from being read during write)
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
         Filesystem::makeFolder(dirname($publishPath));
-
         $successWithPublish = rename($temporaryPath, $publishPath);
         if ($successWithPublish) {
             if (FilesystemPublisher::config()->get('use_gzip_compression')) {
                 //we keep the html file for now ... so use second parameter to achieve this.
-                exec('gzip ' . $publishPath . ' ' . $publishPath . '.gz');
+                exec('gzip ' . $publishPath);
                 $publishPath .= '.gz';
             }
         }
@@ -228,12 +227,12 @@ class FilesystemPublisher extends Publisher
         return $success;
     }
 
-    protected function URLtoPath($url)
+    protected function URLtoPath(string $url) : string
     {
         return URLtoPath($url, BASE_URL, FilesystemPublisher::config()->get('domain_based_caching'));
     }
 
-    protected function pathToURL($path)
+    protected function pathToURL(string $path) : string
     {
         return PathToURL($path, $this->getDestPath(), FilesystemPublisher::config()->get('domain_based_caching'));
     }
