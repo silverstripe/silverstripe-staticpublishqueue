@@ -214,6 +214,7 @@ class FilesystemPublisher extends Publisher
                 //we keep the html file for now ... so use second parameter to achieve this.
                 exec('gzip ' . $publishPath);
                 $publishPath .= '.gz';
+                exec('chmod 0777 ' . $publishPath);
             }
         }
         return file_exists($publishPath);
