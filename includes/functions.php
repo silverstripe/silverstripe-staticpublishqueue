@@ -5,6 +5,8 @@ namespace SilverStripe\StaticPublishQueue;
 if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
     function URLtoPath($url, $baseURL = '', $domainBasedCaching = false)
     {
+	$url = str_replace('?stage=Live', '?', $url);
+
         // parse_url() is not multibyte safe, see https://bugs.php.net/bug.php?id=52923.
         // We assume that the URL hsa been correctly encoded either on storage (for SiteTree->URLSegment),
         // or through URL collection (for controller method names etc.).
