@@ -17,6 +17,7 @@ class StaticCacheFullBuildJob extends Job
     public function setup()
     {
         parent::setup();
+        Publisher::singleton()->purgeAll($url);
         $this->URLsToProcess = $this->getAllLivePageURLs();
         $this->URLsToCleanUp = [];
         $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));

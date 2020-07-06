@@ -88,6 +88,13 @@ class FilesystemPublisher extends Publisher
         ];
     }
 
+    public function purgeAll(): bool
+    {
+        Filesystem::removeFolder($this->getDestPath());
+
+        return file_exists($this->getDestPath()) ? false : true;
+    }
+
     /**
      * @param string $url
      * @return array A result array
@@ -175,7 +182,7 @@ class FilesystemPublisher extends Publisher
         $success = true;
         if ($path = $this->URLtoPath($url)) {
             // little hack to make sure we do not include pages with live forms.
-            if(stripos($response->getBody(), 'name="SecurityID"')) {
+            if (stripos($response->getBody(), 'name="SecurityID"')) {
                 return false;
             }
             if ($this->getFileExtension() === 'php') {
@@ -211,13 +218,22 @@ class FilesystemPublisher extends Publisher
         $successWithPublish = rename($temporaryPath, $publishPath);
         if ($successWithPublish) {
             if (FilesystemPublisher::config()->get('use_gzip_compression')) {
-                //we keep the html file for now ... so use second parameter to achieve this.
-                exec('gzip ' . $publishPath);
-                $publishPath .= '.gz';
-                exec('chmod 0777 ' . $publishPath);
+                $publishPath = $this->compressFile($publishPath);
             }
         }
+
         return file_exists($publishPath);
+    }
+
+    protected function compressFile(string $publishPath): string
+    {
+        //we keep the html file for now ... so use second parameter to achieve this.
+        $publishPathGZipped = $publishPath . '.gz';
+        exec('rm ' . $publishPathGZipped . ' -rf');
+        exec('gzip ' . $publishPath);
+        exec('chmod 0777 ' . $publishPathGZipped);
+
+        return $publishPathGZipped;
     }
 
     protected function deleteFromPath($filePath)
@@ -227,6 +243,9 @@ class FilesystemPublisher extends Publisher
             $success = unlink($deletePath);
         } else {
             $success = true;
+        }
+        if (file_exists($deletePath . '.gz')) {
+            return $this->deleteFromPath($deletePath . '.gz');
         }
 
         return $success;
