@@ -18,6 +18,12 @@ interface StaticPublisher
     public function purgeURL($url);
 
     /**
+     * return true on success
+     * @return bool
+     */
+    public function purgeAll();
+
+    /**
      * @return array
      */
     public function getPublishedURLs();
