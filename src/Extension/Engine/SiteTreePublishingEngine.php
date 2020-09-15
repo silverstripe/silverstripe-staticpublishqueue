@@ -27,14 +27,14 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      *
      * @var array
      */
-    private $toUpdate = array();
+    private $toUpdate = [];
 
     /**
      * Queues the urls to be deleted as part of a next flush operation.
      *
      * @var array
      */
-    private $toDelete = array();
+    private $toDelete = [];
 
     /**
      * @return array
@@ -100,9 +100,9 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
     public function onBeforeUnpublish()
     {
-        $context = array(
-            'action' => 'unpublish'
-        );
+        $context = [
+            'action' => 'unpublish',
+        ];
         $this->collectChanges($context);
     }
 
@@ -153,7 +153,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
                 $queue->queueJob($job);
             }
-            $this->toUpdate = array();
+            $this->toUpdate = [];
         }
 
         if (!empty($this->toDelete)) {
@@ -171,7 +171,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
 
                 $queue->queueJob($job);
             }
-            $this->toDelete = array();
+            $this->toDelete = [];
         }
     }
 }

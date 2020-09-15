@@ -33,7 +33,7 @@ class StaticCacheFullBuildTask extends BuildTask
             'JobStatus' => [
                 QueuedJob::STATUS_NEW,
                 QueuedJob::STATUS_INIT,
-            ]
+            ],
         ];
 
         $existing = DataList::create(QueuedJobDescriptor::class)->filter($filter)->first();

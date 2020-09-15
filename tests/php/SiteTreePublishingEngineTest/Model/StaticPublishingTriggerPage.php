@@ -24,9 +24,9 @@ class StaticPublishingTriggerPage extends SiteTree implements TestOnly, StaticPu
     {
         switch ($context['action']) {
             case 'publish':
-                return new ArrayList(array($this->generatePublishable('/updateOnPublish', 10)));
+                return new ArrayList([$this->generatePublishable('/updateOnPublish', 10)]);
             case 'unpublish':
-                return new ArrayList(array($this->generatePublishable('/updateOnUnpublish', 10)));
+                return new ArrayList([$this->generatePublishable('/updateOnUnpublish', 10)]);
         }
     }
 
@@ -37,9 +37,9 @@ class StaticPublishingTriggerPage extends SiteTree implements TestOnly, StaticPu
     {
         switch ($context['action']) {
             case 'publish':
-                return new ArrayList(array($this->generatePublishable('/deleteOnPublish', 10)));
+                return new ArrayList([$this->generatePublishable('/deleteOnPublish', 10)]);
             case 'unpublish':
-                return new ArrayList(array($this->generatePublishable('/deleteOnUnpublish', 10)));
+                return new ArrayList([$this->generatePublishable('/deleteOnUnpublish', 10)]);
         }
     }
 }
