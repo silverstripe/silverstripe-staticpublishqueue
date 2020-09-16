@@ -29,7 +29,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->setExpectedFlushChangesOutput([
             [[], ['stub/']],
             [['stub/'], []],
-            [[], ['stub-a-lub-a-dub-dub/']]
+            [[], ['stub-a-lub-a-dub-dub/']],
         ]);
 
         $page = new PublishablePage;
@@ -273,13 +273,13 @@ class PublishableSiteTreeTest extends SapphireTest
             list($toDelete, $toUpdate) = $urls;
             $callbacks[] = new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(
                 function () use ($toDelete, $toUpdate, $mockExtension, $getURL, $count) {
-                    $this->assertEquals(
+                    $this->assertSame(
                         $toDelete,
                         array_map($getURL, $mockExtension->getToDelete()),
                         'Failed on delete, iteration ' . $count
                     );
                     $mockExtension->setToDelete([]);
-                    $this->assertEquals(
+                    $this->assertSame(
                         $toUpdate,
                         array_map($getURL, $mockExtension->getToUpdate()),
                         'Failed on update, iteration ' . $count

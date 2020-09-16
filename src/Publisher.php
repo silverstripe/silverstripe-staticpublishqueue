@@ -10,7 +10,6 @@ use SilverStripe\Control\HTTPResponse_Exception;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\CoreKernel;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\ORM\FieldType\DBField;
@@ -85,7 +84,7 @@ abstract class Publisher implements StaticPublisher
                         'REQUEST_URI' => isset($urlParts['path']) ? $urlParts['path'] : '',
                         'REQUEST_METHOD' => 'GET',
                         'REMOTE_ADDR' => '127.0.0.1',
-                        'HTTPS' => $urlParts['scheme'] == 'https' ? 'on' : 'off',
+                        'HTTPS' => $urlParts['scheme'] === 'https' ? 'on' : 'off',
                         'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
                         'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
                         'REQUEST_TIME_FLOAT' => (float)DBDatetime::now()->getTimestamp(),
@@ -100,11 +99,11 @@ abstract class Publisher implements StaticPublisher
             $app = $this->getHTTPApplication();
             $response = $app->handle($request);
 
-            if ($this->config()->get('add_timestamp') === true) {
+            if ($this->config()->get('add_timestamp')) {
                 $response->setBody(
                     str_replace(
                         '</html>',
-                        "<!-- " . DBDateTime::now()->Full() . " -->\n</html>",
+                        '<!-- ' . DBDateTime::now()->Full() . ' -->\n</html>',
                         $response->getBody()
                     )
                 );

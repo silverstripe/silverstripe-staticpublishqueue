@@ -17,7 +17,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
 
         // Remove base folders from the URL if webroot is hosted in a subfolder)
         $path = isset($urlParts['path']) ? $urlParts['path'] : '';
-        if (mb_substr(mb_strtolower($path), 0, mb_strlen($baseURL)) == mb_strtolower($baseURL)) {
+        if (mb_substr(mb_strtolower($path), 0, mb_strlen($baseURL)) === mb_strtolower($baseURL)) {
             $urlSegment = mb_substr($path, mb_strlen($baseURL));
         } else {
             $urlSegment = $path;
@@ -26,7 +26,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         // Normalize URLs
         $urlSegment = trim($urlSegment, '/');
 
-        $filename = $urlSegment ?: "index";
+        $filename = $urlSegment ?: 'index';
 
         if ($domainBasedCaching) {
             if (!$urlParts) {
@@ -38,7 +38,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\URLtoPath')) {
         }
         $dirName = dirname($filename);
         $prefix = '';
-        if ($dirName != '/' && $dirName != '.') {
+        if ($dirName !== '/' && $dirName !== '.') {
             $prefix = $dirName . '/';
         }
         return $prefix . basename($filename);
@@ -54,7 +54,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
         }
 
         // Strip off the file extension and leading /
-        $relativeURL = substr($path, 0, (strrpos($path, ".")));
+        $relativeURL = substr($path, 0, strrpos($path, '.'));
         $relativeURL = ltrim($relativeURL, '/');
 
         if ($domainBasedCaching) {
@@ -62,7 +62,7 @@ if (!function_exists('SilverStripe\\StaticPublishQueue\\PathToURL')) {
             return \SilverStripe\Control\Director::protocol() . $relativeURL;
         }
 
-        return $relativeURL == 'index'
+        return $relativeURL === 'index'
             ? \SilverStripe\Control\Director::absoluteBaseURL()
             : \SilverStripe\Control\Director::absoluteURL($relativeURL);
     }

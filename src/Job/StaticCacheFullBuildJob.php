@@ -56,7 +56,7 @@ class StaticCacheFullBuildJob extends Job
             );
         }
 
-        foreach ($this->jobData->URLsToProcess as $url => $priority) {
+        foreach (array_keys($this->jobData->URLsToProcess) as $url) {
             if (++$count > $chunkSize) {
                 break;
             }

@@ -20,6 +20,6 @@ class StaticallyPublishablePage extends SiteTree implements TestOnly, Statically
 
     public function urlsToCache()
     {
-        return array($this->url => $this->prio);
+        return [$this->url => $this->prio];
     }
 }

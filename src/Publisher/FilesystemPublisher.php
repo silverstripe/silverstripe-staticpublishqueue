@@ -3,7 +3,6 @@
 namespace SilverStripe\StaticPublishQueue\Publisher;
 
 use SilverStripe\Assets\Filesystem;
-use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\StaticPublishQueue\Publisher;
 use function SilverStripe\StaticPublishQueue\PathToURL;
@@ -44,7 +43,7 @@ class FilesystemPublisher extends Publisher
     public function setFileExtension($fileExtension)
     {
         $fileExtension = strtolower($fileExtension);
-        if (!in_array($fileExtension, ['html', 'php'])) {
+        if (!in_array($fileExtension, ['html', 'php'], true)) {
             throw new \InvalidArgumentException(
                 sprintf(
                     'Bad file extension "%s" passed to %s::%s',
@@ -66,7 +65,7 @@ class FilesystemPublisher extends Publisher
     public function purgeURL($url)
     {
         if (!$url) {
-            user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
+            user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
             return;
         }
         if ($path = $this->URLtoPath($url)) {
@@ -86,27 +85,24 @@ class FilesystemPublisher extends Publisher
 
     /**
      * @param string $url
+     * @param bool $forcePublish
      * @return array A result array
      */
     public function publishURL($url, $forcePublish = false)
     {
         if (!$url) {
-            user_error("Bad url:" . var_export($url, true), E_USER_WARNING);
+            user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
             return;
         }
         $success = false;
         $response = $this->generatePageResponse($url);
         $statusCode = $response->getStatusCode();
-        $doPublish = ($forcePublish && $this->getFileExtension() == 'php') || $statusCode < 400;
+        $doPublish = ($forcePublish && $this->getFileExtension() === 'php') || $statusCode < 400;
 
-        if ($statusCode < 300) {
-            // publish success response
-            $success = $this->publishPage($response, $url);
-        } elseif ($statusCode < 400) {
+        if ($statusCode >= 300 && $statusCode < 400) {
             // publish redirect response
             $success = $this->publishRedirect($response, $url);
         } elseif ($doPublish) {
-            // only publish error pages if we are able to send status codes via PHP
             $success = $this->publishPage($response, $url);
         }
         return [
@@ -202,7 +198,7 @@ class FilesystemPublisher extends Publisher
 
     public function getPublishedURLs($dir = null, &$result = [])
     {
-        if ($dir == null) {
+        if ($dir === null) {
             $dir = $this->getDestPath();
         }
 
@@ -213,7 +209,7 @@ class FilesystemPublisher extends Publisher
             }
             $fullPath = $dir . DIRECTORY_SEPARATOR . $fileOrDir;
             // we know html will always be generated, this prevents double ups
-            if (is_file($fullPath) && pathinfo($fullPath, PATHINFO_EXTENSION) == 'html') {
+            if (is_file($fullPath) && pathinfo($fullPath, PATHINFO_EXTENSION) === 'html') {
                 $result[] = $this->pathToURL($fullPath);
                 continue;
             }

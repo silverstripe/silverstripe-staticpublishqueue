@@ -20,7 +20,7 @@ class StaticCacheFullBuildTask extends BuildTask
      * Check for startAfter param and do some sanity checking
      *
      * @param HTTPRequest $request
-     * @return
+     * @return bool
      */
     public function run($request)
     {
@@ -33,12 +33,12 @@ class StaticCacheFullBuildTask extends BuildTask
             'JobStatus' => [
                 QueuedJob::STATUS_NEW,
                 QueuedJob::STATUS_INIT,
-            ]
+            ],
         ];
 
         $existing = DataList::create(QueuedJobDescriptor::class)->filter($filter)->first();
 
-        if ($existing && $existing->ID) {
+        if ($existing && $existing->exists()) {
             $this->log(sprintf(
                 'There is already a %s in the queue, added %s %s',
                 StaticCacheFullBuildJob::class,
@@ -82,7 +82,7 @@ class StaticCacheFullBuildTask extends BuildTask
         }
 
         $job->setJobData(0, 0, false, new \stdClass(), [
-            'Building static cache for full site'
+            'Building static cache for full site',
         ]);
         QueuedJobService::singleton()->queueJob($job, $startAfter ? $startAfter->format('Y-m-d H:i:s') : null);
 

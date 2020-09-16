@@ -67,12 +67,12 @@ ErrorDocument 500 /assets/error-500.html
 
 	## DYNAMIC CONFIG
 
-    # Process through SilverStripe if no file with the requested name exists.
-    # Pass through the original path as a query parameter, and retain the existing parameters.
-    # Try finding framework in the vendor folder first
-    RewriteCond %{REQUEST_URI} ^(.*)$
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule .* index.php
+	# Process through SilverStripe if no file with the requested name exists.
+	# Pass through the original path as a query parameter, and retain the existing parameters.
+	# Try finding framework in the vendor folder first
+	RewriteCond %{REQUEST_URI} ^(.*)$
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteRule .* index.php
 
 </IfModule>
 ### SILVERSTRIPE END ###

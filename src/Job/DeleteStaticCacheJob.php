@@ -28,7 +28,7 @@ class DeleteStaticCacheJob extends Job
     {
         $chunkSize = self::config()->get('chunk_size');
         $count = 0;
-        foreach ($this->jobData->URLsToProcess as $url => $priority) {
+        foreach (array_keys($this->jobData->URLsToProcess) as $url) {
             if (++$count > $chunkSize) {
                 break;
             }
