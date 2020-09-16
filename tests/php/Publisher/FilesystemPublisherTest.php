@@ -255,7 +255,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.html');
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'not_really_there.php';
-        $this->assertEquals(404, $phpCacheConfig['responseCode']);
+        $this->assertSame(404, $phpCacheConfig['responseCode']);
     }
 
     public function testRedirectorPageWhenPHP()

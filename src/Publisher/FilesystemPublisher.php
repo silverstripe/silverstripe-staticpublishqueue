@@ -151,6 +151,8 @@ class FilesystemPublisher extends Publisher
     }
 
     /**
+     * returns true on success and false on failure
+     *
      * @param string $content
      * @param string $filePath
      * @return bool

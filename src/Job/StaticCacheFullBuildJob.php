@@ -80,12 +80,11 @@ class StaticCacheFullBuildJob extends Job
                     unset($this->jobData->URLsToCleanUp[$staleURL]);
                 }
             }
-        };
+        }
         $this->isComplete = empty($this->jobData->URLsToProcess) && empty($this->jobData->URLsToCleanUp);
     }
 
     /**
-     *
      * @return array
      */
     protected function getAllLivePageURLs()

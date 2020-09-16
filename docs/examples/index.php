@@ -19,7 +19,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 $requestHandler = require 'staticrequesthandler.php';
 
 // successful cache hit
-if (false !== $requestHandler('cache')) {
+if ($requestHandler('cache') !== false) {
     die;
 }
 header('X-Cache-Miss: ' . date(\Datetime::COOKIE));

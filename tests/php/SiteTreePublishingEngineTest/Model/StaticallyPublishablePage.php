@@ -11,6 +11,7 @@ class StaticallyPublishablePage extends SiteTree implements TestOnly, Statically
     private static $table_name = 'SPQ_StaticallyPublishablePage';
 
     public $url;
+
     public $prio;
 
     public function getID()

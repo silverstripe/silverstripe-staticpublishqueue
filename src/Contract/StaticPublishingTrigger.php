@@ -9,7 +9,6 @@ use SilverStripe\ORM\SS_List;
  */
 interface StaticPublishingTrigger
 {
-
     /**
      * Provides an SS_List of StaticallyPublishable objects which need to be regenerated.
      *
