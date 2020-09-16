@@ -58,7 +58,7 @@ return function($cacheDir, $urlMapping = null)
     }
     if (file_exists($cachePath . '.html')) {
         $etag = '"' . md5_file($cachePath . '.html') . '"';
-        if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag) {
+        if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] === $etag) {
             header('HTTP/1.1 304', true);
             return true;
         }

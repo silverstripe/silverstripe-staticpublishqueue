@@ -2,7 +2,6 @@
 
 namespace SilverStripe\StaticPublishQueue\Extension\Publishable;
 
-use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\VirtualPage;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;

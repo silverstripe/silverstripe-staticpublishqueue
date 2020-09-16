@@ -4,12 +4,12 @@ namespace SilverStripe\StaticPublishQueue\Extension\Engine;
 
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
-use SilverStripe\Core\Injector\Injector;
 
 /**
  * This extension couples to the StaticallyPublishable and StaticPublishingTrigger implementations
@@ -63,7 +63,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     }
 
     /**
-     * @param $toDelete
+     * @param array $toDelete
      * @return $this
      */
     public function setToDelete($toDelete)
@@ -81,8 +81,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension
         // then this is eht equivalent of an unpublish and publish as far as the
         // static publisher is concerned
         if ($original && (
-                $original->ParentID != $this->getOwner()->ParentID
-                || $original->URLSegment != $this->getOwner()->URLSegment
+                $original->ParentID !== $this->getOwner()->ParentID
+                || $original->URLSegment !== $this->getOwner()->URLSegment
             )
         ) {
             $context = [
@@ -148,7 +148,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
                 $jobData->URLsToProcess = $urls;
 
                 $job->setJobData(0, 0, false, $jobData, [
-                    'Building URLs: ' . var_export(array_keys($jobData->URLsToProcess), true)
+                    'Building URLs: ' . var_export(array_keys($jobData->URLsToProcess), true),
                 ]);
 
                 $queue->queueJob($job);
@@ -166,7 +166,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
                 $jobData->URLsToProcess = $urls;
 
                 $job->setJobData(0, 0, false, $jobData, [
-                    'Purging URLs: ' . var_export(array_keys($jobData->URLsToProcess), true)
+                    'Purging URLs: ' . var_export(array_keys($jobData->URLsToProcess), true),
                 ]);
 
                 $queue->queueJob($job);

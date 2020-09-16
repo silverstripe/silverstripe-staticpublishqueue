@@ -6,6 +6,7 @@ interface StaticPublisher
 {
     /**
      * @param string $url
+     * @param bool $forcePublish
      * @return array A result array
      */
     public function publishURL($url, $forcePublish = false);
