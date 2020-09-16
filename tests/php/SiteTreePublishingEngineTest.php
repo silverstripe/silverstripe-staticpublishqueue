@@ -7,7 +7,6 @@ use SilverStripe\StaticPublishQueue\Test\SiteTreePublishingEngineTest\Model\Stat
 
 class SiteTreePublishingEngineTest extends SapphireTest
 {
-
     public function testCollectChangesForPublishing()
     {
         $obj = StaticPublishingTriggerPage::create();

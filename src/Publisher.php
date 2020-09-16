@@ -33,7 +33,7 @@ abstract class Publisher implements StaticPublisher
     /**
      * @config
      *
-     * @var Boolean Use domain based caching (put cache files into a domain subfolder)
+     * @var bool Use domain based caching (put cache files into a domain subfolder)
      * This must be true if you are using this with the "subsites" module.
      * Please note that this form of caching requires all URLs to be provided absolute
      * (not relative to the webroot) via {@link SiteTree->AbsoluteLink()}.
@@ -43,7 +43,7 @@ abstract class Publisher implements StaticPublisher
     /**
      * @config
      *
-     * @var Boolean Add a timestamp to the statically published output for HTML files
+     * @var bool Add a timestamp to the statically published output for HTML files
      */
     private static $add_timestamp = false;
 
@@ -87,7 +87,7 @@ abstract class Publisher implements StaticPublisher
                         'HTTPS' => $urlParts['scheme'] === 'https' ? 'on' : 'off',
                         'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
                         'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
-                        'REQUEST_TIME_FLOAT' => (float)DBDatetime::now()->getTimestamp(),
+                        'REQUEST_TIME_FLOAT' => (float) DBDatetime::now()->getTimestamp(),
                         'HTTP_HOST' => $urlParts['host'],
                         'HTTP_USER_AGENT' => 'silverstripe/staticpublishqueue',
                     ],
@@ -103,7 +103,7 @@ abstract class Publisher implements StaticPublisher
                 $response->setBody(
                     str_replace(
                         '</html>',
-                        '<!-- ' . DBDateTime::now()->Full() . ' -->\n</html>',
+                        '<!-- ' . DBDateTime::now()->Full() . " -->\n</html>",
                         $response->getBody()
                     )
                 );
@@ -144,7 +144,7 @@ abstract class Publisher implements StaticPublisher
         ];
 
         foreach ($response->getHeaders() as $header => $value) {
-            if (!in_array($header, ['cache-control'])) {
+            if (!in_array($header, ['cache-control'], true)) {
                 $cacheConfig['headers'][] = sprintf('%s: %s', $header, $value);
             }
         }

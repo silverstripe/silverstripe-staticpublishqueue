@@ -14,7 +14,6 @@ namespace SilverStripe\StaticPublishQueue\Contract;
 
 interface StaticallyPublishable
 {
-
     /**
      * Get a list of URLs that this object wishes to maintain. URLs should not
      * overlap with other objects.
