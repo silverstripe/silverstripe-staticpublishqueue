@@ -66,6 +66,8 @@ class StaticCacheFullBuildJob extends Job
                 unset($this->jobData->URLsToProcess[$url]);
             }
         }
+        $this->currentStep++;
+
         if (empty($this->jobData->URLsToProcess)) {
             $trimSlashes = function ($value) {
                 return trim($value, '/');
