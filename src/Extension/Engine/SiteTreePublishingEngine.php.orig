@@ -63,7 +63,11 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     }
 
     /**
+<<<<<<< HEAD
+     * @param mixed $toDelete
+=======
      * @param array $toDelete
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
      * @return $this
      */
     public function setToDelete($toDelete)
@@ -116,7 +120,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      *
      * @param array $context
      */
-    public function collectChanges($context)
+    public function collectChanges(array $context)
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
@@ -138,7 +142,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     public function flushChanges()
     {
         $queue = QueuedJobService::singleton();
-        if (!empty($this->toUpdate)) {
+        if (! empty($this->toUpdate)) {
             foreach ($this->toUpdate as $queueItem) {
                 $job = Injector::inst()->create(GenerateStaticCacheJob::class);
 
@@ -156,7 +160,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
             $this->toUpdate = [];
         }
 
-        if (!empty($this->toDelete)) {
+        if (! empty($this->toDelete)) {
             foreach ($this->toDelete as $queueItem) {
                 $job = Injector::inst()->create(DeleteStaticCacheJob::class);
 

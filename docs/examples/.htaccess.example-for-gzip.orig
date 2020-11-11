@@ -34,7 +34,11 @@ ErrorDocument 500 /assets/error-500.html
 
 	## CONFIG FOR STATIC PUBLISHING
 	# Cached content - sub-pages (site in the root of a domain)
+<<<<<<< HEAD
+    RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+=======
 	RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
 	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
 	RewriteCond %{QUERY_STRING} ^$
 	RewriteCond %{REQUEST_URI} /(.*[^/])/?$
@@ -43,7 +47,11 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteRule .* /cache/%1.html.gz [L]
 
 	# Cached content - homepage (site in root of a domain)
+<<<<<<< HEAD
+    RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+=======
 	RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
 	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
 	RewriteCond %{QUERY_STRING} ^$
 	RewriteCond %{REQUEST_URI} ^/?$
@@ -54,7 +62,11 @@ ErrorDocument 500 /assets/error-500.html
 	# Config for site in a subdirectory
 	# (START remove the following four rules if site is on root of a domain. E.g. test.com rather than test.com/my-site)
 	# Cached content - sub-pages (site in sub-directory)
+<<<<<<< HEAD
+    RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+=======
 	RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
 	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
 	RewriteCond %{QUERY_STRING} ^$
 	RewriteCond %{REQUEST_URI} /(.*[^/])/(.*[^/])/?$
@@ -63,7 +75,11 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteRule .* cache/%2.html.gz [L]
 
 	# Cached content - homepage (site in sub-directory)
+<<<<<<< HEAD
+    RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+=======
 	RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
 	RewriteCond %{REQUEST_METHOD} ^GET|HEAD$
 	RewriteCond %{QUERY_STRING} ^$
 	RewriteCond %{REQUEST_URI} ^/(.*[^/])/?$
@@ -73,6 +89,27 @@ ErrorDocument 500 /assets/error-500.html
 
 	# (END OF: remove the following four rules if site is on root of a domain. E.g. test.com rather than test.com/my-site)
 
+<<<<<<< HEAD
+    <FilesMatch "(\.html\.gz)$">
+        # Serve correct encoding type.
+        Header append Content-Encoding gzip
+
+        # Force proxies to cache gzipped &
+        # non-gzipped html files separately.
+        Header append Vary Accept-Encoding
+    </FilesMatch>
+
+    RewriteRule "\.html\.gz$" "-" [T=text/html,E=no-gzip:1]
+
+	## DYNAMIC CONFIG
+
+    # Process through SilverStripe if no file with the requested name exists.
+    # Pass through the original path as a query parameter, and retain the existing parameters.
+    # Try finding framework in the vendor folder first
+    RewriteCond %{REQUEST_URI} ^(.*)$
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule .* index.php
+=======
 	<FilesMatch "(\.html\.gz)$">
 		# Serve correct encoding type.
 		Header append Content-Encoding gzip
@@ -92,6 +129,7 @@ ErrorDocument 500 /assets/error-500.html
 	RewriteCond %{REQUEST_URI} ^(.*)$
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteRule .* index.php
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
 
 </IfModule>
 ### SILVERSTRIPE END ###
@@ -102,6 +140,32 @@ ErrorDocument 500 /assets/error-500.html
 ############### BONUS: Also serve gzipped js / css: ##############
 
 <IfModule mod_headers.c>
+<<<<<<< HEAD
+    # Serve gzip compressed CSS files if they exist
+    # and the client accepts gzip.
+    RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+    RewriteCond "%{REQUEST_FILENAME}\.gz" -s
+    RewriteRule "^(.*)\.css" "$1\.css\.gz" [QSA]
+
+    # Serve gzip compressed JS files if they exist
+    # and the client accepts gzip.
+    RewriteCond "%{HTTP:Accept-encoding}" "gzip"
+    RewriteCond "%{REQUEST_FILENAME}\.gz" -s
+    RewriteRule "^(.*)\.js" "$1\.js\.gz" [QSA]
+
+    # Serve correct content types, and prevent mod_deflate double gzip.
+    RewriteRule "\.css\.gz$" "-" [T=text/css,E=no-gzip:1]
+    RewriteRule "\.js\.gz$" "-" [T=text/javascript,E=no-gzip:1]
+
+    <FilesMatch "(\.js\.gz|\.css\.gz)$">
+        # Serve correct encoding type.
+        Header append Content-Encoding gzip
+
+        # Force proxies to cache gzipped &
+        # non-gzipped css/js files separately.
+        Header append Vary Accept-Encoding
+    </FilesMatch>
+=======
 	# Serve gzip compressed CSS files if they exist
 	# and the client accepts gzip.
 	RewriteCond "%{HTTP:Accept-encoding}" "gzip"
@@ -126,4 +190,5 @@ ErrorDocument 500 /assets/error-500.html
 		# non-gzipped css/js files separately.
 		Header append Vary Accept-Encoding
 	</FilesMatch>
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
 </IfModule>

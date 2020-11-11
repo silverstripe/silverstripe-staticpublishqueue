@@ -33,7 +33,11 @@ abstract class Publisher implements StaticPublisher
     /**
      * @config
      *
+<<<<<<< HEAD
      * @var boolean Use domain based caching (put cache files into a domain subfolder)
+=======
+     * @var bool Use domain based caching (put cache files into a domain subfolder)
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
      * This must be true if you are using this with the "subsites" module.
      * Please note that this form of caching requires all URLs to be provided absolute
      * (not relative to the webroot) via {@link SiteTree->AbsoluteLink()}.
@@ -43,7 +47,11 @@ abstract class Publisher implements StaticPublisher
     /**
      * @config
      *
+<<<<<<< HEAD
      * @var boolean Add a timestamp to the statically published output for HTML files
+=======
+     * @var bool Add a timestamp to the statically published output for HTML files
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
      */
     private static $add_timestamp = false;
 
@@ -99,7 +107,7 @@ abstract class Publisher implements StaticPublisher
             $app = $this->getHTTPApplication();
             $response = $app->handle($request);
 
-            if ((bool) $this->config()->get('add_timestamp') === true) {
+            if ($this->config()->get('add_timestamp')) {
                 $response->setBody(
                     str_replace(
                         '</html>',
@@ -144,7 +152,11 @@ abstract class Publisher implements StaticPublisher
         ];
 
         foreach ($response->getHeaders() as $header => $value) {
+<<<<<<< HEAD
             if (! in_array($header, ['cache-control'], true)) {
+=======
+            if (!in_array($header, ['cache-control'], true)) {
+>>>>>>> e360c3e0552e2d5b3ee8917c4966504de9a1de27
                 $cacheConfig['headers'][] = sprintf('%s: %s', $header, $value);
             }
         }
