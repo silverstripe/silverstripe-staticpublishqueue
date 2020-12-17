@@ -85,7 +85,7 @@ class SiteTreePublishingEngine extends DataExtension {
 			$toUpdate = $this->owner->objectsToUpdate($context);
 
 			if ($toUpdate) foreach ($toUpdate as $object) {
-				if (!is_callable(array($this->owner, 'urlsToCache'))) continue;
+				if (!is_callable(array($object, 'urlsToCache'))) continue;
 
 				$urls = $object->urlsToCache();
 				if(!empty($urls)) {
@@ -103,7 +103,7 @@ class SiteTreePublishingEngine extends DataExtension {
 			$toDelete = $this->owner->objectsToDelete($context);
 
 			if ($toDelete) foreach ($toDelete as $object) {
-				if (!is_callable(array($this->owner, 'urlsToCache'))) continue;
+				if (!is_callable(array($object, 'urlsToCache'))) continue;
 
 				$urls = $object->urlsToCache();
 				if(!empty($urls)) {
