@@ -10,7 +10,17 @@ use SilverStripe\StaticPublishQueue\Publisher;
 use SilverStripe\Versioned\Versioned;
 
 /**
- * Adds all pages to the queue for caching. Best implemented on a cron via StaticCacheFullBuildTask.
+ * Class StaticCacheFullBuildJob
+ *
+ * Adds all live pages to the queue for caching. Best implemented on a cron via StaticCacheFullBuildTask.
+ * WARNING: this job assumes that there are not too many pages to process (dozens are fine, thousands are not)
+ * as collecting URLs from all live pages will either eat up all available memory and / or stall
+ * If your site has thousands of pages you need to consider a different static cache refresh solution
+ * Ideally, the whole site re-cache would be segmented into smaller chunks and spread across different times of the day
+ *
+ * @property array $URLsToCleanUp
+ * @property array $publishedURLs
+ * @package SilverStripe\StaticPublishQueue\Job
  */
 class StaticCacheFullBuildJob extends Job
 {
@@ -25,17 +35,17 @@ class StaticCacheFullBuildJob extends Job
     /**
      * @return string
      */
-    public function getSignature()
+    public function getSignature(): string
     {
         return md5(static::class);
     }
 
-    public function setup()
+    public function setup(): void
     {
         parent::setup();
         $this->URLsToProcess = $this->getAllLivePageURLs();
         $this->URLsToCleanUp = [];
-        $this->totalSteps = ceil(count($this->URLsToProcess) / self::config()->get('chunk_size'));
+        $this->totalSteps = count($this->URLsToProcess);
         $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
         $this->addMessage(var_export(array_keys($this->URLsToProcess), true));
     }
@@ -43,51 +53,66 @@ class StaticCacheFullBuildJob extends Job
     /**
      * Do some processing yourself!
      */
-    public function process()
+    public function process(): void
     {
-        $chunkSize = self::config()->get('chunk_size');
-        $count = 0;
-
         // Remove any URLs which have already been processed
-        if ($this->jobData->ProcessedURLs) {
-            $this->jobData->URLsToProcess = array_diff_key(
-                $this->jobData->URLsToProcess,
-                $this->jobData->ProcessedURLs
+        if ($this->ProcessedURLs) {
+            $this->URLsToProcess = array_diff_key(
+                $this->URLsToProcess,
+                $this->ProcessedURLs
             );
         }
 
-        foreach (array_keys($this->jobData->URLsToProcess) as $url) {
-            if (++$count > $chunkSize) {
-                break;
+        $chunkSize = $this->getChunkSize();
+        $count = 0;
+
+        // Generate static cache for all live pages
+        foreach ($this->URLsToProcess as $url => $priority) {
+            $count += 1;
+
+            if ($chunkSize > 0 && $count > $chunkSize) {
+                return;
             }
-            $meta = Publisher::singleton()->publishURL($url, true);
-            if (!empty($meta['success'])) {
-                $this->jobData->ProcessedURLs[$url] = $url;
-                unset($this->jobData->URLsToProcess[$url]);
-            }
+
+            $this->processUrl($url, $priority);
         }
-        if (empty($this->jobData->URLsToProcess)) {
+
+        if (count($this->URLsToProcess) === 0) {
             $trimSlashes = function ($value) {
                 return trim($value, '/');
             };
-            $this->jobData->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs());
-            $this->jobData->ProcessedURLs = array_map($trimSlashes, $this->jobData->ProcessedURLs);
-            $this->jobData->URLsToCleanUp = array_diff($this->jobData->publishedURLs, $this->jobData->ProcessedURLs);
 
-            foreach ($this->jobData->URLsToCleanUp as $staleURL) {
+            // List of all URLs which have a static cache file
+            $this->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs());
+
+            // List of all URLs which were published as a part of this job
+            $this->ProcessedURLs = array_map($trimSlashes, $this->ProcessedURLs);
+
+            // Determine stale URLs - those which were not published as a part of this job
+            // but still have a static cache file
+            $this->URLsToCleanUp = array_diff($this->publishedURLs, $this->ProcessedURLs);
+
+            foreach ($this->URLsToCleanUp as $staleURL) {
                 $purgeMeta = Publisher::singleton()->purgeURL($staleURL);
-                if (!empty($purgeMeta['success'])) {
+                $purgeMeta = is_array($purgeMeta) ? $purgeMeta : [];
+
+                if (array_key_exists('success', $purgeMeta) && $purgeMeta['success']) {
                     unset($this->jobData->URLsToCleanUp[$staleURL]);
+
+                    continue;
                 }
+
+                $this->handleFailedUrl($staleURL, $purgeMeta);
             }
         }
-        $this->isComplete = empty($this->jobData->URLsToProcess) && empty($this->jobData->URLsToCleanUp);
+
+        $this->updateCompletedState();
     }
 
     /**
      * @return array
      */
-    protected function getAllLivePageURLs()
+    protected function getAllLivePageURLs(): array
     {
         $urls = [];
         $this->extend('beforeGetAllLivePageURLs', $urls);
@@ -104,5 +129,36 @@ class StaticCacheFullBuildJob extends Job
         //     Subsite::disable_subsite_filter(true);
         // }
         return $urls;
+    }
+
+    /**
+     * @param string $url
+     * @param int $priority
+     */
+    protected function processUrl(string $url, int $priority): void
+    {
+        $meta = Publisher::singleton()->publishURL($url, true);
+        $meta = is_array($meta) ? $meta : [];
+
+        if (array_key_exists('success', $meta) && $meta['success']) {
+            $this->markUrlAsProcessed($url);
+
+            return;
+        }
+
+        $this->handleFailedUrl($url, $meta);
+    }
+
+    protected function updateCompletedState(): void
+    {
+        if (count($this->URLsToProcess) > 0) {
+            return;
+        }
+
+        if (count($this->URLsToCleanUp) > 0) {
+            return;
+        }
+
+        $this->isComplete = true;
     }
 }

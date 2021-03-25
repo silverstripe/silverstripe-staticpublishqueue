@@ -5,6 +5,12 @@ namespace SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Publisher;
 
+/**
+ * Class DeleteStaticCacheJob
+ * remove pages from static cache based on list of URLs
+ *
+ * @package SilverStripe\StaticPublishQueue\Job
+ */
 class DeleteStaticCacheJob extends Job
 {
     /**
@@ -16,28 +22,26 @@ class DeleteStaticCacheJob extends Job
     /**
      * @return string
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return 'Remove a set of static pages from the cache';
     }
 
     /**
-     * Do some processing yourself!
+     * @param string $url
+     * @param int $priority
      */
-    public function process()
+    protected function processUrl(string $url, int $priority): void
     {
-        $chunkSize = self::config()->get('chunk_size');
-        $count = 0;
-        foreach (array_keys($this->jobData->URLsToProcess) as $url) {
-            if (++$count > $chunkSize) {
-                break;
-            }
-            $meta = Publisher::singleton()->purgeURL($url);
-            if (!empty($meta['success'])) {
-                $this->jobData->ProcessedURLs[$url] = $url;
-                unset($this->jobData->URLsToProcess[$url]);
-            }
+        $meta = Publisher::singleton()->purgeURL($url);
+        $meta = is_array($meta) ? $meta : [];
+
+        if (array_key_exists('success', $meta) && $meta['success']) {
+            $this->markUrlAsProcessed($url);
+
+            return;
         }
-        $this->isComplete = empty($this->jobData->URLsToProcess);
+
+        $this->handleFailedUrl($url, $meta);
     }
 }
