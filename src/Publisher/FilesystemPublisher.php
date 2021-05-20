@@ -83,6 +83,13 @@ class FilesystemPublisher extends Publisher
         ];
     }
 
+    public function purgeAll()
+    {
+        Filesystem::removeFolder($this->getDestPath());
+
+        return file_exists($this->getDestPath()) ? false : true;
+    }
+
     /**
      * @param string $url
      * @param bool $forcePublish
