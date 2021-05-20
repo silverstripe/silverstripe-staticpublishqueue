@@ -1,13 +1,13 @@
 <?php
  if(interface_exists('EnvironmentCheck')) {
- 	
+
  	/**
 	 * Used in the 'environmentchecks' module.
 	 * Checks that the oldest queued item is newer than a certain age,
 	 * which points to a functioning queue processing.
 	 */
  	class StaticPagesQueueHealthCheck implements EnvironmentCheck {
-	
+
 		protected $maxAgeMins;
 
 		/**
@@ -24,13 +24,13 @@
 				$maxDate = SS_Datetime::now()->Format('U') - ($this->maxAgeMins*60);
 				if($oldestDate < $maxDate) {
 					return array(
-						EnvironmentCheck::ERROR, 
+						EnvironmentCheck::ERROR,
 						sprintf('Oldest queue item older than %d minutes (%s)', $this->maxAgeMins, date('c', $oldestDate))
 					);
 				}
 
 				return array(
-					EnvironmentCheck::OK, 
+					EnvironmentCheck::OK,
 					sprintf('Oldest queue item younger than %d minutes (%s)', $this->maxAgeMins, date('c', $oldestDate))
 				);
 			}

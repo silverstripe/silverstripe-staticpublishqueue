@@ -82,7 +82,7 @@ class StaticPagesQueue extends DataObject {
 	 * @var array
 	 */
 	protected static $urls = array();
-	
+
 	/**
 	 *
 	 * @return bool
@@ -104,7 +104,7 @@ class StaticPagesQueue extends DataObject {
 	}
 
 		/**
-	 * This will push all the currently cached insert statements to be pushed 
+	 * This will push all the currently cached insert statements to be pushed
 	 * into the database
 	 *
 	 * @return void
@@ -121,7 +121,7 @@ class StaticPagesQueue extends DataObject {
 		}
 		self::$insert_statements = array();
 	}
-	
+
 	/**
 	 * Remove an object by the url
 	 *
@@ -137,7 +137,7 @@ class StaticPagesQueue extends DataObject {
 		unset($object);
 		return true;
 	}
-	
+
 	/**
 	 * Update the queue with the information that this url renders an error somehow
 	 *
@@ -145,10 +145,10 @@ class StaticPagesQueue extends DataObject {
 	 */
 	public static function has_error( $url ) {
 		if(!$url) return;
-		
+
 		$existingObject = self::get_by_link($url);
         if(!$existingObject) return;
-        
+
 		$existingObject->Freshness = 'error';
 		$existingObject->write();
 	}
@@ -197,7 +197,7 @@ class StaticPagesQueue extends DataObject {
                 self::mark_as_regenerating($queueObject);
             }
         }
-		
+
 		return $queueObject;    //return the object or null
 	}
 
@@ -248,7 +248,7 @@ class StaticPagesQueue extends DataObject {
 	/**
 	 * Mark this current StaticPagesQueue as a work in progress
 	 *
-	 * @param StaticPagesQueue $object 
+	 * @param StaticPagesQueue $object
 	 */
 	protected static function mark_as_regenerating(StaticPagesQueue $object) {
 		$now = date('Y-m-d H:i:s');

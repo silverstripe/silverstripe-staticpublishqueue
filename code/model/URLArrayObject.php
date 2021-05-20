@@ -81,13 +81,13 @@ class URLArrayObject extends ArrayObject {
 	/**
 	 * The format of the urls should be array( 'URLSegment' => '50')
 	 *
-	 * @param array $urls 
+	 * @param array $urls
 	 */
 	public function addUrls(array $urls) {
 		if(!$urls) {
 			return;
 		}
-		
+
 		$urlsAlreadyProcessed = array();    //array to filter out any duplicates
 		foreach ($urls as $URLSegment=>$priority) {
 			if(is_numeric($URLSegment) && is_string($priority)) {   //case when we have a non-associative flat array
@@ -147,16 +147,16 @@ class URLArrayObject extends ArrayObject {
 	}
 
 	/**
-	 * This method will insert all URLs that exists in this object into the 
+	 * This method will insert all URLs that exists in this object into the
 	 * database by calling the StaticPagesQueue
 	 *
-	 * @return type 
+	 * @return type
 	 */
 	public function insertIntoDB() {
 		$arraycopy = $this->getArrayCopy();
 		usort($arraycopy, array($this, 'sortOnPriority'));
 		foreach ($arraycopy as $array) {
-			StaticPagesQueue::add_to_queue($array[0], $array[1]);
+			StaticPagesQueue::add_to_queue($array[0], $array[1], $array[2]);
 		}
 		StaticPagesQueue::push_urls_to_db();
 		$this->exchangeArray(array());
