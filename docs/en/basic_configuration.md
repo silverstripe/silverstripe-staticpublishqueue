@@ -1,7 +1,7 @@
 # Basic Configuration
 
-By default, the extensions `SiteTreePublishingEngine` and `PublishableSiteTree` 
-are applied to `SiteTree`, so as soon as the module is installed, it should 
+By default, the extensions `SiteTreePublishingEngine` and `PublishableSiteTree`
+are applied to `SiteTree`, so as soon as the module is installed, it should
 be ready to go.
 
 You'll need to configure a cron job or equivalent to process the queue (if you haven't already):
@@ -12,8 +12,8 @@ You'll need to configure a cron job or equivalent to process the queue (if you h
 
 Which will ensure that the `GenerateStaticCacheJob`s are processed quickly.
 
-Without further configuration, your site won't serve the static cache files. 
-See [handling requests](handling_requests.md) for details on how to 
+Without further configuration, your site won't serve the static cache files.
+See [handling requests](handling_requests.md) for details on how to
 make sure you are passing through to the statically cached files.
 
 Out of the box, the publisher will create a simple `.php` file, which contains
@@ -39,7 +39,7 @@ By default, all pages which inherit from `SiteTree` will be included in the stat
 You can exclude pages from being statically generated on a class-by-class basis by adding a `urlsToCache()` method to your page class which returns an empty array:
 
 ```php
-class MyFormPage extends Page 
+class MyFormPage extends Page
 {
 
     public function urlsToCache() {
@@ -58,8 +58,8 @@ of some change of state. An example here is a `Page` with some associated object
 trigger republishing of the `Page`, but they are not themselves published.
 
 `StaticallyPublishable` complements the trigger. It is assigned to objects which want to be statically published.
-Objects are able to claim any amount of URLs (including their own, and also any sub-urls). If you need to trigger 
-republishing or URLs assigned to another objects, implement the `StaticPublishingTrigger`. In our example of `Page` 
+Objects are able to claim any amount of URLs (including their own, and also any sub-urls). If you need to trigger
+republishing or URLs assigned to another objects, implement the `StaticPublishingTrigger`. In our example of `Page`
 with related objects, the Page would be publishable, but the objects wouldn't.
 
 Most of the time the Objects will be both acting as triggers (e.g. for themselves) and as publishable objects
@@ -90,3 +90,13 @@ SilverStripe\StaticPublishQueue\Publisher:
 ```
 
 Note: Changing this setting does not have an instant effect on the cached pages.  The timestamp will only be added/removed when the cached page is regenerated.
+
+## Forcing SSL during cache generation
+
+Add the following to your .env file:
+
+```
+SS_STATIC_FORCE_SSL="true"
+```
+
+Enabling this option means you need to force your site to use SSL. If you don't do this, the site won't load properly over plain HTTP.
