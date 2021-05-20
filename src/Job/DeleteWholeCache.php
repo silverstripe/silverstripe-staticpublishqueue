@@ -10,7 +10,7 @@ class DeleteWholeCache extends Job
     /**
      * @return string
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return 'Remove the entire cache';
     }
@@ -18,8 +18,13 @@ class DeleteWholeCache extends Job
     /**
      * Do some processing yourself!
      */
-    public function process()
+    public function process(): void
     {
         $this->isComplete = Publisher::singleton()->purgeAll();
+    }
+
+    public function processUrl(string $url, int $priority): void
+    {
+        // noop
     }
 }
