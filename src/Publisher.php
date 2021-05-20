@@ -31,6 +31,14 @@ abstract class Publisher implements StaticPublisher
     private static $static_publisher_themes = [];
 
     /**
+     * avoid caching any pages with name"SecurityID" - an indication that a
+     * form my be present that requires a fresh SecurityID
+     * @var bool
+     * @config
+     */
+    private static $lazy_form_recognition = false;
+
+    /**
      * @config
      *
      * @var bool Use domain based caching (put cache files into a domain subfolder)
