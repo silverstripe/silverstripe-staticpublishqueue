@@ -2,13 +2,12 @@
 /**
  * This tasks takes care of republishing pages that has been queues in the StaticPagesQueue.
  * 
- * The scripts have a few timers that might need explaining
+ * Only one instace of this script can be run at a time. The script will take
+ * lock on pidfile at <silverstripe-cache>/pid.buildstaticcachefromqueue.txt.
  * 
- * First there are the $this->anotherInstanceRunning(30) that checks if a process haven't updated the
- * pidfile in 30 seconds, then we declare it as dead and force execute.
- * 
- * Secondly is that the script will in daemon mode only run for 590 sec before terminating. This is 
- * to make sure that the script doesnt hog up to much resources and also if we do a deploy or so.
+ * The script has a timer that makes sure the script in daemon mode will run
+ * only for 590 sec and terminate. This is to make sure that the script doesn't
+ * hog up to much resources and also if we do a deploy or so.
  * 
  * At can be run in browser, from command line as:
  * /dev/tasks/BuildStaticCacheFromQueue
@@ -94,13 +93,29 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				$this->verbose = true;
 			}
 
-			if($info = $this->anotherInstanceRunning(30)) {
-				if($this->verbose) {
-					echo 'Another task is running with pid '.$info[0].' last heard of '.$info[1].' seconds ago.'.$this->nl();
+			// Get lock, based on http://stackoverflow.com/a/24665209/359059
+			$lock_file = fopen($this->getPidFilePath(), 'c');
+			$got_lock = flock($lock_file, LOCK_EX | LOCK_NB, $wouldblock);
+			if ($lock_file === false || (!$got_lock && !$wouldblock)) {
+				throw new Exception(
+					"Unexpected error opening or locking lock file. Perhaps you " .
+					"don't  have permission to write to the lock file or its " .
+					"containing directory?"
+				);
+			} else if (!$got_lock && $wouldblock) {
+				if ($this->verbose) {
+					$pid = (int)trim(file_get_contents($this->getPidFilePath()));
+					echo "Another instance is already running ($pid); terminating.\n";
 				}
 				return false;
 			}
 
+			// Lock acquired; let's write our PID to the lock file for the convenience
+			// of humans who may wish to terminate the script.
+			ftruncate($lock_file, 0);
+			fwrite($lock_file, getmypid() . "\n");
+
+			// Processing starts here
 			if($request->getVar('daemon')) {
 				$this->daemon = true;
 				while($this->buildCache() && $this->hasRunLessThan(590)) {
@@ -109,10 +124,13 @@ class BuildStaticCacheFromQueue extends BuildTask {
 					$this->summaryObject = null;
 				}
 			} else {
-				if($this->buildCache()) {
-					$this->removePid();
-				}
+				$this->buildCache();
 			}
+
+			// All done; we blank the PID file and explicitly release the lock
+			// (although this should be unnecessary) before terminating.
+			ftruncate($lock_file, 0);
+			flock($lock_file, LOCK_UN);
 		} else {
 			echo "Server is SS_SLAVE, not running build task (edit the _ss_environment file to make this server the master)";
 		}
@@ -123,11 +141,9 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * @return boolean - if this task was run
 	 */
 	protected function buildCache() {
-		$this->updatePid();
 		$this->load_error_handlers();
 		$published = 0;
 		while(self::$current_url = StaticPagesQueue::get_next_url()) {
-			$this->updatePid();
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
@@ -339,72 +355,6 @@ EOT;
 	 */
 	protected function hasRunLessThan( $seconds ) {
 		return $this->runningTime() < $seconds;
-	}
-
-	/**
-	 * Check if another instance is running with the regard to a timelimit.
-	 *
-	 * @var int $secondsBeforeDead
-	 * @return bool
-	 */
-	protected function anotherInstanceRunning($secondsBeforeDead) {
-		$pidRawdata = $this->getPid();
-		if(!$pidRawdata) {
-			return false;
-		}
-		$pidInfo = explode(PHP_EOL, $pidRawdata);
-				// Is it this task that is still running, then it's alright
-		if($pidInfo[2] == getmypid()) {
-			return false;
-		}
-		$pidSecondsSince=(time()-$pidInfo[0]);
-		// Most likely a dead process, log and return false;
-		if($pidSecondsSince > $secondsBeforeDead  ) {
-			echo ('Aha, dead process started to stink '.$pidSecondsSince.' seconds ago, restarting.'.PHP_EOL);
-			return false;
-		}
-		return array($pidInfo[2],$pidSecondsSince);
-	}
-
-	/**
-	 * Adds information to the pid file
-	 *
-	 * @param float $microtime
-	 * @return void
-	 */
-	protected function updatePid() {
-		$seconds = time();
-		$fp = fopen($this->getPidFilePath(), "w+");
-		if(!flock($fp, LOCK_EX | LOCK_NB)) {
-			throw new Exception('Can\'t get flock() on "'.$this->getPidFilePath().'"');
-		}
-		$pidMessage = $seconds.PHP_EOL.date('Y-m-d H:i:s',$seconds).PHP_EOL.getmypid().PHP_EOL;
-		fputs($fp, $pidMessage, strlen($pidMessage));
-		flock($fp, LOCK_UN);
-		fclose($fp);
-	}
-
-	/**
-	 * Delete the pidfile
-	 *
-	 */
-	protected function removePid() {
-		if(!is_file($this->getPidFilePath())) {
-			return;
-		}
-		unlink($this->getPidFilePath());
-	}
-
-	/**
-	 * Get the contents of the pid file
-	 *
-	 * @return string
-	 */
-	protected function getPid() {
-		if(is_readable($this->getPidFilePath())) {
-			return trim(file_get_contents($this->getPidFilePath()));
-		}
-		return '';
 	}
 
 	/**
