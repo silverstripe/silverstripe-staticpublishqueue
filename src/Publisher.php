@@ -88,7 +88,7 @@ abstract class Publisher implements StaticPublisher
                         'QUERY_STRING' => isset($urlParts['query']) ? $urlParts['query'] : '',
                         'REQUEST_TIME' => DBDatetime::now()->getTimestamp(),
                         'REQUEST_TIME_FLOAT' => (float) DBDatetime::now()->getTimestamp(),
-                        'HTTP_HOST' => $urlParts['host'],
+                        'HTTP_HOST' => $urlParts['host'] . (isset($urlParts['port']) ? ':' . $urlParts['port'] : ''),
                         'HTTP_USER_AGENT' => 'silverstripe/staticpublishqueue',
                     ],
                     '_GET' => $getVars,
