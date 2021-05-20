@@ -71,12 +71,12 @@ class StaticPagesQueue extends DataObject {
 	 * @var array
 	 */
 	protected static $urls = array();
-	
+
 	/**
-	 * Set this to true to insert entries directly into the database queue, 
-	 * otherwise it will be inserted during __deconstruct time 
+	 * Set this to true to insert entries directly into the database queue,
+	 * otherwise it will be inserted during __deconstruct time
 	 *
-	 * @param bool $realtime 
+	 * @param bool $realtime
 	 */
 	public static function realtime( $realtime ) {
 		self::$realtime = $realtime;
@@ -103,7 +103,7 @@ class StaticPagesQueue extends DataObject {
 	}
 
 		/**
-	 * This will push all the currently cached insert statements to be pushed 
+	 * This will push all the currently cached insert statements to be pushed
 	 * into the database
 	 *
 	 * @return void
@@ -120,7 +120,7 @@ class StaticPagesQueue extends DataObject {
 		}
 		self::$insert_statements = array();
 	}
-	
+
 	/**
 	 * Remove an object by the url
 	 *
@@ -136,7 +136,7 @@ class StaticPagesQueue extends DataObject {
 		unset($object);
 		return true;
 	}
-	
+
 	/**
 	 * Update the queue with the information that this url renders an error somehow
 	 *
@@ -144,7 +144,7 @@ class StaticPagesQueue extends DataObject {
 	 */
 	public static function has_error( $url ) {
 		if(!$url) return;
-		
+
 		$existingObject = self::get_by_link($url);
 		$existingObject->Freshness = 'error';
 		$existingObject->write();
@@ -202,26 +202,38 @@ class StaticPagesQueue extends DataObject {
 	}
 
 	/**
-	 * Finds the next most prioritized url that needs recaching
-	 *
 	 * @return string
 	 */
-	public static function get_next_url() {
+	public static function get_next_url_object() {
 		$object = self::get_queue_object('stale');
-		if($object) return $object->URLSegment;
+		if($object) return $object;
 
 		$interval = date('Y-m-d H:i:s', strtotime('-'.self::$minutes_until_force_regeneration.' minutes'));
 
 		// Find URLs that has been stuck in regeneration
 		$object = self::get_queue_object('regenerating', $interval);
-		if($object) return $object->URLSegment;
+		if($object) return $object;
 
 		// Find URLs that is erronous and might work now (flush issues etc)
 		$object = self::get_queue_object('error', $interval);
-		if($object) return $object->URLSegment;
+		if($object) return $object;
 
 		return '';
 	}
+
+    /**
+     * Finds the next most prioritized url object that needs recaching
+     *
+     * @return string
+     */
+    public static function get_next_url() {
+        $object = self::get_next_url_object();
+        if (is_object($object)) {
+            return $object->URLSegment;
+        } else {
+            return '';
+        }
+    }
 
 	/**
 	 * Removes the .html fresh copy of the cache.
@@ -248,7 +260,7 @@ class StaticPagesQueue extends DataObject {
 	/**
 	 * Mark this current StaticPagesQueue as a work in progress
 	 *
-	 * @param StaticPagesQueue $object 
+	 * @param StaticPagesQueue $object
 	 */
 	protected static function mark_as_regenerating(StaticPagesQueue $object) {
 		$now = date('Y-m-d H:i:s');
@@ -280,7 +292,7 @@ class StaticPagesQueue extends DataObject {
 		$filter = '"URLSegment" = \''.Convert::raw2sql($url).'\'';
 		$res = DB::query('SELECT * FROM "StaticPagesQueue" WHERE '.$filter.' LIMIT 1;');
 		if(!$res->numRecords()){
-			return false;
+				return false;
 		}
 		return new StaticPagesQueue($res->first());
 	}

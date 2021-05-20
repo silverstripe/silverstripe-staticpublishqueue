@@ -39,7 +39,7 @@ class RebuildStaticCacheTask extends BuildTask {
 		}
 
 		echo sprintf("StaticPagesQueueAllTask: Queuing %d pages\n", count($urls));
-		URLArrayObject::add_urls($urls);
+		URLArrayObject::add_urls($urls, get_class($this));
 
 		Versioned::set_reading_mode($oldMode);
 	}

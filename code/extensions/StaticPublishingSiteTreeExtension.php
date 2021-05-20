@@ -6,7 +6,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 
 	function onAfterPublish() {
 		$urls = $this->pagesAffected();
-		if(!empty($urls)) URLArrayObject::add_urls($urls);
+		if(!empty($urls)) URLArrayObject::add_urls($urls, get_class($this) .', ID:'. $this->owner->ID .', URL:'. $this->owner->Link());
 	}
 
 	function onAfterUnpublish() {
@@ -26,7 +26,7 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		increase_memory_limit_to();
 		singleton("SiteTree")->unpublishPagesAndStaleCopies($removeURLs); //remove those pages (right now)
 
-		if(!empty($updateURLs)) URLArrayObject::add_urls($updateURLs);
+		if(!empty($updateURLs)) URLArrayObject::add_urls($updateURLs, get_class($this) .', ID:'. $this->owner->ID .', URL:'. $this->owner->Link());
 	}
 
 	/**
@@ -119,8 +119,8 @@ class StaticPublishingSiteTreeExtension extends DataExtension {
 		$urls = array();
 
 		// Add redirector page (if required) or just include the current page
-		if($this->owner instanceof RedirectorPage) $urls[$this->owner->regularLink()] = 60;
-		else $urls[$this->owner->Link()] = 60;  //higher priority for the actual page, not others
+		if($this->owner instanceof RedirectorPage) $urls[] = $this->owner->regularLink();
+		else $urls[] = $this->owner->Link();  //higher priority for the actual page, not others
 
 		//include the parent and the parent's parents, etc
 		$parent = $this->owner->Parent();

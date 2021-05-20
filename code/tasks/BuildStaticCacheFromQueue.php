@@ -1,21 +1,21 @@
 <?php
 /**
  * This tasks takes care of republishing pages that has been queues in the StaticPagesQueue.
- * 
+ *
  * The scripts have a few timers that might need explaining
- * 
+ *
  * First there are the $this->anotherInstanceRunning(30) that checks if a process haven't updated the
  * pidfile in 30 seconds, then we declare it as dead and force execute.
- * 
- * Secondly is that the script will in daemon mode only run for 590 sec before terminating. This is 
+ *
+ * Secondly is that the script will in daemon mode only run for 590 sec before terminating. This is
  * to make sure that the script doesnt hog up to much resources and also if we do a deploy or so.
- * 
+ *
  * At can be run in browser, from command line as:
  * /dev/tasks/BuildStaticCacheFromQueue
  *
  * Or from cronjobs with a less expressive output as:
  * /dev/tasks/BuildStaticCacheFromQueue verbose=1
- * 
+ *
  * Or for running it in the crontab this is the recommended way. Note that the nice command decreases the priority
  * of the queue processing so it doesn't interfere with web-server requests
  *
@@ -50,14 +50,14 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 * @var boolean
 	 */
 	protected $verbose = false;
-	
+
 	/**
 	 * This tells us if the task is running in a daemon mode.
 	 *
 	 * @var bool
 	 */
 	protected $daemon = false;
-	
+
 	/**
 	 *
 	 * @var BuildStaticCacheSummary
@@ -100,7 +100,7 @@ class BuildStaticCacheFromQueue extends BuildTask {
 			echo "Server is SS_SLAVE, not running build task (edit the _ss_environment file to make this server the master)";
 		}
 	}
-	
+
 	/**
 	 *
 	 * @return boolean - if this task was run
@@ -109,22 +109,26 @@ class BuildStaticCacheFromQueue extends BuildTask {
 		$this->updatePid();
 		$this->load_error_handlers();
 		$published = 0;
-		while(self::$current_url = StaticPagesQueue::get_next_url()) {
+		while($currentObject = StaticPagesQueue::get_next_url_object()) {
+            self::$current_url = $currentObject->URLSegment;
 			$this->updatePid();
 			$prePublishTime = microtime(true);
 			$results = $this->createCachedFiles(array(self::$current_url));
 			if($this->verbose) {
 				$this->printPublishingMetrics(
-					$published++, 
-					$prePublishTime, 
+					$published++,
+					$prePublishTime,
 					self::$current_url,
-					sprintf('HTTP Status: %d', $results[self::$current_url]['statuscode'])
+					sprintf('HTTP Status: %d, Action: %s',
+                        $results[self::$current_url]['statuscode'],
+                        $results[self::$current_url]['action'] //action: update, unlink or unlinkNoFile
+                    )
 				);
 			}
 			$this->logSummary($published, false, $prePublishTime);
 			StaticPagesQueue::delete_by_link(self::$current_url);
 		}
-		
+
 		if($published) {
 			$this->logSummary($published, true, $prePublishTime);
 		}
@@ -139,11 +143,15 @@ class BuildStaticCacheFromQueue extends BuildTask {
 	 */
 	protected function createCachedFiles(array $URLSegments) {
 		// Trigger creation of new cache files (through FilesystemPublisher extension on the Page class)
-		$results = singleton("SiteTree")->publishPages($URLSegments);
+        $results = singleton("SiteTree")->publishPages($URLSegments);
+
 
 		// Create or remove stale file
 		$publisher = singleton('SiteTree')->getExtensionInstance('FilesystemPublisher');
-		foreach($results as $url => $result) {
+        $newResults = array();
+        foreach($results as $url => $result) {
+            $result['action'] = "noAction";
+
 			if($result['path']) {
 				$filePath = $result['path'];
 			} else {
@@ -151,21 +159,37 @@ class BuildStaticCacheFromQueue extends BuildTask {
 				$filePath = $publisher->getDestDir() . '/' . array_shift($pathsArray);
 			}
 			$staleFilepath = str_replace(pathinfo($filePath, PATHINFO_EXTENSION), 'stale.html', $filePath);
-			if($result['statuscode'] < 400) {
-				$staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), file_get_contents($filePath));
-				file_put_contents($staleFilepath, $staleContent, LOCK_EX);
-				chmod($staleFilepath, 0664);
-				chmod($filePath, 0664);
-			} else {
-				// For HTTP errors, we remove the stale file.
-				// The page was either erroreous, or has been unpublished in the meantime.
-				// Deleting the original cache file would've already been taken care of by
-				// FilesystemPublisher->unpublishPages().
-				@unlink($staleFilepath);
-			}
+
+            //keep the stale file is there is an error when generating the file
+            if (file_exists($filePath)) {
+                $filePathContents = file_get_contents($filePath);
+                if (count($filePathContents) > 0 &&
+                    $result['statuscode'] < 400) {
+                    $staleContent = str_replace('<div id="stale"></div>', $this->getStaleHTML(), $filePathContents);
+                    file_put_contents($staleFilepath, $staleContent, LOCK_EX);
+                    chmod($staleFilepath, 0664);
+                    chmod($filePath, 0664);
+                    $result['action'] = "update";
+                }
+            } elseif ($result['statuscode'] == 404) {   //file does not exist AND status code is 404
+                // For HTTP errors, we DO NOT remove the stale file.
+                // The page was correctly published, but there might have been an intermittent error
+                // Deleting the original cache file would've already been taken care of by
+                // FilesystemPublisher->unpublishPages(), so we only want ot delete the stale page
+                // once we have a confirmed 404, or when overwriting it with a published new page
+                if (file_exists($staleFilepath)) {
+                    user_error("Stale file exists on page that returns a 404. Stale file should have been deleted with the unpublish action, or page is erroneously returning a 404. Keeping stale file, but this might be an error: ".$staleFilepath, E_USER_ERROR);
+                    $result['action'] = "errorStaleFileExistsFor404";
+                } else {
+                    $result['action'] = "unlinkFileDoesNotExist";
+                }
+            }
+
+            //record the action in the results that return
+            $newResults[$url] = $result;
 		}
 
-		return $results;
+		return $newResults;
 	}
 
 	/**
@@ -199,11 +223,12 @@ EOT;
 
 		$publishTime = microtime(true) - $prePublishTime;
 		printf(
-			"%s %.2fs %.1fmb %.1fmb %s (%s)", 
-			$publishedPages, 
-			$publishTime, 
-			$memoryDelta/$mbDivider, 
-			memory_get_usage()/$mbDivider, 
+			"%s %s %.2fs %.1fmb %.1fmb %s (%s)",
+            date("Y-m-d H:i:s"),
+			$publishedPages,
+			$publishTime,
+			$memoryDelta/$mbDivider,
+			memory_get_usage()/$mbDivider,
 			$url,
 			$extra
 		);
@@ -231,10 +256,10 @@ EOT;
 
 		$this->cleanOldSummaryLog();
 	}
-	
+
 	/**
 	 *
-	 * @return type 
+	 * @return type
 	 */
 	protected function cleanOldSummaryLog() {
 		$oneWeekAgo= date('Y-m-d H:i:s', strtotime('- 1 week'));
@@ -339,7 +364,7 @@ EOT;
 		}
 		return time() - $start_time;
 	}
-	
+
 	/**
 	 * Returns an nl appropiate for CLI or HTML
 	 *
@@ -348,7 +373,7 @@ EOT;
 	private function nl(){
 		return (Director::is_cli())?PHP_EOL:'<br>';
 	}
-	
+
 	private function isDaemon() {
 		return $this->daemon;
 	}
