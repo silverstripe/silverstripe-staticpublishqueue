@@ -7,6 +7,7 @@ use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
+use SilverStripe\Versioned\Versioned;
 
 /**
  * Bare-bones implementation of a publishable page.
@@ -87,9 +88,13 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
     /**
      * The only URL belonging to this object is it's own URL.
+     * Explicitly apply Versioned::LIVE to get the absolute URL.
      */
     public function urlsToCache()
     {
-        return [Director::absoluteURL($this->getOwner()->Link()) => 0];
+        return Versioned::withVersionedMode(function () {
+            Versioned::set_reading_mode(Versioned::LIVE);
+            return [Director::absoluteURL($this->getOwner()->Link()) => 0];
+        });
     }
 }
