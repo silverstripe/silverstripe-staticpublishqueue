@@ -18,14 +18,6 @@ class StaticCacheFullBuildTask extends BuildTask
 {
 
     /**
-     * Set a custom url segment (to follow dev/tasks/)
-     *
-     * @config
-     * @var string
-     */
-    private static $segment = 'StaticCacheFullBuildTask';
-
-    /**
      * Queue up a StaticCacheFullBuildJob
      * Check for startAfter param and do some sanity checking
      *
