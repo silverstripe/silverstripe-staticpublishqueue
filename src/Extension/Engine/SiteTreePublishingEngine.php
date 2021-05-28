@@ -5,6 +5,7 @@ namespace SilverStripe\StaticPublishQueue\Extension\Engine;
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Core\Resettable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
@@ -20,8 +21,16 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
  *
  * @see PublishableSiteTree
  */
-class SiteTreePublishingEngine extends SiteTreeExtension
+class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 {
+    /**
+     * Queued job service injection property
+     * Used for unit tests only to cover edge cases where Injector doesn't cover
+     *
+     * @var QueuedJobService|null
+     */
+    protected static $queueService = null;
+
     /**
      * Queues the urls to be flushed into the queue.
      *
@@ -35,6 +44,23 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      * @var array
      */
     private $toDelete = [];
+
+    public static function reset(): void
+    {
+        static::$queueService = null;
+    }
+
+    /**
+     * Force inject queue service
+     * Used for unit tests only to cover edge cases where Injector doesn't cover
+     *
+     *
+     * @param QueuedJobService $service
+     */
+    public static function setQueueService(QueuedJobService $service): void
+    {
+        static::$queueService = $service;
+    }
 
     /**
      * @return array
@@ -75,7 +101,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension
     /**
      * @param \SilverStripe\CMS\Model\SiteTree|null $original
      */
-    public function onAfterPublish(&$original)
+    public function onAfterPublishRecursive(&$original)
     {
         // if the site tree has been "reorganised" (ie: the parentID has changed)
         // then this is eht equivalent of an unpublish and publish as far as the
@@ -137,7 +163,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension
      */
     public function flushChanges()
     {
-        $queue = QueuedJobService::singleton();
+        $queue = static::$queueService ?? QueuedJobService::singleton();
+
         if (!empty($this->toUpdate)) {
             foreach ($this->toUpdate as $queueItem) {
                 $job = Injector::inst()->create(GenerateStaticCacheJob::class);
