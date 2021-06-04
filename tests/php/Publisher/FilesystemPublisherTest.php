@@ -14,7 +14,6 @@ use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher;
 use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\StaticPublisherTestPage;
 use SilverStripe\View\SSViewer;
-use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Tests for the {@link FilesystemPublisher} class.
@@ -41,7 +40,6 @@ class FilesystemPublisherTest extends SapphireTest
         parent::setUp();
 
         Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', false);
-        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
         Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com/');
 
         $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)->setMethods([

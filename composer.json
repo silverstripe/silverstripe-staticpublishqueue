@@ -19,11 +19,11 @@
     ],
     "require": {
         "php": "^7.1",
-        "silverstripe/framework": "^4.0.2",
+        "silverstripe/framework": "^4.6",
         "silverstripe/cms": "^4",
         "silverstripe/config": "^1",
         "symbiote/silverstripe-queuedjobs": "^4.5",
-        "silverstripe/versioned": "^1.0.2"
+        "silverstripe/versioned": "^1.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7",
