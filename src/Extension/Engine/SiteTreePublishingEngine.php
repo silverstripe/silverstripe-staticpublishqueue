@@ -103,7 +103,6 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 
     /**
      * @param SiteTree|SiteTreePublishingEngine|null $original
-     * @throws ValidationException
      */
     public function onAfterPublishRecursive(&$original)
     {
@@ -111,7 +110,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         // then this is the equivalent of an un-publish and publish as far as the
         // static publisher is concerned
         if ($original && (
-            (int) $original->ParentID !== (int) $this->getOwner()->ParentID
+            $original->ParentID !== $this->getOwner()->ParentID
                 || $original->URLSegment !== $this->getOwner()->URLSegment
             )
         ) {
@@ -136,9 +135,6 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $this->collectChanges($context);
     }
 
-    /**
-     * @throws ValidationException
-     */
     public function onAfterUnpublish()
     {
         $this->flushChanges();
@@ -167,13 +163,12 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 
     /**
      * Execute URL deletions, enqueue URL updates.
-     * @throws ValidationException
      */
     public function flushChanges()
     {
         $queueService = static::$queueService ?? QueuedJobService::singleton();
 
-        if (count($this->toUpdate) > 0) {
+        if (!empty($this->toUpdate)) {
             /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
 
@@ -193,7 +188,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             $this->toUpdate = [];
         }
 
-        if (count($this->toDelete) > 0) {
+        if (!empty($this->toDelete)) {
             /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
 

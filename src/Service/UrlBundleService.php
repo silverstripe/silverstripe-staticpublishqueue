@@ -121,7 +121,7 @@ class UrlBundleService implements UrlBundleInterface
 
         foreach ($urls as $url) {
             $priorityUrls[$url] = $priority;
-            $priority += 1;
+            ++$priority;
         }
 
         return $priorityUrls;
