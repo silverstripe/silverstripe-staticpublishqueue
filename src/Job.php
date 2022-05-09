@@ -20,26 +20,65 @@ abstract class Job extends AbstractQueuedJob
 
     /**
      * Number of URLs processed during one call of @see AbstractQueuedJob::process()
-     * this number should be set to a value which represents number of URLs which is reasonable to process in one go
-     * this number will vary depending on project, more specifically it depends on:
+     * This number should be set to a value which represents number of URLs which is reasonable to process in one go
+     * This number will vary depending on project, more specifically it depends on:
      * - time to render your pages
      * - infrastructure
      *
-     * if this number is too large jobs may experience performance / memory issues
-     * if this number is too low the jobs will produce more overhead which may cause inefficiencies
+     * If this number is too large jobs may experience performance / memory issues
+     * If this number is too low the jobs will produce more overhead which may cause inefficiencies
      *
-     * in case you project is complex and you are struggling to find the correct number
-     * it's possible to move this value to a CMS setting and adjust as needed without the need of changing the code
-     * use @see Job::getChunkSize() to override the value lookup
-     * you can subclass your jobs and implement your own getChunkSize() method which will look into CMS setting
+     * In case your project is complex and you are struggling to find the correct number
+     * It's possible to move this value to a CMS setting and adjust as needed without the need of changing the code
+     * Use @see Job::getChunkSize() to override the value lookup
+     * You can subclass your jobs and implement your own getChunkSize() method which will look into CMS setting
      *
-     * chunking capability can be disabled if chunk size is set to 0
-     * in such case, all URLs will be processed in one go
+     * Chunking capability can be disabled if chunk size is set to 0
+     * In such case, all URLs will be processed in one go
      *
      * @var int
      * @config
      */
     private static $chunk_size = 200;
+
+    /**
+     * Number of URLs per job allows you to split work into multiple smaller jobs instead of having one large job
+     * This is useful if you're running a queue setup will parallel processing or if you have too many URLs in general
+     * If this number is too high you're limiting the parallel processing opportunity
+     * If this number is too low you're using your resources inefficiently
+     * as every job processing has a fixed overhead which adds up if there are too many jobs
+     *
+     * In case your project is complex, and you are struggling to find the correct number
+     * it's possible to move this value to a CMS setting and adjust as needed without the need to change the code
+     * Use @see Job::getUrlsPerJob() to override the value lookup
+     * You can subclass your jobs and implement your own getUrlsPerJob() method which can read from the CMS setting
+     *
+     * Batching capability can be disabled if urls per job is set to 0
+     * In this case, all URLs will be processed in a single job
+     *
+     * @var int
+     * @config
+     */
+    private static $urls_per_job = 0;
+
+    /**
+     * Use this method to populate newly created job with data
+     *
+     * @param array $urls
+     * @param string|null $message
+     */
+    public function hydrate(array $urls, ?string $message): void
+    {
+        $this->URLsToProcess = $urls;
+
+        if (!$message) {
+            return;
+        }
+
+        $this->messages = [
+            sprintf('%s: %s', $message, var_export(array_keys($urls), true)),
+        ];
+    }
 
     /**
      * Static cache manipulation jobs need to run without a user
@@ -84,6 +123,16 @@ abstract class Job extends AbstractQueuedJob
         }
 
         $this->updateCompletedState();
+    }
+
+    /**
+     * @return int
+     */
+    public function getUrlsPerJob(): int
+    {
+        $urlsPerJob = (int) $this->config()->get('urls_per_job');
+
+        return ($urlsPerJob > 0) ? $urlsPerJob : 0;
     }
 
     /**
