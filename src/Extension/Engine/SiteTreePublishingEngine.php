@@ -110,7 +110,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         // then this is the equivalent of an un-publish and publish as far as the
         // static publisher is concerned
         if ($original && (
-            $original->ParentID !== $this->getOwner()->ParentID
+            // Intentionally using loose comparison as ParentID may contain either string or integer
+            $original->ParentID != $this->getOwner()->ParentID
                 || $original->URLSegment !== $this->getOwner()->URLSegment
             )
         ) {
