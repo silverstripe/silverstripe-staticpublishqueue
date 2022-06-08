@@ -67,17 +67,17 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath = $reflection->getMethod('URLtoPath');
         $urlToPath->setAccessible(true);
 
-        $this->assertSame(
+        $this->assertEquals(
             'index',
             $urlToPath->invokeArgs($this->fsp, ['/'])
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             'about-us',
             $urlToPath->invokeArgs($this->fsp, ['about-us'])
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             'parent/child',
             $urlToPath->invokeArgs($this->fsp, ['parent/child'])
         );
@@ -90,19 +90,19 @@ class FilesystemPublisherTest extends SapphireTest
         $urlToPath->setAccessible(true);
 
         $url = Director::absoluteBaseUrl();
-        $this->assertSame(
+        $this->assertEquals(
             'index',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = Director::absoluteBaseUrl() . 'about-us';
-        $this->assertSame(
+        $this->assertEquals(
             'about-us',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = Director::absoluteBaseUrl() . 'parent/child';
-        $this->assertSame(
+        $this->assertEquals(
             'parent/child',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
@@ -119,19 +119,19 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->setFileExtension('html');
 
         $url = 'http://domain1.com/';
-        $this->assertSame(
+        $this->assertEquals(
             'domain1.com/index',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = 'http://domain1.com/about-us';
-        $this->assertSame(
+        $this->assertEquals(
             'domain1.com/about-us',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
         $url = 'http://domain2.com/parent/child';
-        $this->assertSame(
+        $this->assertEquals(
             'domain2.com/parent/child',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
@@ -170,7 +170,7 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->assertFileExists($static2_1FilePath . '.html');
         $this->assertFileExists($static2_1FilePath . '.php');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'current',
             file_get_contents($static2_1FilePath . '.html')
         );
@@ -180,7 +180,7 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->assertFileExists($static2_2FilePath . '.html');
         $this->assertFileExists($static2_2FilePath . '.php');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'linkcurrent',
             file_get_contents($static2_2FilePath . '.html')
         );
@@ -202,7 +202,7 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->assertFileExists($staticFilePath . '.html');
         $this->assertFileDoesNotExist($staticFilePath . '.php');
-        $this->assertSame(
+        $this->assertEquals(
             '<div class="statically-published" style="display: none"></div>',
             trim(file_get_contents($staticFilePath . '.html'))
         );
@@ -265,7 +265,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.html');
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'not_really_there.php';
-        $this->assertSame(404, $phpCacheConfig['responseCode']);
+        $this->assertEquals(404, $phpCacheConfig['responseCode']);
     }
 
     public function testRedirectorPageWhenPHP(): void
@@ -282,13 +282,13 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->publishURL('somewhere-else', true);
 
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.html');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Click this link if your browser does not redirect you',
             file_get_contents($this->fsp->getDestPath() . 'somewhere-else.html')
         );
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'somewhere-else.php';
-        $this->assertSame(301, $phpCacheConfig['responseCode']);
+        $this->assertEquals(301, $phpCacheConfig['responseCode']);
         $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
     }
 
@@ -308,7 +308,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->publishURL('somewhere-else', true);
 
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.html');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Click this link if your browser does not redirect you',
             file_get_contents($this->fsp->getDestPath() . 'somewhere-else.html')
         );
@@ -324,7 +324,7 @@ class FilesystemPublisherTest extends SapphireTest
         $pathToURL = $reflection->getMethod('pathToURL');
         $pathToURL->setAccessible(true);
 
-        $this->assertSame(
+        $this->assertEquals(
             $expected,
             $pathToURL->invoke($this->fsp, $this->fsp->getDestPath() . $path)
         );
@@ -359,7 +359,7 @@ class FilesystemPublisherTest extends SapphireTest
         // We have to redeclare this config because the testkernel wipes it when we generate the page response
         Director::config()->set('alternate_base_url', 'http://example.com');
 
-        $this->assertSame(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
+        $this->assertEquals(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
 
         $this->fsp->publishURL($level2_1->Link(), true);
         Director::config()->set('alternate_base_url', 'http://example.com');
@@ -370,6 +370,6 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertCount(2, $urls);
 
         $this->fsp->purgeURL('find-me');
-        $this->assertSame(['http://example.com/find-me/find-me-child'], $this->fsp->getPublishedURLs());
+        $this->assertEquals(['http://example.com/find-me/find-me-child'], $this->fsp->getPublishedURLs());
     }
 }
