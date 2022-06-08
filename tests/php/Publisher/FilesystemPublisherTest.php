@@ -35,7 +35,7 @@ class FilesystemPublisherTest extends SapphireTest
         ],
     ];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -53,7 +53,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp = $mockFSP->setDestFolder('cache/testing/');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->fsp !== null && file_exists($this->fsp->getDestPath())) {
             Filesystem::removeFolder($this->fsp->getDestPath());
@@ -61,7 +61,7 @@ class FilesystemPublisherTest extends SapphireTest
         parent::tearDown();
     }
 
-    public function testUrlToPathWithRelativeUrls()
+    public function testUrlToPathWithRelativeUrls(): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
@@ -83,7 +83,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testUrlToPathWithAbsoluteUrls()
+    public function testUrlToPathWithAbsoluteUrls(): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
@@ -108,7 +108,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testUrlToPathWithDomainBasedCaching()
+    public function testUrlToPathWithDomainBasedCaching(): void
     {
         Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', true);
 
@@ -137,7 +137,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testMenu2LinkingMode()
+    public function testMenu2LinkingMode(): void
     {
         SSViewer::set_themes(null);
 
@@ -184,7 +184,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testOnlyHTML()
+    public function testOnlyHTML(): void
     {
         $this->fsp->setFileExtension('html');
 
@@ -197,14 +197,14 @@ class FilesystemPublisherTest extends SapphireTest
         $staticFilePath = $this->fsp->getDestPath() . 'mimetype';
 
         $this->assertFileExists($staticFilePath . '.html');
-        $this->assertFileNotExists($staticFilePath . '.php');
+        $this->assertFileDoesNotExist($staticFilePath . '.php');
         $this->assertSame(
             '<div class="statically-published" style="display: none"></div>',
             trim(file_get_contents($staticFilePath . '.html'))
         );
     }
 
-    public function testPurgeURL()
+    public function testPurgeURL(): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'to-be-purged';
@@ -216,11 +216,11 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileExists($this->fsp->getDestPath() . 'to-be-purged.php');
 
         $this->fsp->purgeURL('to-be-purged');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'to-be-purged.html');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'to-be-purged.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'to-be-purged.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'to-be-purged.php');
     }
 
-    public function testPurgeURLAfterSwitchingExtensions()
+    public function testPurgeURLAfterSwitchingExtensions(): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'purge-me';
@@ -234,20 +234,20 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->setFileExtension('html');
 
         $this->fsp->purgeURL('purge-me');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'purge-me.html');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'purge-me.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'purge-me.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'purge-me.php');
     }
 
-    public function testNoErrorPagesWhenHTMLOnly()
+    public function testNoErrorPagesWhenHTMLOnly(): void
     {
         $this->fsp->setFileExtension('html');
 
         $this->fsp->publishURL('not_really_there', true);
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'not_really_there.html');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'not_really_there.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'not_really_there.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'not_really_there.php');
     }
 
-    public function testErrorPageWhenPHP()
+    public function testErrorPageWhenPHP(): void
     {
         $this->fsp->publishURL('not_really_there', true);
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.html');
@@ -256,7 +256,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertSame(404, $phpCacheConfig['responseCode']);
     }
 
-    public function testRedirectorPageWhenPHP()
+    public function testRedirectorPageWhenPHP(): void
     {
         $redirectorPage = RedirectorPage::create();
         $redirectorPage->URLSegment = 'somewhere-else';
@@ -278,7 +278,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
     }
 
-    public function testRedirectorPageWhenHTMLOnly()
+    public function testRedirectorPageWhenHTMLOnly(): void
     {
         $this->fsp->setFileExtension('html');
 
@@ -296,13 +296,13 @@ class FilesystemPublisherTest extends SapphireTest
             'Click this link if your browser does not redirect you',
             file_get_contents($this->fsp->getDestPath() . 'somewhere-else.html')
         );
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'somewhere-else.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'somewhere-else.php');
     }
 
     /**
      * @dataProvider providePathsToURL
      */
-    public function testPathToURL($expected, $path)
+    public function testPathToURL($expected, $path): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $pathToURL = $reflection->getMethod('pathToURL');
@@ -324,7 +324,7 @@ class FilesystemPublisherTest extends SapphireTest
         ];
     }
 
-    public function testGetPublishedURLs()
+    public function testGetPublishedURLs(): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'find-me';

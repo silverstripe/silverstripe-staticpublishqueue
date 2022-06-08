@@ -7,7 +7,7 @@ use SilverStripe\StaticPublishQueue\Test\SiteTreePublishingEngineTest\Model\Stat
 
 class SiteTreePublishingEngineTest extends SapphireTest
 {
-    public function testCollectChangesForPublishing()
+    public function testCollectChangesForPublishing(): void
     {
         $obj = StaticPublishingTriggerPage::create();
         $obj->collectChanges(['action' => 'publish']);
@@ -22,7 +22,7 @@ class SiteTreePublishingEngineTest extends SapphireTest
         );
     }
 
-    public function testCollectChangesForUnpublishing()
+    public function testCollectChangesForUnpublishing(): void
     {
         $obj = StaticPublishingTriggerPage::create();
         $obj->collectChanges(['action' => 'unpublish']);

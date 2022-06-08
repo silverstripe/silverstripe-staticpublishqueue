@@ -1,57 +1,25 @@
-language: php
+version: ~> 1.0
 
-dist: xenial
+import:
+  - silverstripe/silverstripe-travis-shared:config/provision/standard.yml
 
-services:
-  - mysql
-  - postgresql
-
-cache:
-  directories:
-    - $HOME/.composer/cache/files
-
-addons:
-  apt:
-    packages:
-      - tidy
-
-matrix:
+jobs:
   fast_finish: true
   include:
-    - php: 7.1
-      env: DB=MYSQL RECIPE_VERSION=4.6.x-dev PHPUNIT_TEST=1 PHPCS_TEST=1
-    - php: 7.2
-      env: DB=PGSQL RECIPE_VERSION=4.6.x-dev PHPUNIT_TEST=1
-    - php: 7.3
-      env: DB=MYSQL RECIPE_VERSION=4.6.x-dev PDO=1 PHPUNIT_TEST=1
     - php: 7.4
-      env: DB=MYSQL RECIPE_VERSION=4.6.x-dev PHPUNIT_TEST=1
-      addons:
-        apt:
-          packages:
-            - libonig-dev
-
-before_script:
-  # Extra $PATH
-  - export PATH=~/.composer/vendor/bin:$PATH
-
-  # Init PHP
-  - phpenv rehash
-  - phpenv config-rm xdebug.ini
-  - export PATH=~/.composer/vendor/bin:$PATH
-  - echo 'memory_limit = 2G' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
-
-  # Install composer dependencies
-  - composer validate
-  - composer require --no-update silverstripe/recipe-cms:$RECIPE_VERSION silverstripe/recipe-testing:^1
-  # Fix for running phpunit 5 on php 7.4+
-  - composer require --no-update sminnee/phpunit-mock-objects:^3
-  - if [[ $DB == PGSQL ]]; then composer require --no-update silverstripe/postgresql:^2; fi
-  - composer install --prefer-source --no-interaction --no-progress --no-suggest --optimize-autoloader --verbose --profile
-
-script:
-  - if [[ $PHPUNIT_TEST ]]; then vendor/bin/phpunit tests/php/ flush=1; fi
-  - if [[ $PHPCS_TEST ]]; then composer run-script lint; fi
-
-after_success:
-  - if [[ $PHPUNIT_COVERAGE_TEST ]]; then bash <(curl -s https://codecov.io/bash) -f coverage.xml; fi
+      env:
+        - DB=MYSQL
+        - REQUIRE_INSTALLER="4.10.x@dev"
+        - PHPCS_TEST=1
+        - PHPUNIT_TEST=1
+        - PHPUNIT_COVERAGE_TEST=1
+    - php: 8.0
+      env:
+        - DB=MYSQL
+        - REQUIRE_INSTALLER="4.10.x@dev"
+        - PHPUNIT_TEST=1
+    - php: 8.1
+      env:
+        - DB=MYSQL
+        - REQUIRE_INSTALLER="4.10.x@dev"
+        - PHPUNIT_TEST=1

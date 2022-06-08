@@ -43,7 +43,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertCount(1, $messages);
 
         $messageData = array_shift($messages);
-        $this->assertContains($message, $messageData);
+        $this->assertStringContainsString($message, $messageData);
     }
 
     /**
