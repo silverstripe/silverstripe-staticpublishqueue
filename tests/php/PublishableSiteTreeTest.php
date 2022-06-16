@@ -2,6 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Test;
 
+use PHPUnit\Framework\MockObject\Stub\ReturnCallback;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
@@ -24,7 +25,7 @@ class PublishableSiteTreeTest extends SapphireTest
         PublishablePage::class,
     ];
 
-    public function testObjectsToUpdateOnURLSegmentChange()
+    public function testObjectsToUpdateOnURLSegmentChange(): void
     {
         $this->setExpectedFlushChangesOutput([
             [[], ['stub/']],
@@ -45,7 +46,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $page->publishRecursive();
     }
 
-    public function testObjectsToUpdateOnURLSegmentChangeWithParents()
+    public function testObjectsToUpdateOnURLSegmentChangeWithParents(): void
     {
         $this->setExpectedFlushChangesOutput([
             [[], ['parent/']],
@@ -73,7 +74,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $page->publishRecursive();
     }
 
-    public function testObjectsToUpdateOnSiteTreeRearrange()
+    public function testObjectsToUpdateOnSiteTreeRearrange(): void
     {
         $this->setExpectedFlushChangesOutput([
             [[], ['parent/']],
@@ -110,7 +111,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $page->publishRecursive();
     }
 
-    public function testObjectsToUpdateOnPublish()
+    public function testObjectsToUpdateOnPublish(): void
     {
         $parent = new PublishablePage;
 
@@ -136,7 +137,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->assertCount(2, $objects);
     }
 
-    public function testObjectsToUpdateOnUnpublish()
+    public function testObjectsToUpdateOnUnpublish(): void
     {
         $parent = new PublishablePage;
 
@@ -166,14 +167,14 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->assertCount(1, $updates);
     }
 
-    public function testObjectsToDeleteOnPublish()
+    public function testObjectsToDeleteOnPublish(): void
     {
         $stub = new PublishablePage;
         $objects = $stub->objectsToDelete(['action' => 'publish']);
         $this->assertEmpty($objects);
     }
 
-    public function testObjectsToDeleteOnUnpublish()
+    public function testObjectsToDeleteOnUnpublish(): void
     {
         $stub = new PublishablePage;
         $stub->Title = 'stub';
@@ -182,7 +183,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->assertCount(1, $objects);
     }
 
-    public function testObjectsToUpdateOnPublishIfVirtualExists()
+    public function testObjectsToUpdateOnPublishIfVirtualExists(): void
     {
         $redir = new PublishablePage;
 
@@ -204,7 +205,7 @@ class PublishableSiteTreeTest extends SapphireTest
         $this->assertCount(2, $objects);
     }
 
-    public function testObjectsToDeleteOnUnpublishIfVirtualExists()
+    public function testObjectsToDeleteOnUnpublishIfVirtualExists(): void
     {
         $redir = new PublishablePage;
 
@@ -271,7 +272,7 @@ class PublishableSiteTreeTest extends SapphireTest
         foreach ($map as $urls) {
             ++$count;
             list($toDelete, $toUpdate) = $urls;
-            $callbacks[] = new \PHPUnit_Framework_MockObject_Stub_ReturnCallback(
+            $callbacks[] = new ReturnCallback(
                 function () use ($toDelete, $toUpdate, $mockExtension, $getURL, $count) {
                     $this->assertSame(
                         $toDelete,

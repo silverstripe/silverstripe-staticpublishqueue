@@ -4,13 +4,21 @@ Name: staticpublishqueue
 SilverStripe\Core\Injector\Injector:
   SilverStripe\StaticPublishQueue\Publisher:
     class: SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher
-  SilverStripe\Dev\State\SapphireTestState:
-    properties:
-      States:
-        staticPublisherState: '%$SilverStripe\StaticPublishQueue\Dev\StaticPublisherState'
   SilverStripe\StaticPublishQueue\Service\UrlBundleInterface:
     class: SilverStripe\StaticPublishQueue\Service\UrlBundleService
 SilverStripe\CMS\Model\SiteTree:
   extensions:
     - SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine
     - SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree
+---
+Name: staticpublishqueue-tests
+Only:
+  classexists:
+    - 'Symbiote\QueuedJobs\Tests\QueuedJobsTest\QueuedJobsTest_Handler'
+    - 'SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService'
+---
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Dev\State\SapphireTestState:
+    properties:
+      States:
+        staticPublisherState: '%$SilverStripe\StaticPublishQueue\Dev\StaticPublisherState'

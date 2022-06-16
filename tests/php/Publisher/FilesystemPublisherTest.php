@@ -35,7 +35,7 @@ class FilesystemPublisherTest extends SapphireTest
         ],
     ];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -53,7 +53,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp = $mockFSP->setDestFolder('cache/testing/');
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->fsp !== null && file_exists($this->fsp->getDestPath())) {
             Filesystem::removeFolder($this->fsp->getDestPath());
@@ -61,7 +61,7 @@ class FilesystemPublisherTest extends SapphireTest
         parent::tearDown();
     }
 
-    public function testUrlToPathWithRelativeUrls()
+    public function testUrlToPathWithRelativeUrls(): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
@@ -83,7 +83,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testUrlToPathWithAbsoluteUrls()
+    public function testUrlToPathWithAbsoluteUrls(): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
@@ -108,7 +108,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testUrlToPathWithDomainBasedCaching()
+    public function testUrlToPathWithDomainBasedCaching(): void
     {
         Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', true);
 
@@ -137,7 +137,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function testMenu2LinkingMode()
+    public function testMenu2LinkingMode(): void
     {
         SSViewer::set_themes(null);
 
@@ -156,35 +156,37 @@ class FilesystemPublisherTest extends SapphireTest
         $level2_1->write();
         $level2_1->publishRecursive();
 
-        $this->fsp->publishURL($level1->Link(), true);
-        $this->fsp->publishURL($level2_1->Link(), true);
-        $static2_1FilePath = $this->fsp->getDestPath() . $urlToPath->invokeArgs($this->fsp, [$level2_1->Link()]);
-
-        $this->assertFileExists($static2_1FilePath . '.html');
-        $this->assertFileExists($static2_1FilePath . '.php');
-        $this->assertContains(
-            'current',
-            file_get_contents($static2_1FilePath . '.html')
-        );
-
         $level2_2 = new StaticPublisherTestPage();
         $level2_2->URLSegment = 'test-level-2-2';
         $level2_2->ParentID = $level1->ID;
         $level2_2->write();
         $level2_2->publishRecursive();
 
+        $this->logOut();
+
+        $this->fsp->publishURL($level1->Link(), true);
+        $this->fsp->publishURL($level2_1->Link(), true);
+        $static2_1FilePath = $this->fsp->getDestPath() . $urlToPath->invokeArgs($this->fsp, [$level2_1->Link()]);
+
+        $this->assertFileExists($static2_1FilePath . '.html');
+        $this->assertFileExists($static2_1FilePath . '.php');
+        $this->assertStringContainsString(
+            'current',
+            file_get_contents($static2_1FilePath . '.html')
+        );
+
         $this->fsp->publishURL($level2_2->Link(), true);
         $static2_2FilePath = $this->fsp->getDestPath() . $urlToPath->invokeArgs($this->fsp, [$level2_2->Link()]);
 
         $this->assertFileExists($static2_2FilePath . '.html');
         $this->assertFileExists($static2_2FilePath . '.php');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'linkcurrent',
             file_get_contents($static2_2FilePath . '.html')
         );
     }
 
-    public function testOnlyHTML()
+    public function testOnlyHTML(): void
     {
         $this->fsp->setFileExtension('html');
 
@@ -193,39 +195,45 @@ class FilesystemPublisherTest extends SapphireTest
         $level1->write();
         $level1->publishRecursive();
 
+        $this->logOut();
+
         $this->fsp->publishURL($level1->Link(), true);
         $staticFilePath = $this->fsp->getDestPath() . 'mimetype';
 
         $this->assertFileExists($staticFilePath . '.html');
-        $this->assertFileNotExists($staticFilePath . '.php');
+        $this->assertFileDoesNotExist($staticFilePath . '.php');
         $this->assertSame(
             '<div class="statically-published" style="display: none"></div>',
             trim(file_get_contents($staticFilePath . '.html'))
         );
     }
 
-    public function testPurgeURL()
+    public function testPurgeURL(): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'to-be-purged';
         $level1->write();
         $level1->publishRecursive();
 
+        $this->logOut();
+
         $this->fsp->publishURL('to-be-purged', true);
         $this->assertFileExists($this->fsp->getDestPath() . 'to-be-purged.html');
         $this->assertFileExists($this->fsp->getDestPath() . 'to-be-purged.php');
 
         $this->fsp->purgeURL('to-be-purged');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'to-be-purged.html');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'to-be-purged.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'to-be-purged.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'to-be-purged.php');
     }
 
-    public function testPurgeURLAfterSwitchingExtensions()
+    public function testPurgeURLAfterSwitchingExtensions(): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'purge-me';
         $level1->write();
         $level1->publishRecursive();
+
+        $this->logOut();
 
         $this->fsp->publishURL('purge-me', true);
         $this->assertFileExists($this->fsp->getDestPath() . 'purge-me.html');
@@ -234,21 +242,25 @@ class FilesystemPublisherTest extends SapphireTest
         $this->fsp->setFileExtension('html');
 
         $this->fsp->purgeURL('purge-me');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'purge-me.html');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'purge-me.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'purge-me.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'purge-me.php');
     }
 
-    public function testNoErrorPagesWhenHTMLOnly()
+    public function testNoErrorPagesWhenHTMLOnly(): void
     {
+        $this->logOut();
+
         $this->fsp->setFileExtension('html');
 
         $this->fsp->publishURL('not_really_there', true);
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'not_really_there.html');
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'not_really_there.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'not_really_there.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'not_really_there.php');
     }
 
-    public function testErrorPageWhenPHP()
+    public function testErrorPageWhenPHP(): void
     {
+        $this->logOut();
+
         $this->fsp->publishURL('not_really_there', true);
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.html');
         $this->assertFileExists($this->fsp->getDestPath() . 'not_really_there.php');
@@ -256,7 +268,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertSame(404, $phpCacheConfig['responseCode']);
     }
 
-    public function testRedirectorPageWhenPHP()
+    public function testRedirectorPageWhenPHP(): void
     {
         $redirectorPage = RedirectorPage::create();
         $redirectorPage->URLSegment = 'somewhere-else';
@@ -265,10 +277,12 @@ class FilesystemPublisherTest extends SapphireTest
         $redirectorPage->write();
         $redirectorPage->publishRecursive();
 
+        $this->logOut();
+
         $this->fsp->publishURL('somewhere-else', true);
 
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.html');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Click this link if your browser does not redirect you',
             file_get_contents($this->fsp->getDestPath() . 'somewhere-else.html')
         );
@@ -278,7 +292,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
     }
 
-    public function testRedirectorPageWhenHTMLOnly()
+    public function testRedirectorPageWhenHTMLOnly(): void
     {
         $this->fsp->setFileExtension('html');
 
@@ -289,20 +303,22 @@ class FilesystemPublisherTest extends SapphireTest
         $redirectorPage->write();
         $redirectorPage->publishRecursive();
 
+        $this->logOut();
+
         $this->fsp->publishURL('somewhere-else', true);
 
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.html');
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Click this link if your browser does not redirect you',
             file_get_contents($this->fsp->getDestPath() . 'somewhere-else.html')
         );
-        $this->assertFileNotExists($this->fsp->getDestPath() . 'somewhere-else.php');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'somewhere-else.php');
     }
 
     /**
      * @dataProvider providePathsToURL
      */
-    public function testPathToURL($expected, $path)
+    public function testPathToURL($expected, $path): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $pathToURL = $reflection->getMethod('pathToURL');
@@ -324,24 +340,26 @@ class FilesystemPublisherTest extends SapphireTest
         ];
     }
 
-    public function testGetPublishedURLs()
+    public function testGetPublishedURLs(): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'find-me';
         $level1->write();
         $level1->publishRecursive();
 
-        $this->fsp->publishURL('find-me', true);
-        // We have to redeclare this config because the testkernel wipes it when we generate the page response
-        Director::config()->set('alternate_base_url', 'http://example.com');
-
-        $this->assertSame(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
-
         $level2_1 = new StaticPublisherTestPage();
         $level2_1->URLSegment = 'find-me-child';
         $level2_1->ParentID = $level1->ID;
         $level2_1->write();
         $level2_1->publishRecursive();
+
+        $this->logOut();
+
+        $this->fsp->publishURL('find-me', true);
+        // We have to redeclare this config because the testkernel wipes it when we generate the page response
+        Director::config()->set('alternate_base_url', 'http://example.com');
+
+        $this->assertSame(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
 
         $this->fsp->publishURL($level2_1->Link(), true);
         Director::config()->set('alternate_base_url', 'http://example.com');
