@@ -42,11 +42,12 @@ class StaticCacheFullBuildJob extends Job
 
     public function setup(): void
     {
-        parent::setup();
-        Publisher::singleton()->purgeAll();
         $this->URLsToProcess = $this->getAllLivePageURLs();
         $this->URLsToCleanUp = [];
-        $this->totalSteps = count($this->URLsToProcess);
+
+        parent::setup();
+
+        Publisher::singleton()->purgeAll();
         $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
         $this->addMessage(var_export(array_keys($this->URLsToProcess), true));
     }
