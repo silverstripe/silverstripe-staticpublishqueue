@@ -1,14 +1,12 @@
 # Static Publisher with Queue
 
-[![Build Status](https://travis-ci.org/silverstripe/silverstripe-staticpublishqueue.svg?branch=master)](https://travis-ci.org/silverstripe/silverstripe-staticpublishqueue)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe/silverstripe-staticpublishqueue/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe/silverstripe-staticpublishqueue/?branch=master)
-[![SilverStripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
-[![Code Coverage](https://codecov.io/gh/silverstripe/silverstripe-staticpublishqueue/branch/master/graph/badge.svg)](https://codecov.io/gh/silverstripe/silverstripe-staticpublishqueue/branch/master)
+[![CI](https://github.com/silverstripe/silverstripe-staticpublishqueue/actions/workflows/ci.yml/badge.svg)](https://github.com/silverstripe/silverstripe-staticpublishqueue/actions/workflows/ci.yml)
+[![Silverstripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
 
 ## Brief
 
 This module provides an API for your project to be able to generate a static cache of your pages to enhance
-performance by not booting SilverStripe in order to serve requests.
+performance by not booting Silverstripe in order to serve requests.
 
 It generates the cache files using the [QueuedJobs module](https://github.com/symbiote/silverstripe-queuedjobs).
 
