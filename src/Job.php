@@ -104,6 +104,9 @@ abstract class Job extends AbstractQueuedJob
 
     public function getSignature(): string
     {
+        if (!$this->URLsToProcess) {
+            return md5(static::class);
+        }
         return md5(implode('-', [static::class, implode('-', array_keys($this->URLsToProcess))]));
     }
 
@@ -112,14 +115,16 @@ abstract class Job extends AbstractQueuedJob
         $chunkSize = $this->getChunkSize();
         $count = 0;
 
-        foreach ($this->URLsToProcess as $url => $priority) {
-            $count += 1;
+        if ($this->URLsToProcess) {
+            foreach ($this->URLsToProcess as $url => $priority) {
+                $count += 1;
 
-            if ($chunkSize > 0 && $count > $chunkSize) {
-                return;
+                if ($chunkSize > 0 && $count > $chunkSize) {
+                    return;
+                }
+
+                $this->processUrl($url, $priority);
             }
-
-            $this->processUrl($url, $priority);
         }
 
         $this->updateCompletedState();
@@ -165,7 +170,7 @@ abstract class Job extends AbstractQueuedJob
      */
     protected function updateCompletedState(): void
     {
-        if (count($this->URLsToProcess) > 0) {
+        if ($this->URLsToProcess && count($this->URLsToProcess) > 0) {
             return;
         }
 
