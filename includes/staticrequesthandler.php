@@ -30,11 +30,11 @@ return function ($cacheDir, $urlMapping = null) {
     $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $path;
 
     //check for directory traversal attack
-    $realCacheDir = realpath($cacheDir);
-    $realCachePath = realpath($dirname = dirname($cachePath));
+    $realCacheDir = realpath($cacheDir ?? '');
+    $realCachePath = realpath($dirname = dirname($cachePath ?? ''));
 
     // path is outside the cache dir
-    if (substr($realCachePath, 0, strlen($realCacheDir)) !== $realCacheDir) {
+    if (substr($realCachePath ?? '', 0, strlen($realCacheDir ?? '')) !== $realCacheDir) {
         return false;
     }
 
@@ -45,13 +45,13 @@ return function ($cacheDir, $urlMapping = null) {
     } elseif (!file_exists($cachePath . '.html')) {
         return false;
     }
-    header('X-Cache-Hit: ' . date(\DateTime::COOKIE));
+    header('X-Cache-Hit: ' . date(\DateTime::COOKIE ?? ''));
     if (!empty($cacheConfig['responseCode'])) {
         header('HTTP/1.1 ' . $cacheConfig['responseCode']);
     }
     if (!empty($cacheConfig['headers'])) {
         foreach ($cacheConfig['headers'] as $header) {
-            header($header, true);
+            header($header ?? '', true);
         }
     }
     if (file_exists($cachePath . '.html')) {

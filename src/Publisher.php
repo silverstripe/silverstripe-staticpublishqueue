@@ -66,9 +66,9 @@ abstract class Publisher implements StaticPublisher
         if (Director::is_relative_url($url)) {
             $url = Director::absoluteURL($url);
         }
-        $urlParts = parse_url($url);
+        $urlParts = parse_url($url ?? '');
         if (!empty($urlParts['query'])) {
-            parse_str($urlParts['query'], $getVars);
+            parse_str($urlParts['query'] ?? '', $getVars);
         } else {
             $getVars = [];
         }
@@ -118,7 +118,7 @@ abstract class Publisher implements StaticPublisher
                     str_replace(
                         '</html>',
                         '<!-- ' . DBDateTime::now()->Full() . " -->\n</html>",
-                        $response->getBody()
+                        $response->getBody() ?? ''
                     )
                 );
             }

@@ -176,7 +176,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             foreach ($this->toUpdate as $item) {
                 $urls = $item->urlsToCache();
                 ksort($urls);
-                $urls = array_keys($urls);
+                $urls = array_keys($urls ?? []);
                 $urlService->addUrls($urls);
             }
 
@@ -196,7 +196,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             foreach ($this->toDelete as $item) {
                 $urls = $item->urlsToCache();
                 ksort($urls);
-                $urls = array_keys($urls);
+                $urls = array_keys($urls ?? []);
                 $urlService->addUrls($urls);
             }
 

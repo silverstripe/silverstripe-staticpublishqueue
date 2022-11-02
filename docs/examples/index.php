@@ -22,7 +22,7 @@ $requestHandler = require 'staticrequesthandler.php';
 if ($requestHandler('cache') !== false) {
     die;
 }
-header('X-Cache-Miss: ' . date(\Datetime::COOKIE));
+header('X-Cache-Miss: ' . date(\Datetime::COOKIE ?? ''));
 
 // Build request and detect flush
 $request = HTTPRequestBuilder::createFromEnvironment();

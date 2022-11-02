@@ -44,7 +44,7 @@ class FilesystemPublisher extends Publisher
 
     public function setFileExtension($fileExtension)
     {
-        $fileExtension = strtolower($fileExtension);
+        $fileExtension = strtolower($fileExtension ?? '');
         if (!in_array($fileExtension, ['html', 'php'], true)) {
             throw new \InvalidArgumentException(
                 sprintf(
@@ -89,7 +89,7 @@ class FilesystemPublisher extends Publisher
     {
         Filesystem::removeFolder($this->getDestPath());
 
-        return file_exists($this->getDestPath()) ? false : true;
+        return file_exists($this->getDestPath() ?? '') ? false : true;
     }
 
     /**
@@ -154,7 +154,7 @@ class FilesystemPublisher extends Publisher
             if ($this->config()->get('lazy_form_recognition')) {
                 $id = Config::inst()->get(SecurityToken::class, 'default_name') ?: 'SecurityID';
                 // little hack to make sure we do not include pages with live forms.
-                if (stripos($body, '<input type="hidden" name="' . $id . '"') !== false) {
+                if (stripos($body ?? '', '<input type="hidden" name="' . $id . '"') !== false) {
                     return false;
                 }
             }
@@ -182,22 +182,22 @@ class FilesystemPublisher extends Publisher
 
         // Write to a temporary file first
         $temporaryPath = tempnam(TEMP_PATH, 'filesystempublisher_');
-        if (file_put_contents($temporaryPath, $content) === false) {
+        if (file_put_contents($temporaryPath ?? '', $content) === false) {
             return false;
         }
 
         // Move the temporary file to the desired location (prevents unlocked files from being read during write)
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
-        Filesystem::makeFolder(dirname($publishPath));
+        Filesystem::makeFolder(dirname($publishPath ?? ''));
 
-        return rename($temporaryPath, $publishPath);
+        return rename($temporaryPath ?? '', $publishPath ?? '');
     }
 
     protected function deleteFromPath($filePath)
     {
         $deletePath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
-        if (file_exists($deletePath)) {
-            $success = unlink($deletePath);
+        if (file_exists($deletePath ?? '')) {
+            $success = unlink($deletePath ?? '');
         } else {
             $success = true;
         }
@@ -221,19 +221,19 @@ class FilesystemPublisher extends Publisher
             $dir = $this->getDestPath();
         }
 
-        $root = scandir($dir);
+        $root = scandir($dir ?? '');
         foreach ($root as $fileOrDir) {
-            if (strpos($fileOrDir, '.') === 0) {
+            if (strpos($fileOrDir ?? '', '.') === 0) {
                 continue;
             }
             $fullPath = $dir . DIRECTORY_SEPARATOR . $fileOrDir;
             // we know html will always be generated, this prevents double ups
-            if (is_file($fullPath) && pathinfo($fullPath, PATHINFO_EXTENSION) === 'html') {
+            if (is_file($fullPath ?? '') && pathinfo($fullPath ?? '', PATHINFO_EXTENSION) === 'html') {
                 $result[] = $this->pathToURL($fullPath);
                 continue;
             }
 
-            if (is_dir($fullPath)) {
+            if (is_dir($fullPath ?? '')) {
                 $this->getPublishedURLs($fullPath, $result);
             }
         }

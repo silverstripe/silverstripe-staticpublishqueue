@@ -30,7 +30,7 @@ class GenerateStaticCacheJob extends Job
         $meta = Publisher::singleton()->publishURL($url, true);
         $meta = is_array($meta) ? $meta : [];
 
-        if (array_key_exists('success', $meta) && $meta['success']) {
+        if (array_key_exists('success', $meta ?? []) && $meta['success']) {
             $this->markUrlAsProcessed($url);
 
             return;

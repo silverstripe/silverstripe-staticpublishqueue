@@ -48,8 +48,8 @@ class StaticCacheFullBuildJob extends Job
         parent::setup();
 
         Publisher::singleton()->purgeAll();
-        $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess)));
-        $this->addMessage(var_export(array_keys($this->URLsToProcess), true));
+        $this->addMessage(sprintf('Building %s URLS', count($this->URLsToProcess ?? [])));
+        $this->addMessage(var_export(array_keys($this->URLsToProcess ?? []), true));
     }
 
     /**
@@ -60,7 +60,7 @@ class StaticCacheFullBuildJob extends Job
         // Remove any URLs which have already been processed
         if ($this->ProcessedURLs) {
             $this->URLsToProcess = array_diff_key(
-                $this->URLsToProcess,
+                $this->URLsToProcess ?? [],
                 $this->ProcessedURLs
             );
         }
@@ -79,33 +79,33 @@ class StaticCacheFullBuildJob extends Job
             $this->processUrl($url, $priority);
         }
 
-        if (count($this->URLsToProcess) === 0) {
+        if (count($this->URLsToProcess ?? []) === 0) {
             $trimSlashes = function ($value) {
-                $value = trim($value, '/');
+                $value = trim($value ?? '', '/');
 
                 // We want to trim the schema from the beginning as they map to the same place
                 // anyway.
-                $value = ltrim($value, 'http://');
-                $value = ltrim($value, 'https://');
+                $value = ltrim($value ?? '', 'http://');
+                $value = ltrim($value ?? '', 'https://');
 
                 return $value;
             };
 
             // List of all URLs which have a static cache file
-            $this->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs());
+            $this->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs() ?? []);
 
             // List of all URLs which were published as a part of this job
-            $this->ProcessedURLs = array_map($trimSlashes, $this->ProcessedURLs);
+            $this->ProcessedURLs = array_map($trimSlashes, $this->ProcessedURLs ?? []);
 
             // Determine stale URLs - those which were not published as a part of this job
             // but still have a static cache file
-            $this->URLsToCleanUp = array_diff($this->publishedURLs, $this->ProcessedURLs);
+            $this->URLsToCleanUp = array_diff($this->publishedURLs ?? [], $this->ProcessedURLs);
 
             foreach ($this->URLsToCleanUp as $staleURL) {
                 $purgeMeta = Publisher::singleton()->purgeURL($staleURL);
                 $purgeMeta = is_array($purgeMeta) ? $purgeMeta : [];
 
-                if (array_key_exists('success', $purgeMeta) && $purgeMeta['success']) {
+                if (array_key_exists('success', $purgeMeta ?? []) && $purgeMeta['success']) {
                     unset($this->jobData->URLsToCleanUp[$staleURL]);
 
                     continue;
@@ -149,7 +149,7 @@ class StaticCacheFullBuildJob extends Job
         $meta = Publisher::singleton()->publishURL($url, true);
         $meta = is_array($meta) ? $meta : [];
 
-        if (array_key_exists('success', $meta) && $meta['success']) {
+        if (array_key_exists('success', $meta ?? []) && $meta['success']) {
             $this->markUrlAsProcessed($url);
 
             return;
@@ -160,11 +160,11 @@ class StaticCacheFullBuildJob extends Job
 
     protected function updateCompletedState(): void
     {
-        if (count($this->URLsToProcess) > 0) {
+        if (count($this->URLsToProcess ?? []) > 0) {
             return;
         }
 
-        if (count($this->URLsToCleanUp) > 0) {
+        if (count($this->URLsToCleanUp ?? []) > 0) {
             return;
         }
 

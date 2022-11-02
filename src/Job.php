@@ -76,7 +76,7 @@ abstract class Job extends AbstractQueuedJob
         }
 
         $this->messages = [
-            sprintf('%s: %s', $message, var_export(array_keys($urls), true)),
+            sprintf('%s: %s', $message, var_export(array_keys($urls ?? []), true)),
         ];
     }
 
@@ -99,12 +99,12 @@ abstract class Job extends AbstractQueuedJob
     public function setup(): void
     {
         parent::setup();
-        $this->totalSteps = count($this->URLsToProcess);
+        $this->totalSteps = count($this->URLsToProcess ?? []);
     }
 
     public function getSignature(): string
     {
-        return md5(implode('-', [static::class, implode('-', array_keys($this->URLsToProcess))]));
+        return md5(implode('-', [static::class, implode('-', array_keys($this->URLsToProcess ?? []))]));
     }
 
     public function process(): void
@@ -165,7 +165,7 @@ abstract class Job extends AbstractQueuedJob
      */
     protected function updateCompletedState(): void
     {
-        if (count($this->URLsToProcess) > 0) {
+        if (count($this->URLsToProcess ?? []) > 0) {
             return;
         }
 

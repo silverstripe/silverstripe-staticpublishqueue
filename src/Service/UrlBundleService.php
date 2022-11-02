@@ -85,7 +85,7 @@ class UrlBundleService implements UrlBundleInterface
             $urls[] = $url;
         }
 
-        $urls = array_unique($urls);
+        $urls = array_unique($urls ?? []);
 
         // Use this extension point to change the order of the URLs if needed
         $this->extend('updateGetUrls', $urls);

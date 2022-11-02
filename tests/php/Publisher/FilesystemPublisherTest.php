@@ -55,7 +55,7 @@ class FilesystemPublisherTest extends SapphireTest
 
     protected function tearDown(): void
     {
-        if ($this->fsp !== null && file_exists($this->fsp->getDestPath())) {
+        if ($this->fsp !== null && file_exists($this->fsp->getDestPath() ?? '')) {
             Filesystem::removeFolder($this->fsp->getDestPath());
         }
         parent::tearDown();
@@ -204,7 +204,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileDoesNotExist($staticFilePath . '.php');
         $this->assertSame(
             '<div class="statically-published" style="display: none"></div>',
-            trim(file_get_contents($staticFilePath . '.html'))
+            trim(file_get_contents($staticFilePath . '.html') ?? '')
         );
     }
 

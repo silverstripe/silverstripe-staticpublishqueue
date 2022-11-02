@@ -276,13 +276,13 @@ class PublishableSiteTreeTest extends SapphireTest
                 function () use ($toDelete, $toUpdate, $mockExtension, $getURL, $count) {
                     $this->assertSame(
                         $toDelete,
-                        array_map($getURL, $mockExtension->getToDelete()),
+                        array_map($getURL, $mockExtension->getToDelete() ?? []),
                         'Failed on delete, iteration ' . $count
                     );
                     $mockExtension->setToDelete([]);
                     $this->assertSame(
                         $toUpdate,
-                        array_map($getURL, $mockExtension->getToUpdate()),
+                        array_map($getURL, $mockExtension->getToUpdate() ?? []),
                         'Failed on update, iteration ' . $count
                     );
                     $mockExtension->setToUpdate([]);
