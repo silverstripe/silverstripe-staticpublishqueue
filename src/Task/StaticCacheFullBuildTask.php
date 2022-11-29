@@ -15,8 +15,6 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 class StaticCacheFullBuildTask extends BuildTask
 {
-    private static $segment = 'StaticCacheFullBuildTask';
-    
     /**
      * Queue up a StaticCacheFullBuildJob
      * Check for startAfter param and do some sanity checking
