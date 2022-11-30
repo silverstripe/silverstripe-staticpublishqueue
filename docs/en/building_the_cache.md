@@ -15,7 +15,7 @@ method.
 
 You can generate cache files for the entire site via the `StaticCacheFullBuildJob`.
 This can either be queued up from the QueuedJobs interface or via the task
-`dev/tasks/StaticCacheFullBuildTask`. This task also takes a parameter `?startAfter`
+`dev/tasks/SilverStripe-StaticPublishQueue-Task-StaticCacheFullBuildTask`. This task also takes a parameter `?startAfter`
 which can delay the execution of the job. The parameter should be in HHMM format, 
 e.g. to start after 2pm, pass `?startAfter=1400`. If it's already after the proposed
 time on the current day, it will push it to the next day.
@@ -25,6 +25,6 @@ example configuration would be:
 
 ```bash
 # build the cache at 1am every day 
-0 1 * * * www-data /path/to/sake dev/tasks/StaticCacheFullBuildTask
+0 1 * * * www-data /path/to/sake dev/tasks/SilverStripe-StaticPublishQueue-Task-StaticCacheFullBuildTask
 ```
 
