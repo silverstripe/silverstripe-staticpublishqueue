@@ -73,6 +73,38 @@ action. This module provides the following engine:
 * `SiteTreePublishingEngine` - regenerates the static cache files after a page is published/unpublished. This makes use
 of both interfaces as object trigger refresh of other objects.
 
+#### Example:  Triggering a republish of the homepage after an update to a DataObject
+
+In order for the triggers to get picked up and executed, make sure to add the SiteTreePublishingEngine to your DataObject.
+```yaml
+Project\ORM\YourDataObject:
+  extensions:
+    - SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine
+```
+
+Then implement the StaticPublishingTrigger interface on your DataObject:
+
+```php
+use Page;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
+
+class YourDataObject extends DataObject implements StaticPublishingTrigger 
+{
+
+    public function objectsToUpdate($context) 
+    {
+        return Page::get()->First();  // return 1 or an array of multiple publishable objects you would like to regenerate the static cache for
+    }
+
+     public function objectsToDelete($context)  
+     {
+        // Return 1 or an array of of publishable objects for which you would like to purge the statically cached variant
+     }
+}
+
+```
+
 ## Cache information / Debugging
 
 If required, a timestamp can be added to the generated HTML to show when the file was created.  The timestamp is added as an HTML comment immediately before the closing `</html>` tag (on pages which do not include this tag, enabling this functionality will have no effect).
