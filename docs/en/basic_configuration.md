@@ -85,6 +85,8 @@ Project\ORM\YourDataObject:
 Then implement the StaticPublishingTrigger interface on your DataObject:
 
 ```php
+use Page;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 
 class YourDataObject extends DataObject implements StaticPublishingTrigger 
@@ -92,7 +94,7 @@ class YourDataObject extends DataObject implements StaticPublishingTrigger
 
     public function objectsToUpdate($context) 
     {
-        return HomePage::get()->First();  // return 1 or an array of multiple publishable objects you would like to regenerate the static cache for
+        return Page::get()->First();  // return 1 or an array of multiple publishable objects you would like to regenerate the static cache for
     }
 
      public function objectsToDelete($context)  
