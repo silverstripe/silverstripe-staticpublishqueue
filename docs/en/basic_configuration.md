@@ -48,6 +48,14 @@ class MyFormPage extends Page
 }
 ```
 
+## Excluding RedirectorPages
+By default the page that a `RedirectorPage` points to will be cached if all project pages are statically publishable i.e. `Page implements StaticallyPublishable`. However, if the page the `RedirectorPage` points to was meant be be excluded via `urlsToCache()` method, then the page will still be cached which means you may accidentally cache pages you did not intend to. To prevent this from happening, use the following config:
+
+```yml
+SilverStripe\StaticPublishQueue\Publisher:
+  cache_redirector_pages: false
+```
+
 ## Available interfaces
 
 This module comes with two essential interfaces: `StaticPublishingTrigger` and `StaticallyPublishable`. This interfaces

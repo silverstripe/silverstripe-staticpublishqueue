@@ -2,6 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Job;
 
+use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
@@ -80,24 +81,26 @@ class StaticCacheFullBuildJob extends Job
         }
 
         if (count($this->URLsToProcess) === 0) {
-            $trimSlashes = function ($value) {
-                $value = trim($value, '/');
+            $cleanUrl = function ($value) {
 
                 // We want to trim the schema from the beginning as they map to the same place
                 // anyway.
                 $value = ltrim($value, 'http://');
                 $value = ltrim($value, 'https://');
+                $value = preg_replace('#[\?&]stage=' . Versioned::LIVE . '#', '', $value);
+                $value = trim($value, '/');
 
                 return $value;
             };
 
             // List of all URLs which have a static cache file
-            $this->publishedURLs = array_map($trimSlashes, Publisher::singleton()->getPublishedURLs());
+            $this->publishedURLs = array_map($cleanUrl, Publisher::singleton()->getPublishedURLs());
 
             // List of all URLs which were published as a part of this job
-            $this->ProcessedURLs = array_map($trimSlashes, $this->ProcessedURLs);
+            $this->ProcessedURLs = array_map($cleanUrl, $this->ProcessedURLs);
 
             // Determine stale URLs - those which were not published as a part of this job
+
             // but still have a static cache file
             $this->URLsToCleanUp = array_diff($this->publishedURLs, $this->ProcessedURLs);
 
@@ -128,6 +131,9 @@ class StaticCacheFullBuildJob extends Job
         $livePages = Versioned::get_by_stage(SiteTree::class, Versioned::LIVE);
         foreach ($livePages as $page) {
             if ($page->hasExtension(PublishableSiteTree::class) || $page instanceof StaticallyPublishable) {
+                if ($page instanceof RedirectorPage && !Publisher::config()->get('cache_redirector_pages')) {
+                    continue;
+                }
                 $urls = array_merge($urls, $page->urlsToCache());
             }
         }

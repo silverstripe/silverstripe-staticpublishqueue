@@ -57,6 +57,11 @@ abstract class Publisher implements StaticPublisher
     private static $add_timestamp = false;
 
     /**
+     * Cache redirector pages which will cache as the page they're redirected to
+     */
+    private static $cache_redirector_pages = true;
+
+    /**
      * @param string $url
      *
      * @return HTTPResponse
