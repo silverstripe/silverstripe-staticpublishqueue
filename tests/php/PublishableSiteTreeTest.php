@@ -2,6 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Test;
 
+use Page;
 use PHPUnit\Framework\MockObject\Stub\ReturnCallback;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Injector\Injector;
@@ -10,6 +11,9 @@ use SilverStripe\ORM\ArrayList;
 use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Test\PublishableSiteTreeTest\Model\PublishablePage;
+use SilverStripe\CMS\Model\RedirectorPage;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\Director;
 
 class PublishableSiteTreeTest extends SapphireTest
 {
@@ -24,6 +28,12 @@ class PublishableSiteTreeTest extends SapphireTest
     protected static $extra_dataobjects = [
         PublishablePage::class,
     ];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com/');
+    }
 
     public function testObjectsToUpdateOnURLSegmentChange(): void
     {
@@ -290,5 +300,20 @@ class PublishableSiteTreeTest extends SapphireTest
             );
         }
         return $callbacks;
+    }
+
+    public function testUrlsToCache()
+    {
+        // Page class is required because RedirectorPage extends Page
+        if (!class_exists(Page::class)) {
+            $this->markTestSkipped('This unit test requires the Page class');
+        }
+        $page = new Page(['Title' => 'MyPage']);
+        $id = $page->write();
+        $this->assertSame(['http://example.com/mypage/' => 0], $page->urlsToCache());
+        $redirectorPage = new RedirectorPage(['Title' => 'MyRedirectorPage']);
+        $redirectorPage->LinkToID = $id;
+        $redirectorPage->write();
+        $this->assertSame(['http://example.com/myredirectorpage/' => 0], $redirectorPage->urlsToCache());
     }
 }

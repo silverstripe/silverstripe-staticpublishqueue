@@ -7,6 +7,7 @@ use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
+use SilverStripe\CMS\Model\RedirectorPage;
 
 /**
  * Bare-bones implementation of a publishable page.
@@ -90,6 +91,14 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
      */
     public function urlsToCache()
     {
-        return [Director::absoluteURL($this->getOwner()->Link()) => 0];
+        $page = $this->getOwner();
+        if ($page instanceof RedirectorPage) {
+            // use RedirectorPage::regularLink() so that it returns the url of the page,
+            // rather than the url of the target of the RedirectorPage
+            $link = $page->regularLink();
+        } else {
+            $link = $page->Link();
+        }
+        return [Director::absoluteURL($link) => 0];
     }
 }
