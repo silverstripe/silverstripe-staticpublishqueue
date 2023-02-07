@@ -95,13 +95,13 @@ class FilesystemPublisherTest extends SapphireTest
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
-        $url = Director::absoluteBaseUrl() . 'about-us';
+        $url = Director::absoluteBaseUrl() . '/about-us';
         $this->assertSame(
             'about-us',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
 
-        $url = Director::absoluteBaseUrl() . 'parent/child';
+        $url = Director::absoluteBaseUrl() . '/parent/child';
         $this->assertSame(
             'parent/child',
             $urlToPath->invokeArgs($this->fsp, [$url])
@@ -333,7 +333,7 @@ class FilesystemPublisherTest extends SapphireTest
     public function providePathsToURL()
     {
         return [
-            ['http://example.com/', 'index.html'],
+            ['http://example.com', 'index.html'],
             ['http://example.com/about-us', 'about-us.html'],
             ['http://example.com/about-us', 'about-us.php'],
             ['http://example.com/parent/child', 'parent/child.html'],
