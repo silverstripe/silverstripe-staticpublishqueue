@@ -38,9 +38,9 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsToUpdateOnURLSegmentChange(): void
     {
         $this->setExpectedFlushChangesOutput([
-            [[], ['stub/']],
-            [['stub/'], []],
-            [[], ['stub-a-lub-a-dub-dub/']],
+            [[], ['stub']],
+            [['stub'], []],
+            [[], ['stub-a-lub-a-dub-dub']],
         ]);
 
         $page = new PublishablePage;
@@ -59,10 +59,10 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsToUpdateOnURLSegmentChangeWithParents(): void
     {
         $this->setExpectedFlushChangesOutput([
-            [[], ['parent/']],
-            [[], ['parent/stub/', 'parent/']],
-            [['parent/stub/'], ['parent/']],
-            [[], ['parent/stub-a-lub-a-dub-dub/', 'parent/']]
+            [[], ['parent']],
+            [[], ['parent/stub', 'parent']],
+            [['parent/stub'], ['parent']],
+            [[], ['parent/stub-a-lub-a-dub-dub', 'parent']]
         ]);
 
         $parent = new PublishablePage;
@@ -87,12 +87,12 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsToUpdateOnSiteTreeRearrange(): void
     {
         $this->setExpectedFlushChangesOutput([
-            [[], ['parent/']],
-            [[], ['parent/stub/', 'parent/']],
-            [['parent/stub/'], ['parent/']],
-            [[], ['stub/']],
-            [['stub/'], []],
-            [[], ['parent/stub/', 'parent/']],
+            [[], ['parent']],
+            [[], ['parent/stub', 'parent']],
+            [['parent/stub'], ['parent']],
+            [[], ['stub']],
+            [['stub'], []],
+            [[], ['parent/stub', 'parent']],
         ]);
 
         $parent = new PublishablePage;
@@ -310,10 +310,10 @@ class PublishableSiteTreeTest extends SapphireTest
         }
         $page = new Page(['Title' => 'MyPage']);
         $id = $page->write();
-        $this->assertSame(['http://example.com/mypage/' => 0], $page->urlsToCache());
+        $this->assertSame(['http://example.com/mypage' => 0], $page->urlsToCache());
         $redirectorPage = new RedirectorPage(['Title' => 'MyRedirectorPage']);
         $redirectorPage->LinkToID = $id;
         $redirectorPage->write();
-        $this->assertSame(['http://example.com/myredirectorpage/' => 0], $redirectorPage->urlsToCache());
+        $this->assertSame(['http://example.com/myredirectorpage' => 0], $redirectorPage->urlsToCache());
     }
 }
