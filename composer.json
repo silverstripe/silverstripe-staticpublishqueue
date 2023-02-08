@@ -40,11 +40,7 @@
     "include-path": [
         "includes/"
     ],
-    "extra": {
-        "branch-alias": {
-            "dev-master": "5.x-dev"
-        }
-    },
+    "extra": [],
     "scripts": {
         "lint": "phpcs -s src/ tests/php/",
         "lint-clean": "phpcbf src/ tests/php/"
