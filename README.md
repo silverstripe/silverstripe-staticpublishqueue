@@ -14,8 +14,29 @@ It generates the cache files using the [QueuedJobs module](https://github.com/sy
 
 ## Requirements
 
-* "silverstripe/framework": "^4.0.2",
-* "silverstripe/cms": "^4",
-* "silverstripe/config": "^1",
-* "symbiote/silverstripe-queuedjobs": "^4.5",
-* "silverstripe/versioned": "^1.0.2"
+* "silverstripe/framework": "^5",
+* "silverstripe/cms": "^5",
+* "silverstripe/config": "^2",
+* "symbiote/silverstripe-queuedjobs": "^5",
+* "silverstripe/versioned": "^2"
+
+## Unit-testing with StaticPublisherState to disable queuedjobs for unit-tests
+
+You can use `StaticPublisherState` to disable queuejobs job queueing and logging in unit-testing to improve performance.
+
+Add the following yml to your project:
+
+```yml
+----
+-Name: staticpublishqueue-tests
+-Only:
+-  classexists:
+-    - 'Symbiote\QueuedJobs\Tests\QueuedJobsTest\QueuedJobsTest_Handler'
+-    - 'SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService'
+----
+-SilverStripe\Core\Injector\Injector:
+-  SilverStripe\Dev\State\SapphireTestState:
+-    properties:
+-      States:
+-        staticPublisherState: '%$SilverStripe\StaticPublishQueue\Dev\StaticPublisherState'
+```
