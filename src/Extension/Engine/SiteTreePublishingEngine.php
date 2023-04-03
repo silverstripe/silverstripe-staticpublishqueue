@@ -115,7 +115,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 
         // We want to find out if the URL for this page has changed at all. That can happen 2 ways: Either the page is
         // moved in the SiteTree (ParentID changes), or the URLSegment is updated
-        if ($original->ParentID !== $this->getOwner()->ParentID
+        // Apparently ParentID can sometimes be string, so make sure we cast to (int) for our comparison
+        if ((int) $original->ParentID !== (int) $this->getOwner()->ParentID
             || $original->URLSegment !== $this->getOwner()->URLSegment
         ) {
             // We have detected a change to the URL. We need to purge the old URLs for this page and any children
@@ -137,7 +138,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $parentId = $original->ParentID ?? null;
         $urlSegment = $original->URLSegment ?? null;
 
-        $parentChanged = $parentId && $parentId !== $this->getOwner()->ParentID;
+        // Apparently ParentID can sometimes be string, so make sure we cast to (int) for our comparison
+        $parentChanged = $parentId && (int) $parentId !== (int) $this->getOwner()->ParentID;
         $urlChanged = $urlSegment && $original->URLSegment !== $this->getOwner()->URLSegment;
 
         $context = [
