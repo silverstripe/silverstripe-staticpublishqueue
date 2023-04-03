@@ -108,6 +108,59 @@ class SiteTreePublishingEngineTest extends SapphireTest
         );
     }
 
+    public function testPublishRecursiveParentChange(): void
+    {
+        // Inclusion of parent/child is tested in PublishableSiteTreeTest
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+
+        /** @var QueuedJobsTestService $service */
+        $service = Injector::inst()->get(QueuedJobService::class);
+
+        $page = $this->objFromFixture(SiteTree::class, 'page4');
+        $newParentPage = $this->objFromFixture(SiteTree::class, 'page3');
+
+        $page->ParentID = $newParentPage->ID;
+        $page->write();
+        $page->publishRecursive();
+
+        $jobs = $service->getJobs();
+
+        // There should be 2 jobs queued, one to clear old caches, and one to generate new caches
+        $this->assertCount(2, $jobs);
+
+        // Grab our two expected jobs
+        /** @var GenerateStaticCacheJob $updateJob */
+        $updateJob = $this->getJobByClassName($jobs, GenerateStaticCacheJob::class);
+        /** @var DeleteStaticCacheJob $deleteJob */
+        $deleteJob = $this->getJobByClassName($jobs, DeleteStaticCacheJob::class);
+
+        // Set up our expected URLs
+        $expectedUpdateUrls = [
+            'http://example.com/page-1/page-3/page-4',
+            'http://example.com/page-1/page-3/page-4/page-5',
+            'http://example.com/page-1/page-3/page-4/page-5/page-6',
+        ];
+        $expectedPurgeUrls = [
+            'http://example.com/page-1/page-2/page-4',
+            'http://example.com/page-1/page-2/page-4/page-5',
+            'http://example.com/page-1/page-2/page-4/page-5/page-6',
+        ];
+
+        // Test our update job
+        $this->assertInstanceOf(GenerateStaticCacheJob::class, $updateJob);
+        $this->assertEqualsCanonicalizing(
+            $expectedUpdateUrls,
+            array_keys($updateJob->getJobData()->jobData->URLsToProcess)
+        );
+        // Test our delete job
+        $this->assertInstanceOf(DeleteStaticCacheJob::class, $deleteJob);
+        $this->assertEqualsCanonicalizing(
+            $expectedPurgeUrls,
+            array_keys($deleteJob->getJobData()->jobData->URLsToProcess)
+        );
+    }
+
     public function testDoUnpublish(): void
     {
         // Inclusion of parent/child is tested in PublishableSiteTreeTest
