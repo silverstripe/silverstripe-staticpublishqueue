@@ -19,24 +19,17 @@ class UrlBundleService implements UrlBundleInterface
     use Extensible;
     use Injectable;
 
-    /**
-     * @var array
-     */
-    protected $urls = [];
+    protected array $urls = [];
 
-    /**
-     * @inheritDoc
-     */
     public function addUrls(array $urls): void
     {
         foreach ($urls as $url) {
-            $this->urls[$url] = $url;
+            $safeUrl = $this->stripStageParam($url);
+
+            $this->urls[$safeUrl] = $safeUrl;
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getJobsForUrls(string $jobClass, ?string $message = null, ?DataObject $contextModel = null): array
     {
         $singleton = singleton($jobClass);
@@ -67,9 +60,22 @@ class UrlBundleService implements UrlBundleInterface
     }
 
     /**
+     * Any URL that we attempt to process through static publisher should always have any stage=* param removed
+     */
+    protected function stripStageParam(string $url): string
+    {
+        // This will safely remove "stage" params, but keep any others. It doesn't matter where in the string "stage="
+        // exists
+        $url = preg_replace('/([?&])stage=[^&]+(&|$)/', '$1', $url);
+        // Trim any trailing "?" or "&".
+        $url = rtrim($url, '&');
+        $url = rtrim($url, '?');
+
+        return $url;
+    }
+
+    /**
      * Get URLs for further processing
-     *
-     * @return array
      */
     protected function getUrls(): array
     {
@@ -96,9 +102,6 @@ class UrlBundleService implements UrlBundleInterface
     /**
      * Extensibility function which allows to handle custom formatting / encoding needs for URLs
      * Returning "falsy" value will make the URL to be skipped
-     *
-     * @param string $url
-     * @return string|null
      */
     protected function formatUrl(string $url): ?string
     {
@@ -110,9 +113,6 @@ class UrlBundleService implements UrlBundleInterface
 
     /**
      * Add priority data to URLs
-     *
-     * @param array $urls
-     * @return array
      */
     protected function assignPriorityToUrls(array $urls): array
     {

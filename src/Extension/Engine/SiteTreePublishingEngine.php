@@ -7,12 +7,14 @@ use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Resettable;
-use SilverStripe\ORM\ValidationException;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\SS_List;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Service\UrlBundleInterface;
+use SilverStripe\Versioned\Versioned;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
@@ -23,30 +25,28 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
  * * action - name of the executed action: publish or unpublish
  *
  * @see PublishableSiteTree
+ * @method SiteTree|PublishableSiteTree|$this getOwner()
  */
 class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 {
+    public const ACTION_PUBLISH = 'publish';
+    public const ACTION_UNPUBLISH = 'unpublish';
+
     /**
      * Queued job service injection property
      * Used for unit tests only to cover edge cases where Injector doesn't cover
-     *
-     * @var QueuedJobService|null
      */
-    protected static $queueService = null;
+    protected static ?QueuedJobService $queueService = null;
 
     /**
      * Queues the urls to be flushed into the queue.
-     *
-     * @var array
      */
-    private $toUpdate = [];
+    private array|SS_List $toUpdate = [];
 
     /**
      * Queues the urls to be deleted as part of a next flush operation.
-     *
-     * @var array
      */
-    private $toDelete = [];
+    private array|SS_List $toDelete = [];
 
     public static function reset(): void
     {
@@ -88,6 +88,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     public function setToUpdate($toUpdate)
     {
         $this->toUpdate = $toUpdate;
+
         return $this;
     }
 
@@ -98,32 +99,54 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     public function setToDelete($toDelete)
     {
         $this->toDelete = $toDelete;
+
         return $this;
     }
 
     /**
      * @param SiteTree|SiteTreePublishingEngine|null $original
      */
-    public function onAfterPublishRecursive(&$original)
+    public function onBeforePublishRecursive($original)
     {
-        // If the site tree has been "reorganised" (ie: the parentID has changed)
-        // then this is the equivalent of an un-publish and publish as far as the
-        // static publisher is concerned
-        if ($original && (
-            // Intentionally using loose comparison as ParentID may contain either string or integer
-            $original->ParentID != $this->getOwner()->ParentID
-                || $original->URLSegment !== $this->getOwner()->URLSegment
-            )
+        // There is no original object. This might be the first time it has been published
+        if (!$original?->exists()) {
+            return;
+        }
+
+        // We want to find out if the URL for this page has changed at all. That can happen 2 ways: Either the page is
+        // moved in the SiteTree (ParentID changes), or the URLSegment is updated
+        if ($original->ParentID !== $this->getOwner()->ParentID
+            || $original->URLSegment !== $this->getOwner()->URLSegment
         ) {
+            // We have detected a change to the URL. We need to purge the old URLs for this page and any children
             $context = [
-                'action' => 'unpublish',
+                'action' => self::ACTION_UNPUBLISH,
             ];
             $original->collectChanges($context);
+            // We need to flushChanges() immediately so that Jobs are queued for the Pages while they still have their
+            // old URLs
             $original->flushChanges();
         }
+    }
+
+    /**
+     * @param SiteTree|SiteTreePublishingEngine|null $original
+     */
+    public function onAfterPublishRecursive($original)
+    {
+        $parentId = $original->ParentID ?? null;
+        $urlSegment = $original->URLSegment ?? null;
+
+        $parentChanged = $parentId && $parentId !== $this->getOwner()->ParentID;
+        $urlChanged = $urlSegment && $original->URLSegment !== $this->getOwner()->URLSegment;
+
         $context = [
-            'action' => 'publish',
+            'action' => self::ACTION_PUBLISH,
+            // If a URL change has been detected, then we need to force the recursive regeneration of all child
+            // pages
+            'urlChanged' => $parentChanged || $urlChanged,
         ];
+
         $this->collectChanges($context);
         $this->flushChanges();
     }
@@ -131,35 +154,43 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     public function onBeforeUnpublish()
     {
         $context = [
-            'action' => 'unpublish',
+            'action' => self::ACTION_UNPUBLISH,
         ];
         $this->collectChanges($context);
-    }
-
-    public function onAfterUnpublish()
-    {
         $this->flushChanges();
     }
 
     /**
      * Collect all changes for the given context.
-     *
-     * @param array $context
      */
-    public function collectChanges($context)
+    public function collectChanges(array $context): void
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
 
-        if ($this->getOwner()->hasExtension(PublishableSiteTree::class)
-            || $this->getOwner() instanceof StaticPublishingTrigger
-        ) {
-            $toUpdate = $this->getOwner()->objectsToUpdate($context);
+        Versioned::withVersionedMode(function () use ($context) {
+            // Collection of changes needs to happen within the context of our Published/LIVE state
+            Versioned::set_stage(Versioned::LIVE);
+
+            // Re-fetch our page, now within a LIVE context
+            $page = DataObject::get($this->getOwner()->ClassName)->byID($this->getOwner()->ID);
+
+            // This page isn't LIVE/Published, so there is nothing for us to do here
+            if (!$page?->exists()) {
+                return;
+            }
+
+            // The page does not include the required extension, and it doesn't implement a Trigger
+            if (!$page->hasExtension(PublishableSiteTree::class) && !$page instanceof StaticPublishingTrigger) {
+                return;
+            }
+
+            $toUpdate = $page->objectsToUpdate($context);
             $this->setToUpdate($toUpdate);
 
-            $toDelete = $this->getOwner()->objectsToDelete($context);
+            $toDelete = $page->objectsToDelete($context);
             $this->setToDelete($toDelete);
-        }
+        });
     }
 
     /**
@@ -169,7 +200,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     {
         $queueService = static::$queueService ?? QueuedJobService::singleton();
 
-        if (!empty($this->toUpdate)) {
+        if ($this->toUpdate) {
             /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
 
@@ -189,7 +220,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             $this->toUpdate = [];
         }
 
-        if (!empty($this->toDelete)) {
+        if ($this->toDelete) {
             /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
 

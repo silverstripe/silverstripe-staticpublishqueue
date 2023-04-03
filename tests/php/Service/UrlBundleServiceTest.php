@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\StaticPublishQueue\Test;
+namespace SilverStripe\StaticPublishQueue\Test\Service;
 
 use ReflectionMethod;
 use SilverStripe\Core\Config\Config;
@@ -140,6 +140,44 @@ class UrlBundleServiceTest extends SapphireTest
             [
                 DeleteStaticCacheJob::class,
                 15,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideStripStageParamUrls
+     */
+    public function testStripStageParam(string $url, string $expectedUrl): void
+    {
+        $urlService = UrlBundleService::create();
+        $method = new ReflectionMethod($urlService, 'stripStageParam');
+        $method->setAccessible(true);
+
+        $this->assertEquals($expectedUrl, $method->invoke($urlService, $url));
+    }
+
+    public function provideStripStageParamUrls(): array
+    {
+        return [
+            // Testing removal of stage=Stage, expect http to remain http
+            [
+                'http://www.test.com?stage=Stage',
+                'http://www.test.com',
+            ],
+            // Testing removal of stage=Live, expect https to remain https
+            [
+                'https://www.test.com?stage=Live',
+                'https://www.test.com',
+            ],
+            // Testing removal of stage=Stage with other params
+            [
+                'https://www.test.com?test1=1&stage=Stage&test2=2',
+                'https://www.test.com?test1=1&test2=2',
+            ],
+            // Testing removal of stage=Live with other params
+            [
+                'https://www.test.com?test1=1&stage=Live&test2=2',
+                'https://www.test.com?test1=1&test2=2',
             ],
         ];
     }

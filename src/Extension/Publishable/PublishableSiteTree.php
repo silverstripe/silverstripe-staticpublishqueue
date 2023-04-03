@@ -2,12 +2,15 @@
 
 namespace SilverStripe\StaticPublishQueue\Extension\Publishable;
 
+use SilverStripe\CMS\Model\RedirectorPage;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\VirtualPage;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\ORM\SS_List;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
-use SilverStripe\CMS\Model\RedirectorPage;
+use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 
 /**
  * Bare-bones implementation of a publishable page.
@@ -15,83 +18,114 @@ use SilverStripe\CMS\Model\RedirectorPage;
  * You can override this either by implementing one of the interfaces the class directly, or by applying
  * an extension via the config system ordering (inject your extension "before" the PublishableSiteTree).
  *
- * @TODO: re-implement optional publishing of all the ancestors up to the root? Currently it only republishes the parent
- *
  * @see SiteTreePublishingEngine
+ * @method SiteTree|SiteTreePublishingEngine|$this getOwner()
  */
 class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger
 {
+    public const RELATION_INCLUDE_NONE = 0;
+    public const RELATION_INCLUDE_DIRECT = 1;
+    public const RELATION_INCLUDE_RECURSIVE = 2;
+
+    private static int $regenerate_children = self::RELATION_INCLUDE_NONE;
+
+    private static int $regenerate_parents = self::RELATION_INCLUDE_NONE;
+
     public function getMyVirtualPages()
     {
         return VirtualPage::get()->filter(['CopyContentFrom.ID' => $this->owner->ID]);
     }
 
     /**
-     * @param array $context
-     * @return array
+     * @return array|SS_List
      */
-    public function objectsToUpdate($context)
+    public function objectsToUpdate(array $context)
     {
         $list = [];
-        switch ($context['action']) {
-            case 'publish':
-                // Trigger refresh of the page itself.
-                $list[] = $this->getOwner();
+        $page = $this->getOwner();
+        $urlChanged = $context['urlChanged'] ?? false;
 
-                // Refresh the parent.
-                if ($this->getOwner()->ParentID) {
-                    $list[] = $this->getOwner()->Parent();
-                }
+        if ($context['action'] === SiteTreePublishingEngine::ACTION_PUBLISH) {
+            // Trigger refresh of the page itself
+            $list[] = $page;
 
-                // Refresh related virtual pages.
-                $virtuals = $this->getOwner()->getMyVirtualPages();
-                if ($virtuals->exists()) {
-                    foreach ($virtuals as $virtual) {
-                        $list[] = $virtual;
-                    }
-                }
-                break;
+            // Refresh related virtual pages
+            $virtualPages = $page->getMyVirtualPages();
 
-            case 'unpublish':
-                // Refresh the parent
-                if ($this->getOwner()->ParentID) {
-                    $list[] = $this->getOwner()->Parent();
+            if ($virtualPages->exists()) {
+                foreach ($virtualPages as $virtual) {
+                    $list[] = $virtual;
                 }
-                break;
+            }
+
+            // For the 'publish' action, we will update children when configured to do so. Config value or 0 is to
+            // *not* include children
+            // Note: This configuration is only relevant for the 'publish' action because for an 'unpublish' action
+            // we specifically have to purge all children (we now that they have also been unpublished)
+            $childInclusion = $page->config()->get('regenerate_children');
+
+            if ($childInclusion || $urlChanged) {
+                $recursive = $childInclusion === self::RELATION_INCLUDE_RECURSIVE || $urlChanged;
+
+                $this->addChildren($list, $page, $recursive);
+            }
         }
+
+        // For any of our defined actions, we will update parents when configured to do so. Config value or 0
+        // is to *not* include parents
+        $parentInclusion = $page->config()->get('regenerate_parents');
+
+        if ($parentInclusion) {
+            // You can also choose whether to update only the direct parent, or the entire tree
+            $recursive = $parentInclusion === self::RELATION_INCLUDE_RECURSIVE;
+
+            $this->addParents($list, $page, $recursive);
+        }
+
         return $list;
     }
 
     /**
-     * @param array $context
-     * @return array
+     * This method controls which caches will be purged
+     *
+     * @return array|SS_List
      */
-    public function objectsToDelete($context)
+    public function objectsToDelete(array $context)
     {
-        $list = [];
-        switch ($context['action']) {
-            case 'unpublish':
-                // Trigger cache removal for this page.
-                $list[] = $this->getOwner();
-
-                // Trigger removal of the related virtual pages.
-                $virtuals = $this->getOwner()->getMyVirtualPages();
-                if ($virtuals->exists()) {
-                    foreach ($virtuals as $virtual) {
-                        $list[] = $virtual;
-                    }
-                }
-                break;
+        // This context isn't one of our valid actions, so there's nothing to do here
+        if ($context['action'] !== SiteTreePublishingEngine::ACTION_UNPUBLISH) {
+            return [];
         }
+
+        $list = [];
+        $page = $this->getOwner();
+
+        // Trigger cache removal for this page
+        $list[] = $page;
+
+        // Trigger removal of the related virtual pages
+        $virtualPages = $page->getMyVirtualPages();
+
+        if ($virtualPages->exists()) {
+            foreach ($virtualPages as $virtual) {
+                $list[] = $virtual;
+            }
+        }
+
+        // When a parent is unpublished or the URL has changed, then all existing caches for all children have also
+        // been invalided and must be purged. In this context, this is not optional/configurable
+        $this->addChildren($list, $page, true);
+
         return $list;
     }
 
     /**
-     * The only URL belonging to this object is it's own URL.
+     * The only URL belonging to this object is its own URL.
      */
-    public function urlsToCache()
+    public function urlsToCache(): array
     {
         $page = $this->getOwner();
+
         if ($page instanceof RedirectorPage) {
             // use RedirectorPage::regularLink() so that it returns the url of the page,
             // rather than the url of the target of the RedirectorPage
@@ -99,6 +133,44 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         } else {
             $link = $page->Link();
         }
+
         return [Director::absoluteURL($link) => 0];
+    }
+
+    protected function addChildren(array &$list, SiteTree $currentPage, bool $recursive = false): void
+    {
+        // Loop through each Child that this page has. If there are no Children(), then the loop won't process anything
+        foreach ($currentPage->Children() as $childPage) {
+            $list[] = $childPage;
+
+            // We have requested only to add the direct children of this page, so we'll continue here
+            if (!$recursive) {
+                continue;
+            }
+
+            // Recursively add children
+            $this->addChildren($list, $childPage);
+        }
+    }
+
+    protected function addParents(array &$list, SiteTree $currentPage, bool $recursive = false): void
+    {
+        $parent = $currentPage->Parent();
+
+        // This page is top level, and there is no parent
+        if (!$parent?->exists()) {
+            return;
+        }
+
+        // Add the parent to the list
+        $list[] = $parent;
+
+        // We have requested only to add the direct parent, so we'll return here
+        if (!$recursive) {
+            return;
+        }
+
+        // Recursively add parent
+        $this->addParents($list, $parent);
     }
 }
