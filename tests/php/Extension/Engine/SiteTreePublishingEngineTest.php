@@ -52,9 +52,10 @@ class SiteTreePublishingEngineTest extends SapphireTest
         $expectedUrls = [
             'http://example.com/page-1/page-2/page-4',
         ];
+        $resultUrls = array_keys($updateJob->getJobData()->jobData->URLsToProcess);
 
         $this->assertInstanceOf(GenerateStaticCacheJob::class, $updateJob);
-        $this->assertEqualsCanonicalizing($expectedUrls, array_keys($updateJob->getJobData()->jobData->URLsToProcess));
+        $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
     }
 
     public function testPublishRecursiveUrlChange(): void
@@ -94,18 +95,15 @@ class SiteTreePublishingEngineTest extends SapphireTest
             'http://example.com/page-1/page-2/page-4/page-5/page-6',
         ];
 
+        $resultUpdateUrls = array_keys($updateJob->getJobData()->jobData->URLsToProcess);
+        $resultPurgeUrls = array_keys($deleteJob->getJobData()->jobData->URLsToProcess);
+
         // Test our update job
         $this->assertInstanceOf(GenerateStaticCacheJob::class, $updateJob);
-        $this->assertEqualsCanonicalizing(
-            $expectedUpdateUrls,
-            array_keys($updateJob->getJobData()->jobData->URLsToProcess)
-        );
+        $this->assertEqualsCanonicalizing($expectedUpdateUrls, $resultUpdateUrls);
         // Test our delete job
         $this->assertInstanceOf(DeleteStaticCacheJob::class, $deleteJob);
-        $this->assertEqualsCanonicalizing(
-            $expectedPurgeUrls,
-            array_keys($deleteJob->getJobData()->jobData->URLsToProcess)
-        );
+        $this->assertEqualsCanonicalizing($expectedPurgeUrls, $resultPurgeUrls);
     }
 
     public function testPublishRecursiveParentChange(): void
@@ -147,18 +145,15 @@ class SiteTreePublishingEngineTest extends SapphireTest
             'http://example.com/page-1/page-2/page-4/page-5/page-6',
         ];
 
+        $resultUpdateUrls = array_keys($updateJob->getJobData()->jobData->URLsToProcess);
+        $resultPurgeUrls = array_keys($deleteJob->getJobData()->jobData->URLsToProcess);
+
         // Test our update job
         $this->assertInstanceOf(GenerateStaticCacheJob::class, $updateJob);
-        $this->assertEqualsCanonicalizing(
-            $expectedUpdateUrls,
-            array_keys($updateJob->getJobData()->jobData->URLsToProcess)
-        );
+        $this->assertEqualsCanonicalizing($expectedUpdateUrls, $resultUpdateUrls);
         // Test our delete job
         $this->assertInstanceOf(DeleteStaticCacheJob::class, $deleteJob);
-        $this->assertEqualsCanonicalizing(
-            $expectedPurgeUrls,
-            array_keys($deleteJob->getJobData()->jobData->URLsToProcess)
-        );
+        $this->assertEqualsCanonicalizing($expectedPurgeUrls, $resultPurgeUrls);
     }
 
     public function testDoUnpublish(): void
@@ -189,8 +184,10 @@ class SiteTreePublishingEngineTest extends SapphireTest
             'http://example.com/page-1/page-2/page-4/page-5/page-6',
         ];
 
+        $resultUrls = array_keys($deleteJob->getJobData()->jobData->URLsToProcess);
+
         $this->assertInstanceOf(DeleteStaticCacheJob::class, $deleteJob);
-        $this->assertEqualsCanonicalizing($expectedUrls, array_keys($deleteJob->getJobData()->jobData->URLsToProcess));
+        $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
     }
 
     protected function getJobByClassName(array $jobs, string $className): ?QueuedJob

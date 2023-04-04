@@ -10,8 +10,6 @@ use SilverStripe\StaticPublishQueue\Publisher;
 use SilverStripe\Versioned\Versioned;
 
 /**
- * Class StaticCacheFullBuildJob
- *
  * Adds all live pages to the queue for caching. Best implemented on a cron via StaticCacheFullBuildTask.
  * WARNING: this job assumes that there are not too many pages to process (dozens are fine, thousands are not)
  * as collecting URLs from all live pages will either eat up all available memory and / or stall
@@ -20,7 +18,6 @@ use SilverStripe\Versioned\Versioned;
  *
  * @property array $URLsToCleanUp
  * @property array $publishedURLs
- * @package SilverStripe\StaticPublishQueue\Job
  */
 class StaticCacheFullBuildJob extends Job
 {
@@ -32,9 +29,6 @@ class StaticCacheFullBuildJob extends Job
         return 'Generate static pages for all URLs';
     }
 
-    /**
-     * @return string
-     */
     public function getSignature(): string
     {
         return md5(static::class);
@@ -118,9 +112,6 @@ class StaticCacheFullBuildJob extends Job
         $this->updateCompletedState();
     }
 
-    /**
-     * @return array
-     */
     protected function getAllLivePageURLs(): array
     {
         $urls = [];
@@ -140,10 +131,6 @@ class StaticCacheFullBuildJob extends Job
         return $urls;
     }
 
-    /**
-     * @param string $url
-     * @param int $priority
-     */
     protected function processUrl(string $url, int $priority): void
     {
         $meta = Publisher::singleton()->publishURL($url, true);

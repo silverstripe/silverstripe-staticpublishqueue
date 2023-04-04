@@ -7,11 +7,8 @@ use SilverStripe\Core\Extensible;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 
 /**
- * Class Job
- *
  * @property array $URLsToProcess
  * @property array $ProcessedURLs
- * @package SilverStripe\StaticPublishQueue
  */
 abstract class Job extends AbstractQueuedJob
 {
@@ -63,9 +60,6 @@ abstract class Job extends AbstractQueuedJob
 
     /**
      * Use this method to populate newly created job with data
-     *
-     * @param array $urls
-     * @param string|null $message
      */
     public function hydrate(array $urls, ?string $message): void
     {
@@ -88,8 +82,6 @@ abstract class Job extends AbstractQueuedJob
      * as they always refer to live content
      * Including stage param in visiting URL is meant to bypass static cache and redirect to admin login
      * this is something we definitely don't want for statically cached pages
-     *
-     * @return int|null
      */
     public function getRunAsMemberID(): ?int
     {
@@ -125,9 +117,6 @@ abstract class Job extends AbstractQueuedJob
         $this->updateCompletedState();
     }
 
-    /**
-     * @return int
-     */
     public function getUrlsPerJob(): int
     {
         $urlsPerJob = (int) $this->config()->get('urls_per_job');
@@ -137,9 +126,6 @@ abstract class Job extends AbstractQueuedJob
 
     /**
      * Implement this method to process URL
-     *
-     * @param string $url
-     * @param int $priority
      */
     abstract protected function processUrl(string $url, int $priority): void;
 
@@ -148,8 +134,6 @@ abstract class Job extends AbstractQueuedJob
      * indication of progress is important for jobs which take long time to process
      * jobs that do not indicate progress may be identified as stalled by the queue
      * and may end up paused
-     *
-     * @param string $url
      */
     protected function markUrlAsProcessed(string $url): void
     {
@@ -172,9 +156,6 @@ abstract class Job extends AbstractQueuedJob
         $this->isComplete = true;
     }
 
-    /**
-     * @return int
-     */
     protected function getChunkSize(): int
     {
         $chunkSize = (int) $this->config()->get('chunk_size');
@@ -185,9 +166,6 @@ abstract class Job extends AbstractQueuedJob
     /**
      * This function can be overridden to handle the case of failure of specific URL processing
      * such case is not handled by default which results in all such errors being effectively silenced
-     *
-     * @param string $url
-     * @param array $meta
      */
     protected function handleFailedUrl(string $url, array $meta)
     {

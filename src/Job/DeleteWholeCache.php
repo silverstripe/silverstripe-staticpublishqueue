@@ -7,9 +7,6 @@ use SilverStripe\StaticPublishQueue\Publisher;
 
 class DeleteWholeCache extends Job
 {
-    /**
-     * @return string
-     */
     public function getTitle(): string
     {
         return 'Remove the entire cache';

@@ -158,7 +158,7 @@ class PublishableSiteTreeTest extends SapphireTest
 
         $context = [
             'action' => 'publish',
-            'urlChanged' => true,
+            'urlSegmentChanged' => true,
         ];
 
         $toDelete = $page->objectsToDelete($context);
@@ -202,7 +202,41 @@ class PublishableSiteTreeTest extends SapphireTest
 
         // There should be 4 objects being deleted (our $page, its virtual page, child, and grandchild)
         $this->assertCount(4, $toDelete);
-        // There should be no objects being updates
+        // There should be no objects being updated
+        $this->assertCount(0, $toUpdate);
+
+        // Check that the expected Pages are represented in our objectsToDelete() (order doesn't matter)
+        $this->assertEqualsCanonicalizing($expectedDeleteIds, $this->getIdsFromArray($toDelete));
+    }
+
+    public function testObjectsActionUnpublishNoStrictHierarchy(): void
+    {
+        // Disable strict hierarchy, meaning that children can remain published even when a parent is unpublished
+        SiteTree::config()->set('enforce_strict_hierarchy', false);
+        // Test that only the actioned page and its virtual page are added
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        // We are disabling child inclusion through our config, as well as strict hierarchy being disabled
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+
+        $page = $this->objFromFixture(SiteTree::class, 'page3');
+        $virtualPage = $this->objFromFixture(VirtualPage::class, 'page1');
+
+        // We expect the following pages to be deleted
+        $expectedDeleteIds = [
+            $page->ID,
+            $virtualPage->ID,
+        ];
+
+        $context = [
+            'action' => 'unpublish',
+        ];
+
+        $toDelete = $page->objectsToDelete($context);
+        $toUpdate = $page->objectsToUpdate($context);
+
+        // There should be 2 objects being deleted (our $page and its virtual page)
+        $this->assertCount(2, $toDelete);
+        // There should be no objects being updated
         $this->assertCount(0, $toUpdate);
 
         // Check that the expected Pages are represented in our objectsToDelete() (order doesn't matter)

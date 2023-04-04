@@ -2,6 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Service;
 
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
@@ -18,15 +19,16 @@ class UrlBundleService implements UrlBundleInterface
 {
     use Extensible;
     use Injectable;
+    use Configurable;
+
+    private static bool $strip_stage_param = true;
 
     protected array $urls = [];
 
     public function addUrls(array $urls): void
     {
         foreach ($urls as $url) {
-            $safeUrl = $this->stripStageParam($url);
-
-            $this->urls[$safeUrl] = $safeUrl;
+            $this->urls[$url] = $url;
         }
     }
 
@@ -105,6 +107,10 @@ class UrlBundleService implements UrlBundleInterface
      */
     protected function formatUrl(string $url): ?string
     {
+        if ($this->config()->get('strip_stage_param')) {
+            $url = $this->stripStageParam($url);
+        }
+
         // Use this extension point to reformat URLs, for example encode special characters
         $this->extend('updateFormatUrl', $url);
 

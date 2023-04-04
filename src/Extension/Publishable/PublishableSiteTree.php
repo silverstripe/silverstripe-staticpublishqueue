@@ -8,6 +8,7 @@ use SilverStripe\CMS\Model\VirtualPage;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\SS_List;
+use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
@@ -42,15 +43,14 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
     public function objectsToUpdate(array $context)
     {
         $list = [];
-        $page = $this->getOwner();
-        $urlChanged = $context['urlChanged'] ?? false;
+        $siteTree = $this->getOwner();
 
         if ($context['action'] === SiteTreePublishingEngine::ACTION_PUBLISH) {
             // Trigger refresh of the page itself
-            $list[] = $page;
+            $list[] = $siteTree;
 
             // Refresh related virtual pages
-            $virtualPages = $page->getMyVirtualPages();
+            $virtualPages = $siteTree->getMyVirtualPages();
 
             if ($virtualPages->exists()) {
                 foreach ($virtualPages as $virtual) {
@@ -62,24 +62,25 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             // *not* include children
             // Note: This configuration is only relevant for the 'publish' action because for an 'unpublish' action
             // we specifically have to purge all children (we now that they have also been unpublished)
-            $childInclusion = $page->config()->get('regenerate_children');
+            $childInclusion = $siteTree->config()->get('regenerate_children');
+            $forceRecursiveInclusion = $context['urlSegmentChanged'] ?? false;
 
-            if ($childInclusion || $urlChanged) {
-                $recursive = $childInclusion === self::RELATION_INCLUDE_RECURSIVE || $urlChanged;
+            if ($childInclusion || $forceRecursiveInclusion) {
+                $recursive = $childInclusion === self::RELATION_INCLUDE_RECURSIVE || $forceRecursiveInclusion;
 
-                $this->addChildren($list, $page, $recursive);
+                $this->addChildren($list, $siteTree, $recursive);
             }
         }
 
         // For any of our defined actions, we will update parents when configured to do so. Config value or 0
         // is to *not* include parents
-        $parentInclusion = $page->config()->get('regenerate_parents');
+        $parentInclusion = $siteTree->config()->get('regenerate_parents');
 
         if ($parentInclusion) {
             // You can also choose whether to update only the direct parent, or the entire tree
             $recursive = $parentInclusion === self::RELATION_INCLUDE_RECURSIVE;
 
-            $this->addParents($list, $page, $recursive);
+            $this->addParents($list, $siteTree, $recursive);
         }
 
         return $list;
@@ -98,13 +99,13 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         }
 
         $list = [];
-        $page = $this->getOwner();
+        $siteTree = $this->getOwner();
 
         // Trigger cache removal for this page
-        $list[] = $page;
+        $list[] = $siteTree;
 
         // Trigger removal of the related virtual pages
-        $virtualPages = $page->getMyVirtualPages();
+        $virtualPages = $siteTree->getMyVirtualPages();
 
         if ($virtualPages->exists()) {
             foreach ($virtualPages as $virtual) {
@@ -112,9 +113,17 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             }
         }
 
-        // When a parent is unpublished or the URL has changed, then all existing caches for all children have also
-        // been invalided and must be purged. In this context, this is not optional/configurable
-        $this->addChildren($list, $page, true);
+        // Check if you specifically want children included in all actions
+        $childInclusion = $siteTree->config()->get('regenerate_children');
+        // Check to see if SiteTree enforces strict hierarchy (that being, parents must be published in order for
+        // children to be viewed)
+        $forceRecursiveInclusion = $siteTree->config()->get('enforce_strict_hierarchy');
+
+        if ($childInclusion || $forceRecursiveInclusion) {
+            $recursive = $childInclusion === self::RELATION_INCLUDE_RECURSIVE || $forceRecursiveInclusion;
+
+            $this->addChildren($list, $siteTree, $recursive);
+        }
 
         return $list;
     }

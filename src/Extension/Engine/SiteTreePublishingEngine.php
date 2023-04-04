@@ -41,12 +41,12 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     /**
      * Queues the urls to be flushed into the queue.
      */
-    private array|SS_List $toUpdate = [];
+    private array $urlsToUpdate = [];
 
     /**
      * Queues the urls to be deleted as part of a next flush operation.
      */
-    private array|SS_List $toDelete = [];
+    private array $urlsToDelete = [];
 
     public static function reset(): void
     {
@@ -57,7 +57,6 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
      * Force inject queue service
      * Used for unit tests only to cover edge cases where Injector doesn't cover
      *
-     *
      * @param QueuedJobService $service
      */
     public static function setQueueService(QueuedJobService $service): void
@@ -65,42 +64,34 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         static::$queueService = $service;
     }
 
-    /**
-     * @return array
-     */
-    public function getToUpdate()
+    protected function getUrlsToUpdate(): array
     {
-        return $this->toUpdate;
+        return $this->urlsToUpdate;
     }
 
-    /**
-     * @return array
-     */
-    public function getToDelete()
+    protected function getUrlsToDelete(): array
     {
-        return $this->toDelete;
+        return $this->urlsToDelete;
     }
 
-    /**
-     * @param array $toUpdate
-     * @return $this
-     */
-    public function setToUpdate($toUpdate)
+    protected function addUrlsToUpdate(array $urlsToUpdate): void
     {
-        $this->toUpdate = $toUpdate;
-
-        return $this;
+        $this->urlsToUpdate = array_unique(array_merge($this->getUrlsToUpdate(), $urlsToUpdate));
     }
 
-    /**
-     * @param array $toDelete
-     * @return $this
-     */
-    public function setToDelete($toDelete)
+    protected function addUrlsToDelete(array $urlsToDelete): void
     {
-        $this->toDelete = $toDelete;
+        $this->urlsToDelete = array_unique(array_merge($this->getUrlsToDelete(), $urlsToDelete));
+    }
 
-        return $this;
+    protected function setUrlsToUpdate(array $urlsToUpdate): void
+    {
+        $this->urlsToUpdate = $urlsToUpdate;
+    }
+
+    protected function setUrlsToDelete(array $urlsToDelete): void
+    {
+        $this->urlsToDelete = $urlsToDelete;
     }
 
     /**
@@ -113,20 +104,20 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             return;
         }
 
+        $owner = $this->getOwner();
+
         // We want to find out if the URL for this page has changed at all. That can happen 2 ways: Either the page is
         // moved in the SiteTree (ParentID changes), or the URLSegment is updated
         // Apparently ParentID can sometimes be string, so make sure we cast to (int) for our comparison
-        if ((int) $original->ParentID !== (int) $this->getOwner()->ParentID
-            || $original->URLSegment !== $this->getOwner()->URLSegment
+        if ((int) $original->ParentID !== (int) $owner->ParentID
+            || $original->URLSegment !== $owner->URLSegment
         ) {
             // We have detected a change to the URL. We need to purge the old URLs for this page and any children
             $context = [
                 'action' => self::ACTION_UNPUBLISH,
             ];
+            // We'll collect these changes now, but they won't be actioned until onAfterPublishRecursive()
             $original->collectChanges($context);
-            // We need to flushChanges() immediately so that Jobs are queued for the Pages while they still have their
-            // old URLs
-            $original->flushChanges();
         }
     }
 
@@ -138,18 +129,22 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $parentId = $original->ParentID ?? null;
         $urlSegment = $original->URLSegment ?? null;
 
+        $owner = $this->getOwner();
+
         // Apparently ParentID can sometimes be string, so make sure we cast to (int) for our comparison
-        $parentChanged = $parentId && (int) $parentId !== (int) $this->getOwner()->ParentID;
-        $urlChanged = $urlSegment && $original->URLSegment !== $this->getOwner()->URLSegment;
+        $parentChanged = $parentId && (int) $parentId !== (int) $owner->ParentID;
+        $urlSegmentChanged = $urlSegment && $original->URLSegment !== $owner->URLSegment;
 
         $context = [
             'action' => self::ACTION_PUBLISH,
             // If a URL change has been detected, then we need to force the recursive regeneration of all child
             // pages
-            'urlChanged' => $parentChanged || $urlChanged,
+            'urlSegmentChanged' => $parentChanged || $urlSegmentChanged,
         ];
 
+        // Collect any additional changes (noting that some could already have been added in onBeforePublishRecursive())
         $this->collectChanges($context);
+        // Flush any/all changes that we have detected
         $this->flushChanges();
     }
 
@@ -158,7 +153,13 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $context = [
             'action' => self::ACTION_UNPUBLISH,
         ];
+        // We'll collect these changes now, but they won't be actioned until onAfterUnpublish()
         $this->collectChanges($context);
+    }
+
+    public function onAfterUnpublish()
+    {
+        // Flush any/all changes that we have detected
         $this->flushChanges();
     }
 
@@ -174,24 +175,32 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             // Collection of changes needs to happen within the context of our Published/LIVE state
             Versioned::set_stage(Versioned::LIVE);
 
+            $owner = $this->getOwner();
+
             // Re-fetch our page, now within a LIVE context
-            $page = DataObject::get($this->getOwner()->ClassName)->byID($this->getOwner()->ID);
+            $siteTree = DataObject::get($owner->ClassName)->byID($owner->ID);
 
             // This page isn't LIVE/Published, so there is nothing for us to do here
-            if (!$page?->exists()) {
+            if (!$siteTree?->exists()) {
                 return;
             }
 
             // The page does not include the required extension, and it doesn't implement a Trigger
-            if (!$page->hasExtension(PublishableSiteTree::class) && !$page instanceof StaticPublishingTrigger) {
+            if (!$siteTree->hasExtension(PublishableSiteTree::class) && !$siteTree instanceof StaticPublishingTrigger) {
                 return;
             }
 
-            $toUpdate = $page->objectsToUpdate($context);
-            $this->setToUpdate($toUpdate);
+            // Fetch our objects to be actioned
+            $objectsToUpdate = $siteTree->objectsToUpdate($context);
+            $objectsToDelete = $siteTree->objectsToDelete($context);
 
-            $toDelete = $page->objectsToDelete($context);
-            $this->setToDelete($toDelete);
+            foreach ($objectsToUpdate as $objectToUpdate) {
+                $this->addUrlsToUpdate(array_keys($objectToUpdate->urlsToCache()));
+            }
+
+            foreach ($objectsToDelete as $objectToDelete) {
+                $this->addUrlsToDelete(array_keys($objectToDelete->urlsToCache()));
+            }
         });
     }
 
@@ -201,45 +210,36 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     public function flushChanges()
     {
         $queueService = static::$queueService ?? QueuedJobService::singleton();
+        $owner = $this->getOwner();
+        $urlsToUpdate = $this->getUrlsToUpdate();
+        $urlsToDelete = $this->getUrlsToDelete();
 
-        if ($this->toUpdate) {
+        if ($urlsToUpdate) {
             /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
+            $urlService->addUrls($urlsToUpdate);
 
-            foreach ($this->toUpdate as $item) {
-                $urls = $item->urlsToCache();
-                ksort($urls);
-                $urls = array_keys($urls);
-                $urlService->addUrls($urls);
-            }
-
-            $jobs = $urlService->getJobsForUrls(GenerateStaticCacheJob::class, 'Building URLs', $this->owner);
+            $jobs = $urlService->getJobsForUrls(GenerateStaticCacheJob::class, 'Building URLs', $owner);
 
             foreach ($jobs as $job) {
                 $queueService->queueJob($job);
             }
 
-            $this->toUpdate = [];
+            $this->setUrlsToUpdate([]);
         }
 
-        if ($this->toDelete) {
+        if ($urlsToDelete) {
             /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
+            $urlService->addUrls($urlsToDelete);
 
-            foreach ($this->toDelete as $item) {
-                $urls = $item->urlsToCache();
-                ksort($urls);
-                $urls = array_keys($urls);
-                $urlService->addUrls($urls);
-            }
-
-            $jobs = $urlService->getJobsForUrls(DeleteStaticCacheJob::class, 'Purging URLs', $this->owner);
+            $jobs = $urlService->getJobsForUrls(DeleteStaticCacheJob::class, 'Purging URLs', $owner);
 
             foreach ($jobs as $job) {
                 $queueService->queueJob($job);
             }
 
-            $this->toDelete = [];
+            $this->setUrlsToDelete([]);
         }
     }
 }
