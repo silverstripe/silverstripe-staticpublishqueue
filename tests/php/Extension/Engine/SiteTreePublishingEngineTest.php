@@ -35,7 +35,7 @@ class SiteTreePublishingEngineTest extends SapphireTest
         SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
 
         /** @var QueuedJobsTestService $service */
-        $service = Injector::inst()->get(QueuedJobService::class);
+        $service = QueuedJobService::singleton();
 
         $page = $this->objFromFixture(SiteTree::class, 'page4');
         $page->publishRecursive();
