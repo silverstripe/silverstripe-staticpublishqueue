@@ -2,6 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Task;
 
+use DateTime;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
@@ -15,6 +16,8 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 class StaticCacheFullBuildTask extends BuildTask
 {
+    protected $title = 'Static Cache Full Build';
+
     /**
      * Queue up a StaticCacheFullBuildJob
      * Check for startAfter param and do some sanity checking
@@ -45,6 +48,7 @@ class StaticCacheFullBuildTask extends BuildTask
                 $existing->Created,
                 $existing->StartAfter ? 'and set to start after ' . $existing->StartAfter : ''
             ));
+
             return false;
         }
 
@@ -61,12 +65,14 @@ class StaticCacheFullBuildTask extends BuildTask
                 $timestamp = strtotime($today . ' ' . $startTime);
                 $dayWord = 'today';
             }
-            $startAfter = (new \DateTime())->setTimestamp($timestamp);
-            $thisTimeTomorrow = (new \DateTime())->setTimestamp(strtotime($now . ' +1 day'))->getTimestamp();
+
+            $startAfter = (new DateTime())->setTimestamp($timestamp);
+            $thisTimeTomorrow = (new DateTime())->setTimestamp(strtotime($now . ' +1 day'))->getTimestamp();
 
             // sanity check that we are in the next 24 hours - prevents some weird stuff sneaking through
             if ($startAfter->getTimestamp() > $thisTimeTomorrow || $startAfter->getTimestamp() < $now->getTimestamp()) {
                 $this->log('Invalid startAfter parameter passed. Please ensure the time format is HHmm e.g. 1300');
+
                 return false;
             }
 
