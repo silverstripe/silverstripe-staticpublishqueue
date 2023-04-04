@@ -305,7 +305,8 @@ class PublishableSiteTreeTest extends SapphireTest
         if (!class_exists(Page::class)) {
             $this->markTestSkipped('This unit test requires the Page class');
         }
-        $page = new Page(['Title' => 'MyPage']);
+        $page = Page::create();
+        $page->Title = 'MyPage';
         $id = $page->write();
         $this->assertSame(['http://example.com/mypage' => 0], $page->urlsToCache());
         $redirectorPage = new RedirectorPage(['Title' => 'MyRedirectorPage']);
