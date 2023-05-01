@@ -7,6 +7,7 @@ use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Resettable;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
@@ -53,7 +54,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
      * Queues the urls to be flushed into the queue.
      *
      * @var array
-     * @deprecated 6.0.0 use {@link $urlsToDelete}
+     * @deprecated 6.0.0 Use $urlsToDelete instead
      */
     private $toUpdate = [];
 
@@ -61,36 +62,41 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
      * Queues the urls to be deleted as part of a next flush operation.
      *
      * @var array
-     * @deprecated 6.0.0 use {@link $urlsToDelete}
+     * @deprecated 6.0.0 Use $urlsToDelete instead
      */
     private $toDelete = [];
 
     /**
      * @return array
-     * @deprecated 6.0.0 use {@link getUrlsToUpdate()}
+     * @deprecated 6.0.0 Use getUrlsToUpdate() instead
      */
     public function getToUpdate()
     {
+        Deprecation::notice('6.0.0', 'Use getUrlsToUpdate() instead');
+
         return $this->toUpdate;
     }
 
     /**
      * @return array
-     * @deprecated 6.0.0 use {@link getUrlsToDelete()}
+     * @deprecated 6.0.0 Use getUrlsToDelete() instead
      */
     public function getToDelete()
     {
+        Deprecation::notice('6.0.0', 'Use getUrlsToDelete() instead');
+
         return $this->toDelete;
     }
 
     /**
      * @param array $toUpdate
      * @return $this
-     * @deprecated 6.0.0 use {@link setUrlsToUpdate()} This method is still used internally for backwards compatability,
-     *             but will be replaced asap
+     * @deprecated 6.0.0 Use setUrlsToUpdate() instead
      */
     public function setToUpdate($toUpdate)
     {
+        Deprecation::notice('6.0.0', 'Use setUrlsToUpdate() instead');
+
         $urlsToUpdate = [];
 
         foreach ($toUpdate as $objectToUpdate) {
@@ -107,11 +113,12 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     /**
      * @param array $toDelete
      * @return $this
-     * @deprecated 6.0.0 use {@link setUrlsToDelete()} This method is still used internally for backwards compatability,
-     *             but will be replaced asap
+     * @deprecated 6.0.0 Use setUrlsToDelete() instead
      */
     public function setToDelete($toDelete)
     {
+        Deprecation::notice('6.0.0', 'Use setUrlsToUpdate() instead');
+
         $urlsToDelete = [];
 
         foreach ($toDelete as $objectToDelete) {
@@ -266,8 +273,10 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             }
 
             // Fetch our objects to be actioned
-            $this->setToUpdate($siteTree->objectsToUpdate($context));
-            $this->setToDelete($siteTree->objectsToDelete($context));
+            Deprecation::withNoReplacement(function () use ($siteTree, $context): void {
+                $this->setToUpdate($siteTree->objectsToUpdate($context));
+                $this->setToDelete($siteTree->objectsToDelete($context));
+            });
         });
     }
 
