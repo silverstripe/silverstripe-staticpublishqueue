@@ -22,5 +22,5 @@ interface StaticallyPublishable
      *
      * @return array associative array of URL (string) => Priority (int)
      */
-    public function urlsToCache(): array;
+    public function urlsToCache();
 }

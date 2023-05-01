@@ -8,7 +8,6 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Resettable;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\SS_List;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
@@ -35,8 +34,10 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     /**
      * Queued job service injection property
      * Used for unit tests only to cover edge cases where Injector doesn't cover
+     *
+     * @var QueuedJobService|null
      */
-    protected static ?QueuedJobService $queueService = null;
+    protected static $queueService = null;
 
     /**
      * Queues the urls to be flushed into the queue.
@@ -47,6 +48,82 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
      * Queues the urls to be deleted as part of a next flush operation.
      */
     private array $urlsToDelete = [];
+
+    /**
+     * Queues the urls to be flushed into the queue.
+     *
+     * @var array
+     * @deprecated 6.0.0 use {@link $urlsToDelete}
+     */
+    private $toUpdate = [];
+
+    /**
+     * Queues the urls to be deleted as part of a next flush operation.
+     *
+     * @var array
+     * @deprecated 6.0.0 use {@link $urlsToDelete}
+     */
+    private $toDelete = [];
+
+    /**
+     * @return array
+     * @deprecated 6.0.0 use {@link getUrlsToUpdate()}
+     */
+    public function getToUpdate()
+    {
+        return $this->toUpdate;
+    }
+
+    /**
+     * @return array
+     * @deprecated 6.0.0 use {@link getUrlsToDelete()}
+     */
+    public function getToDelete()
+    {
+        return $this->toDelete;
+    }
+
+    /**
+     * @param array $toUpdate
+     * @return $this
+     * @deprecated 6.0.0 use {@link setUrlsToUpdate()} This method is still used internally for backwards compatability,
+     *             but will be replaced asap
+     */
+    public function setToUpdate($toUpdate)
+    {
+        $urlsToUpdate = [];
+
+        foreach ($toUpdate as $objectToUpdate) {
+            $urlsToUpdate = array_merge($urlsToUpdate, array_keys($objectToUpdate->urlsToCache()));
+        }
+
+        $this->setUrlsToUpdate($urlsToUpdate);
+        // Legacy support so that getToUpdate() still returns the expected array of DataObjects
+        $this->toUpdate = $toUpdate;
+
+        return $this;
+    }
+
+    /**
+     * @param array $toDelete
+     * @return $this
+     * @deprecated 6.0.0 use {@link setUrlsToDelete()} This method is still used internally for backwards compatability,
+     *             but will be replaced asap
+     */
+    public function setToDelete($toDelete)
+    {
+        $urlsToDelete = [];
+
+        foreach ($toDelete as $objectToDelete) {
+            $urlsToDelete = array_merge($urlsToDelete, array_keys($objectToDelete->urlsToCache()));
+        }
+
+        $this->setUrlsToDelete($urlsToDelete);
+        // Legacy support so that getToDelete() still returns the expected array of DataObjects
+        $this->toDelete = $toDelete;
+
+        return $this;
+    }
 
     public static function reset(): void
     {
@@ -69,24 +146,14 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         return $this->urlsToUpdate;
     }
 
-    protected function getUrlsToDelete(): array
-    {
-        return $this->urlsToDelete;
-    }
-
-    protected function addUrlsToUpdate(array $urlsToUpdate): void
-    {
-        $this->urlsToUpdate = array_unique(array_merge($this->getUrlsToUpdate(), $urlsToUpdate));
-    }
-
-    protected function addUrlsToDelete(array $urlsToDelete): void
-    {
-        $this->urlsToDelete = array_unique(array_merge($this->getUrlsToDelete(), $urlsToDelete));
-    }
-
     protected function setUrlsToUpdate(array $urlsToUpdate): void
     {
         $this->urlsToUpdate = $urlsToUpdate;
+    }
+
+    protected function getUrlsToDelete(): array
+    {
+        return $this->urlsToDelete;
     }
 
     protected function setUrlsToDelete(array $urlsToDelete): void
@@ -126,6 +193,9 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
      */
     public function onAfterPublishRecursive($original)
     {
+        // Flush any/all changes that we might have collected from onBeforePublishRecursive()
+        $this->flushChanges();
+
         $parentId = $original->ParentID ?? null;
         $urlSegment = $original->URLSegment ?? null;
 
@@ -165,8 +235,11 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 
     /**
      * Collect all changes for the given context.
+     *
+     * @param array $context
+     * @return void
      */
-    public function collectChanges(array $context): void
+    public function collectChanges($context)
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
@@ -191,16 +264,8 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             }
 
             // Fetch our objects to be actioned
-            $objectsToUpdate = $siteTree->objectsToUpdate($context);
-            $objectsToDelete = $siteTree->objectsToDelete($context);
-
-            foreach ($objectsToUpdate as $objectToUpdate) {
-                $this->addUrlsToUpdate(array_keys($objectToUpdate->urlsToCache()));
-            }
-
-            foreach ($objectsToDelete as $objectToDelete) {
-                $this->addUrlsToDelete(array_keys($objectToDelete->urlsToCache()));
-            }
+            $this->setToUpdate($siteTree->objectsToUpdate($context));
+            $this->setToDelete($siteTree->objectsToDelete($context));
         });
     }
 

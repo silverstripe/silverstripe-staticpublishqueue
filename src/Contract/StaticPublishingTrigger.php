@@ -15,7 +15,7 @@ interface StaticPublishingTrigger
      * @param array $context An associative array with extra engine-specific information.
      * @return array|SS_List
      */
-    public function objectsToUpdate(array $context);
+    public function objectsToUpdate($context);
 
     /**
      * Provides a SS_list of objects that need to be deleted.
@@ -23,5 +23,5 @@ interface StaticPublishingTrigger
      * @param array $context An associative array with extra engine-specific information.
      * @return array|SS_List
      */
-    public function objectsToDelete(array $context);
+    public function objectsToDelete($context);
 }

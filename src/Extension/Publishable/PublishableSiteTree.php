@@ -40,7 +40,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
     /**
      * @return array|SS_List
      */
-    public function objectsToUpdate(array $context)
+    public function objectsToUpdate($context)
     {
         $list = [];
         $siteTree = $this->getOwner();
@@ -91,7 +91,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
      *
      * @return array|SS_List
      */
-    public function objectsToDelete(array $context)
+    public function objectsToDelete($context)
     {
         // This context isn't one of our valid actions, so there's nothing to do here
         if ($context['action'] !== SiteTreePublishingEngine::ACTION_UNPUBLISH) {
@@ -130,8 +130,10 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
     /**
      * The only URL belonging to this object is its own URL.
+     *
+     * @return array
      */
-    public function urlsToCache(): array
+    public function urlsToCache()
     {
         $page = $this->getOwner();
 
