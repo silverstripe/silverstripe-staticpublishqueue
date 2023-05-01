@@ -30,7 +30,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
 
     private static int $regenerate_children = self::RELATION_INCLUDE_NONE;
 
-    private static int $regenerate_parents = self::RELATION_INCLUDE_NONE;
+    private static int $regenerate_parents = self::RELATION_INCLUDE_DIRECT;
 
     public function getMyVirtualPages()
     {

@@ -183,7 +183,9 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             $context = [
                 'action' => self::ACTION_UNPUBLISH,
             ];
-            // We'll collect these changes now, but they won't be actioned until onAfterPublishRecursive()
+            // We'll collect these changes now (before the URLs change), but they won't be actioned until the publish
+            // action has completed successfully, and onAfterPublishRecursive() has been called. This is because we
+            // don't want to queue jobs if the publish action fails
             $original->collectChanges($context);
         }
     }
