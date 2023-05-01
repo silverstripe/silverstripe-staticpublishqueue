@@ -18,13 +18,6 @@ It generates the cache files using the [QueuedJobs module](https://github.com/sy
 
 [Docs](docs/en/index.md)
 
-## Requirements
-
-* "silverstripe/framework": "^5",
-* "silverstripe/cms": "^5",
-* "silverstripe/config": "^2",
-* "symbiote/silverstripe-queuedjobs": "^5",
-* "silverstripe/versioned": "^2"
 
 ## Unit-testing with StaticPublisherState to disable queuedjobs for unit-tests
 
