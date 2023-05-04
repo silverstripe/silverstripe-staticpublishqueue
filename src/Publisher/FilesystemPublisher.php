@@ -190,7 +190,14 @@ class FilesystemPublisher extends Publisher
         $publishPath = $this->getDestPath() . DIRECTORY_SEPARATOR . $filePath;
         Filesystem::makeFolder(dirname($publishPath));
 
-        return rename($temporaryPath, $publishPath);
+        // Attempt to copy this file to its permanent location
+        $copyResult = copy($temporaryPath, $publishPath);
+        // We want to unlink the temporary file regardless of copy() success, as new temporary files would be created
+        // when this action is attempted again
+        unlink($temporaryPath);
+
+        // Return copy() result
+        return $copyResult;
     }
 
     protected function deleteFromPath($filePath)
