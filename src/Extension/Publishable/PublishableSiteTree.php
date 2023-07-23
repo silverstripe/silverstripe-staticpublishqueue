@@ -148,7 +148,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         return [Director::absoluteURL($link) => 0];
     }
 
-    protected function addChildren(array &$list, SiteTree $currentPage, bool $recursive = false): void
+    private function addChildren(array &$list, SiteTree $currentPage, bool $recursive = false): void
     {
         // Loop through each Child that this page has. If there are no Children(), then the loop won't process anything
         foreach ($currentPage->Children() as $childPage) {
@@ -164,7 +164,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         }
     }
 
-    protected function addParents(array &$list, SiteTree $currentPage, bool $recursive = false): void
+    private function addParents(array &$list, SiteTree $currentPage, bool $recursive = false): void
     {
         $parent = $currentPage->Parent();
 

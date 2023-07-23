@@ -148,22 +148,22 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         static::$queueService = $service;
     }
 
-    protected function getUrlsToUpdate(): array
+    private function getUrlsToUpdate(): array
     {
         return $this->urlsToUpdate;
     }
 
-    protected function setUrlsToUpdate(array $urlsToUpdate): void
+    private function setUrlsToUpdate(array $urlsToUpdate): void
     {
         $this->urlsToUpdate = $urlsToUpdate;
     }
 
-    protected function getUrlsToDelete(): array
+    private function getUrlsToDelete(): array
     {
         return $this->urlsToDelete;
     }
 
-    protected function setUrlsToDelete(array $urlsToDelete): void
+    private function setUrlsToDelete(array $urlsToDelete): void
     {
         $this->urlsToDelete = $urlsToDelete;
     }
