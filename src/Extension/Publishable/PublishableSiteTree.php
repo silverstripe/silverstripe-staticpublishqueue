@@ -58,21 +58,26 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
                 }
             }
 
-            // For the 'publish' action, we will update children when configured to do so. Config value or 0 is to
-            // *not* include children
-            // Note: This configuration is only relevant for the 'publish' action because for an 'unpublish' action
-            // we specifically have to purge all children (we now that they have also been unpublished)
+            // For the 'publish' action, we will update children when we are configured to do so. Config value of 0 is
+            // to *not* include children at any level
             $childInclusion = $siteTree->config()->get('regenerate_children');
+            // When the context of urlSegmentChanged has been provided we *must* update children - because all of their
+            // URLs will have just changed
             $forceRecursiveInclusion = $context['urlSegmentChanged'] ?? false;
 
+            // We've either been configured to include (some level) of children, or the above context has been set
             if ($childInclusion || $forceRecursiveInclusion) {
+                // We will want to recursively add all children if our regenerate_children config was set to Recursive,
+                // or if $forceRecursiveInclusion was set to true
+                // If neither of those conditions are true, then we will only be adding the direct children of this
+                // parent page
                 $recursive = $childInclusion === self::RELATION_INCLUDE_RECURSIVE || $forceRecursiveInclusion;
 
                 $this->addChildren($list, $siteTree, $recursive);
             }
         }
 
-        // For any of our defined actions, we will update parents when configured to do so. Config value or 0
+        // For any of our defined actions, we will update parents when configured to do so. Config value of 0
         // is to *not* include parents
         $parentInclusion = $siteTree->config()->get('regenerate_parents');
 
@@ -117,9 +122,16 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         $childInclusion = $siteTree->config()->get('regenerate_children');
         // Check to see if SiteTree enforces strict hierarchy (that being, parents must be published in order for
         // children to be viewed)
+        // If strict hierarchy is being used, then we *must* purge all child pages recursively, as they are no longer
+        // available for frontend users to view
         $forceRecursiveInclusion = $siteTree->config()->get('enforce_strict_hierarchy');
 
+        // We've either been configured to include (some level) of children, or enforce_strict_hierarchy was true
         if ($childInclusion || $forceRecursiveInclusion) {
+            // We will want to recursively add all children if our regenerate_children config was set to Recursive,
+            // or if $forceRecursiveInclusion was set to true
+            // If neither of those conditions are true, then we will only be adding the direct children of this
+            // parent page
             $recursive = $childInclusion === self::RELATION_INCLUDE_RECURSIVE || $forceRecursiveInclusion;
 
             $this->addChildren($list, $siteTree, $recursive);
