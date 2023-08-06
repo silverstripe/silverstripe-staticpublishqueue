@@ -81,7 +81,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         // is to *not* include parents
         $parentInclusion = $siteTree->config()->get('regenerate_parents');
 
-        if ($parentInclusion) {
+        if ($parentInclusion !== self::RELATION_INCLUDE_NONE) {
             // You can also choose whether to update only the direct parent, or the entire tree
             $recursive = $parentInclusion === self::RELATION_INCLUDE_RECURSIVE;
 
