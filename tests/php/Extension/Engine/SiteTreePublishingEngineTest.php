@@ -7,11 +7,13 @@ use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\DataList;
 use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService;
+use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobHandler;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
@@ -37,6 +39,45 @@ class SiteTreePublishingEngineTest extends SapphireTest
         /** @var QueuedJobsTestService $service */
         $service = QueuedJobService::singleton();
 
+        $page = $this->objFromFixture(SiteTree::class, 'page4');
+        $page->publishRecursive();
+
+        $jobs = $service->getJobs();
+
+        // We should only have 1 job queued
+        $this->assertCount(1, $jobs);
+
+        // Let's grab the job and inspect the contents
+        /** @var GenerateStaticCacheJob $updateJob */
+        $updateJob = $this->getJobByClassName($jobs, GenerateStaticCacheJob::class);
+
+        $expectedUrls = [
+            'http://example.com/page-1/page-2/page-4',
+        ];
+        $resultUrls = array_keys($updateJob->getJobData()->jobData->URLsToProcess);
+
+        $this->assertInstanceOf(GenerateStaticCacheJob::class, $updateJob);
+        $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
+    }
+
+    public function testPublishRecursiveWhenParentIsDraft(): void
+    {
+        // Inclusion of parent/child is tested in PublishableSiteTreeTest
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+
+        /** @var QueuedJobsTestService $service */
+        $service = QueuedJobService::singleton();
+
+        // Get us set up by unpublishing the parent page
+        $parent = $this->objFromFixture(SiteTree::class, 'page2');
+        $parent->doUnpublish();
+
+        // The above will have queued some Jobs, so let's get rid of them before we kick off the action we actually want
+        // to test
+        $service->flushJobs();
+
+        // Kick off our actual test by re-publishing one of the child pages
         $page = $this->objFromFixture(SiteTree::class, 'page4');
         $page->publishRecursive();
 

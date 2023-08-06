@@ -8,7 +8,6 @@ use SilverStripe\CMS\Model\VirtualPage;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\SS_List;
-use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
