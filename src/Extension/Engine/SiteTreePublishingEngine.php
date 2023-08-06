@@ -190,9 +190,9 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             $context = [
                 'action' => self::ACTION_UNPUBLISH,
             ];
-            // We'll collect these changes now using the LIVE stage (before the URLs change), but they won't be actioned
-            // until the publish action has completed successfully, and onAfterPublishRecursive() has been called. This
-            // is because we don't want to queue jobs if the publish action fails
+            // We'll collect these changes now (before the URLs change), but they won't be actioned until the publish
+            // action has completed successfully, and onAfterPublishRecursive() has been called. This is because we
+            // don't want to queue jobs if the publish action fails
             $this->collectChanges($context);
         }
     }
@@ -222,10 +222,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         ];
 
         // Collect any additional changes (noting that some could already have been added in onBeforePublishRecursive())
-        // This collectChanges will use the stage of DRAFT. This is purely because if a page has an unpublished parent
-        // then the LIVE URL will be incorrect (the child page URL would be in the root slug) - we'd prefer to cache to
-        // correct URL (with parentage intact) even though it'll be a cache of a 404
-        $this->collectChanges($context, Versioned::DRAFT);
+        $this->collectChanges($context);
         // Flush any/all changes that we have detected
         $this->flushChanges();
     }
@@ -236,8 +233,6 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             'action' => self::ACTION_UNPUBLISH,
         ];
         // We'll collect these changes now, but they won't be actioned until onAfterUnpublish()
-        // This collectChanges will use the stage of LIVE, because we specifically need to retrieve the current LIVE
-        // URLs for the page before the unpublish completes
         $this->collectChanges($context);
     }
 
@@ -251,24 +246,33 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
      * Collect all changes for the given context.
      *
      * @param array $context
-     * @param string $stage The Stage (LIVE/DRAFT) that the URLs will be requested from
      * @return void
      */
-    public function collectChanges($context, string $stage = Versioned::LIVE)
+    public function collectChanges($context)
     {
         Environment::increaseMemoryLimitTo();
         Environment::increaseTimeLimitTo();
 
-        Versioned::withVersionedMode(function () use ($context, $stage) {
-            // Collection of changes needs to happen within LIVE or DRAFT depending on what was requested
-            Versioned::set_stage($stage);
+        Versioned::withVersionedMode(function () use ($context) {
+            $action = $context['action'];
+            // Collection of changes needs to happen within LIVE or DRAFT depending on the action context
+
+            // Unpublish actions are called onBefore(), and their purpose is to remove the URLs of previously published
+            // pages. As such, we need to find out what the URL was/is in the current LIVE state (before the unpublish()
+            // completes)
+
+            // Publish actions are called onAfter(), and they need to retrieve whatever the current URL is in DRAFT.
+            // This is purely because if a page has an unpublished parent, then the LIVE URL will be incorrect (it will
+            // be missing the parent slug) - we'd prefer to cache to correct URL (with parentage) even though it'll be
+            // a cache of a 404
+            Versioned::set_stage($action === self::ACTION_UNPUBLISH ? Versioned::LIVE: Versioned::DRAFT);
 
             $owner = $this->getOwner();
 
-            // Re-fetch our page within the requested stage
+            // Re-fetch our page, now within a LIVE context
             $siteTree = DataObject::get($owner->ClassName)->byID($owner->ID);
 
-            // Make sure the page is available in the requested stage
+            // This page isn't LIVE/Published, so there is nothing for us to do here
             if (!$siteTree?->exists()) {
                 return;
             }
