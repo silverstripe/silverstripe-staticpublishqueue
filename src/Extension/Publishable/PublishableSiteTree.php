@@ -66,7 +66,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             $forceRecursiveInclusion = $context['urlSegmentChanged'] ?? false;
 
             // We've either been configured to include (some level) of children, or the above context has been set
-            if ($childInclusion || $forceRecursiveInclusion) {
+            if ($childInclusion !== self::RELATION_INCLUDE_NONE || $forceRecursiveInclusion) {
                 // We will want to recursively add all children if our regenerate_children config was set to Recursive,
                 // or if $forceRecursiveInclusion was set to true
                 // If neither of those conditions are true, then we will only be adding the direct children of this
