@@ -24,13 +24,13 @@ use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
  */
 class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger
 {
-    public const RELATION_INCLUDE_NONE = 0;
-    public const RELATION_INCLUDE_DIRECT = 1;
-    public const RELATION_INCLUDE_RECURSIVE = 2;
+    public const RELATION_INCLUDE_NONE = 'none';
+    public const RELATION_INCLUDE_DIRECT = 'direct';
+    public const RELATION_INCLUDE_RECURSIVE = 'recursive';
 
-    private static int $regenerate_children = self::RELATION_INCLUDE_NONE;
+    private static string $regenerate_children = self::RELATION_INCLUDE_NONE;
 
-    private static int $regenerate_parents = self::RELATION_INCLUDE_DIRECT;
+    private static string $regenerate_parents = self::RELATION_INCLUDE_DIRECT;
 
     public function getMyVirtualPages()
     {
@@ -58,8 +58,8 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
                 }
             }
 
-            // For the 'publish' action, we will update children when we are configured to do so. Config value of 0 is
-            // to *not* include children at any level
+            // For the 'publish' action, we will update children when we are configured to do so. Any config value other
+            //than 'none' means that we want to include children at some level
             $childInclusion = $siteTree->config()->get('regenerate_children');
             // When the context of urlSegmentChanged has been provided we *must* update children - because all of their
             // URLs will have just changed
@@ -77,8 +77,8 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             }
         }
 
-        // For any of our defined actions, we will update parents when configured to do so. Config value of 0
-        // is to *not* include parents
+        // For any of our defined actions, we will update parents when configured to do so. Any config value other than
+        // 'none' means that we want to include children at some level
         $parentInclusion = $siteTree->config()->get('regenerate_parents');
 
         if ($parentInclusion !== self::RELATION_INCLUDE_NONE) {
@@ -118,7 +118,8 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             }
         }
 
-        // Check if you specifically want children included in all actions
+        // Check if you specifically want children included in all actions. Any config value other than 'none' means
+        // that we want to include children at some level
         $childInclusion = $siteTree->config()->get('regenerate_children');
         // Check to see if SiteTree enforces strict hierarchy (that being, parents must be published in order for
         // children to be viewed)
