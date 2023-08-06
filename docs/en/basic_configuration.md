@@ -48,6 +48,26 @@ class MyFormPage extends Page
 }
 ```
 
+## Control when child/parent pages are included in cache actions
+
+There are two configurations available, and they can both be set to one of three available values:
+
+* `regenerate_children`
+  * `none`: Do not include any children
+  * `direct`: Include only one level below (direct children, but not grandchildren, etc)
+  * `recursive`: Include all children recursively (grandchildren, great-gc, etc)
+* `regenerate_parents`
+  * `none`: Do not include any parents
+  * `direct`: Include only one level above (the direct parent)
+  * `recursive`: Include all parents recursively (up to the top of the SiteTree)
+
+**Please note:** There are times when these configurations are ignored. For example, if you use Silverstripe's default
+behaviour and have `SiteTree::enforce_strict_hierarchy = true`, then this means that parent pages must be published for
+anyone to be able to view child pages. If you were to unpublish a parent page in the CMS, then default CMS behaviour
+would be for all child pages to also become unavailable to your users. As such, if you unpublish a page, then regardless
+of what your `regenerate_children` configuration is, we will always remove the cache of all of the child pages - as this
+matches the behaviour that the CMS follows.
+
 ## Available interfaces
 
 This module comes with two essential interfaces: `StaticPublishingTrigger` and `StaticallyPublishable`. This interfaces
@@ -89,15 +109,15 @@ use Page;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 
-class YourDataObject extends DataObject implements StaticPublishingTrigger 
+class YourDataObject extends DataObject implements StaticPublishingTrigger
 {
 
-    public function objectsToUpdate($context) 
+    public function objectsToUpdate($context)
     {
         return Page::get()->First();  // return 1 or an array of multiple publishable objects you would like to regenerate the static cache for
     }
 
-     public function objectsToDelete($context)  
+     public function objectsToDelete($context)
      {
         // Return 1 or an array of of publishable objects for which you would like to purge the statically cached variant
      }
