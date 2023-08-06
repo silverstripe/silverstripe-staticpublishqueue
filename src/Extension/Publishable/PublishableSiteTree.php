@@ -127,7 +127,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         $forceRecursiveInclusion = $siteTree->config()->get('enforce_strict_hierarchy');
 
         // We've either been configured to include (some level) of children, or enforce_strict_hierarchy was true
-        if ($childInclusion || $forceRecursiveInclusion) {
+        if ($childInclusion !== self::RELATION_INCLUDE_NONE || $forceRecursiveInclusion) {
             // We will want to recursively add all children if our regenerate_children config was set to Recursive,
             // or if $forceRecursiveInclusion was set to true
             // If neither of those conditions are true, then we will only be adding the direct children of this
