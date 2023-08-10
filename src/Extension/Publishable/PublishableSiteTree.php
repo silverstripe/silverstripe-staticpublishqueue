@@ -117,8 +117,8 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             }
         }
 
-        // Check if you specifically want children included in all actions. Any config value other than 'none' means
-        // that we want to include children at some level
+        // Check if you specifically want children regenerated in all actions. Any config value other than 'none' means
+        // that we want to regenerate children at some level
         $childInclusion = $siteTree->config()->get('regenerate_children');
         // Check to see if SiteTree enforces strict hierarchy (that being, parents must be published in order for
         // children to be viewed)
