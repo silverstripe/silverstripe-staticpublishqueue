@@ -23,7 +23,7 @@ class UrlBundleService implements UrlBundleInterface
 
     private static bool $strip_stage_param = true;
 
-    protected array $urls = [];
+    protected $urls = [];
 
     public function addUrls(array $urls): void
     {
