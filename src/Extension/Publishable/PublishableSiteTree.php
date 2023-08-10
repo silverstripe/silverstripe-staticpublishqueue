@@ -58,7 +58,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             }
 
             // For the 'publish' action, we will update children when we are configured to do so. Any config value other
-            //than 'none' means that we want to include children at some level
+            // than 'none' means that we want to regenerate children at some level
             $childInclusion = $siteTree->config()->get('regenerate_children');
             // When the context of urlSegmentChanged has been provided we *must* update children - because all of their
             // URLs will have just changed
