@@ -48,18 +48,18 @@ class MyFormPage extends Page
 }
 ```
 
-## Control when child/parent pages are included in cache actions
+## Control when child/parent pages are regenerated in cache actions
 
 There are two configurations available, and they can both be set to one of three available values:
 
 * `regenerate_children`
-  * `none`: Do not include any children
-  * `direct`: Include only one level below (direct children, but not grandchildren, etc)
-  * `recursive`: Include all children recursively (grandchildren, great-gc, etc)
+  * `none`: Do not regenerate any children
+  * `direct`: Regenerate only one level below (direct children, but not grandchildren, etc)
+  * `recursive`: Regenerate all children recursively (grandchildren, great-gc, etc)
 * `regenerate_parents`
-  * `none`: Do not include any parents
-  * `direct`: Include only one level above (the direct parent)
-  * `recursive`: Include all parents recursively (up to the top of the SiteTree)
+  * `none`: Do not regenerate any parents
+  * `direct`: Regenerate only one level above (the direct parent)
+  * `recursive`: Regenerate all parents recursively (up to the top of the SiteTree)
 
 **Please note:** There are times when these configurations are ignored. For example, if you use Silverstripe's default
 behaviour and have `SiteTree::enforce_strict_hierarchy = true`, then this means that parent pages must be published for
