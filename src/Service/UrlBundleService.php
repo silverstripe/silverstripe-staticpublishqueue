@@ -21,7 +21,7 @@ class UrlBundleService implements UrlBundleInterface
     use Injectable;
     use Configurable;
 
-    private static bool $strip_stage_param = true;
+    private static bool $strip_stage_param = false;
 
     protected $urls = [];
 
@@ -62,21 +62,6 @@ class UrlBundleService implements UrlBundleInterface
     }
 
     /**
-     * Any URL that we attempt to process through static publisher should always have any stage=* param removed
-     */
-    protected function stripStageParam(string $url): string
-    {
-        // This will safely remove "stage" params, but keep any others. It doesn't matter where in the string "stage="
-        // exists
-        $url = preg_replace('/([?&])stage=[^&]+(&|$)/', '$1', $url);
-        // Trim any trailing "?" or "&".
-        $url = rtrim($url, '&');
-        $url = rtrim($url, '?');
-
-        return $url;
-    }
-
-    /**
      * Get URLs for further processing
      */
     protected function getUrls(): array
@@ -107,7 +92,7 @@ class UrlBundleService implements UrlBundleInterface
      */
     protected function formatUrl(string $url): ?string
     {
-        if ($this->config()->get('strip_stage_param')) {
+        if (UrlBundleService::config()->get('strip_stage_param')) {
             $url = $this->stripStageParam($url);
         }
 
@@ -131,5 +116,20 @@ class UrlBundleService implements UrlBundleInterface
         }
 
         return $priorityUrls;
+    }
+
+    /**
+     * Any URL that we attempt to process through static publisher should always have any stage=* param removed
+     */
+    private function stripStageParam(string $url): string
+    {
+        // This will safely remove "stage" params, but keep any others. It doesn't matter where in the string "stage="
+        // exists
+        $url = preg_replace('/([?&])stage=[^&]+(&|$)/', '$1', $url);
+        // Trim any trailing "?" or "&".
+        $url = rtrim($url, '&');
+        $url = rtrim($url, '?');
+
+        return $url;
     }
 }

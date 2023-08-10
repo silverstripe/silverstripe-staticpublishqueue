@@ -34,8 +34,8 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionPublishNoInclusion(): void
     {
         // Test that only the actioned page and its virtual page are added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $virtualPage = $this->objFromFixture(VirtualPage::class, 'page1');
@@ -65,8 +65,8 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionPublishDirectInclusion(): void
     {
         // Check that direct only parent/child are added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_DIRECT);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_DIRECT);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_DIRECT);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_DIRECT);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $virtualPage = $this->objFromFixture(VirtualPage::class, 'page1');
@@ -100,8 +100,8 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionPublishRecursiveInclusion(): void
     {
         // Check that recursive parents and children are added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_RECURSIVE);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_RECURSIVE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $virtualPage = $this->objFromFixture(VirtualPage::class, 'page1');
@@ -139,9 +139,9 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionPublishUrlChangeNoInclusion(): void
     {
         // Test that only the actioned page and its virtual page are added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
         // Given the context of a URL change, we will expect all children to be added regardless of config
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $virtualPage = $this->objFromFixture(VirtualPage::class, 'page1');
@@ -176,9 +176,9 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionUnpublishNoInclusion(): void
     {
         // Test that only the actioned page and its virtual page are added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
         // Regardless of configuration, we expect children to be added in objectsToDelete() on unpublish action
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $childPage = $this->objFromFixture(SiteTree::class, 'page4');
@@ -214,9 +214,9 @@ class PublishableSiteTreeTest extends SapphireTest
         // Disable strict hierarchy, meaning that children can remain published even when a parent is unpublished
         SiteTree::config()->set('enforce_strict_hierarchy', false);
         // Test that only the actioned page and its virtual page are added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
         // We are disabling child inclusion through our config, as well as strict hierarchy being disabled
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $virtualPage = $this->objFromFixture(VirtualPage::class, 'page1');
@@ -246,9 +246,9 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionUnpublishDirectInclusion(): void
     {
         // Test that direct parent is added
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_DIRECT);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_DIRECT);
         // Regardless of configuration, we expect children to be added in objectsToDelete() on unpublish action
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_DIRECT);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_DIRECT);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $childPage = $this->objFromFixture(SiteTree::class, 'page4');
@@ -290,9 +290,9 @@ class PublishableSiteTreeTest extends SapphireTest
     public function testObjectsActionUnpublishRecursiveInclusion(): void
     {
         // Test that recursive parents and children
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_RECURSIVE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE);
         // Regardless of configuration, we expect children to be added in objectsToDelete() on unpublish action
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_RECURSIVE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE);
 
         $page = $this->objFromFixture(SiteTree::class, 'page3');
         $childPage = $this->objFromFixture(SiteTree::class, 'page4');

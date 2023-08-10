@@ -131,6 +131,8 @@ class UrlBundleServiceTest extends SapphireTest
 
     public function testGetUrls(): void
     {
+        UrlBundleService::config()->set('strip_stage_param', true);
+
         $urls = [
             'http://www.test.com?stage=Stage',
             'https://www.test.com?test1=1&stage=Live&test2=2'
@@ -172,6 +174,8 @@ class UrlBundleServiceTest extends SapphireTest
      */
     public function testStripStageParam(string $url, string $expectedUrl): void
     {
+        UrlBundleService::config()->set('strip_stage_param', true);
+
         $urlService = UrlBundleService::create();
         $method = new ReflectionMethod($urlService, 'stripStageParam');
         $method->setAccessible(true);

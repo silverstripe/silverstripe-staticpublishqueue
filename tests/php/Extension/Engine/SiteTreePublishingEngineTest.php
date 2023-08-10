@@ -12,6 +12,7 @@ use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
+use SilverStripe\StaticPublishQueue\Service\UrlBundleService;
 use SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
@@ -33,8 +34,8 @@ class SiteTreePublishingEngineTest extends SapphireTest
     public function testPublishRecursive(): void
     {
         // Inclusion of parent/child is tested in PublishableSiteTreeTest
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         /** @var QueuedJobsTestService $service */
         $service = QueuedJobService::singleton();
@@ -63,8 +64,8 @@ class SiteTreePublishingEngineTest extends SapphireTest
     public function testPublishRecursiveWhenParentIsDraft(): void
     {
         // Inclusion of parent/child is tested in PublishableSiteTreeTest
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         /** @var QueuedJobsTestService $service */
         $service = QueuedJobService::singleton();
@@ -102,8 +103,8 @@ class SiteTreePublishingEngineTest extends SapphireTest
     public function testPublishRecursiveUrlChange(): void
     {
         // Inclusion of parent/child is tested in PublishableSiteTreeTest
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         /** @var QueuedJobsTestService $service */
         $service = Injector::inst()->get(QueuedJobService::class);
@@ -150,8 +151,8 @@ class SiteTreePublishingEngineTest extends SapphireTest
     public function testPublishRecursiveParentChange(): void
     {
         // Inclusion of parent/child is tested in PublishableSiteTreeTest
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         /** @var QueuedJobsTestService $service */
         $service = Injector::inst()->get(QueuedJobService::class);
@@ -200,9 +201,9 @@ class SiteTreePublishingEngineTest extends SapphireTest
     public function testDoUnpublish(): void
     {
         // Inclusion of parent/child is tested in PublishableSiteTreeTest
-        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
         // Because this is an unpublish, we'll expect all the children to be present as well (regardless of config)
-        SiteTree::config()->set('regenerate_children', PublishableSiteTree::RELATION_INCLUDE_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
         /** @var QueuedJobsTestService $service */
         $service = Injector::inst()->get(QueuedJobService::class);
@@ -257,6 +258,9 @@ class SiteTreePublishingEngineTest extends SapphireTest
 
         // Set up our base URL so that it's always consistent for our tests
         Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com/');
+
+        // Performing all tests with stage params removed
+        UrlBundleService::config()->set('strip_stage_param', true);
 
         parent::setUp();
 
