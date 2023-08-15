@@ -48,6 +48,18 @@ class MyFormPage extends Page
 }
 ```
 
+## Excluding response codes
+
+Default behaviour is that static files are generated for all page responses, regardless of the response's status code.
+If you would like to exclude certain status codes from being statically cached, add them here
+
+```yaml
+SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher:
+  disallowed_status_codes:
+    - 404
+    - 500
+```
+
 ## Control when child/parent pages are regenerated in cache actions
 
 There are two configurations available, and they can both be set to one of three available values:

@@ -12,6 +12,8 @@ use function SilverStripe\StaticPublishQueue\URLtoPath;
 
 class FilesystemPublisher extends Publisher
 {
+    private static array $disallowed_status_codes = [];
+
     /**
      * @var string
      */
@@ -101,12 +103,24 @@ class FilesystemPublisher extends Publisher
     {
         if (!$url) {
             user_error('Bad url:' . var_export($url, true), E_USER_WARNING);
+
             return;
         }
+
         $success = false;
         $response = $this->generatePageResponse($url);
         $statusCode = $response->getStatusCode();
         $doPublish = ($forcePublish && $this->getFileExtension() === 'php') || $statusCode < 400;
+
+        if (in_array($statusCode, static::config()->get('disallowed_status_codes'))) {
+            return [
+                'published' => false,
+                // Considering this a "success" since the behaviour is as expected
+                'success' => true,
+                'responsecode' => $statusCode,
+                'url' => $url,
+            ];
+        }
 
         if ($statusCode >= 300 && $statusCode < 400) {
             // publish redirect response
@@ -114,6 +128,7 @@ class FilesystemPublisher extends Publisher
         } elseif ($doPublish) {
             $success = $this->publishPage($response, $url);
         }
+
         return [
             'published' => $doPublish,
             'success' => $success,
