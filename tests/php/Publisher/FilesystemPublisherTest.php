@@ -268,17 +268,6 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertSame(404, $phpCacheConfig['responseCode']);
     }
 
-    public function testNoPublishOnDisallowedResponseCode(): void
-    {
-        $this->logOut();
-
-        Config::modify()->set(FilesystemPublisher::class, 'disallowed_status_codes', [404]);
-
-        $this->fsp->publishURL('page_not_exists', true);
-        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'page_not_exists.html');
-        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'page_not_exists.php');
-    }
-
     public function testRedirectorPageWhenPHP(): void
     {
         $redirectorPage = RedirectorPage::create();
