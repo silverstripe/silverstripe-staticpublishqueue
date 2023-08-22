@@ -2,6 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Service;
 
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
@@ -18,15 +19,12 @@ class UrlBundleService implements UrlBundleInterface
 {
     use Extensible;
     use Injectable;
+    use Configurable;
 
-    /**
-     * @var array
-     */
+    private static bool $strip_stage_param = false;
+
     protected $urls = [];
 
-    /**
-     * @inheritDoc
-     */
     public function addUrls(array $urls): void
     {
         foreach ($urls as $url) {
@@ -34,9 +32,6 @@ class UrlBundleService implements UrlBundleInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getJobsForUrls(string $jobClass, ?string $message = null, ?DataObject $contextModel = null): array
     {
         $singleton = singleton($jobClass);
@@ -68,8 +63,6 @@ class UrlBundleService implements UrlBundleInterface
 
     /**
      * Get URLs for further processing
-     *
-     * @return array
      */
     protected function getUrls(): array
     {
@@ -96,12 +89,13 @@ class UrlBundleService implements UrlBundleInterface
     /**
      * Extensibility function which allows to handle custom formatting / encoding needs for URLs
      * Returning "falsy" value will make the URL to be skipped
-     *
-     * @param string $url
-     * @return string|null
      */
     protected function formatUrl(string $url): ?string
     {
+        if (UrlBundleService::config()->get('strip_stage_param')) {
+            $url = $this->stripStageParam($url);
+        }
+
         // Use this extension point to reformat URLs, for example encode special characters
         $this->extend('updateFormatUrl', $url);
 
@@ -110,9 +104,6 @@ class UrlBundleService implements UrlBundleInterface
 
     /**
      * Add priority data to URLs
-     *
-     * @param array $urls
-     * @return array
      */
     protected function assignPriorityToUrls(array $urls): array
     {
@@ -125,5 +116,20 @@ class UrlBundleService implements UrlBundleInterface
         }
 
         return $priorityUrls;
+    }
+
+    /**
+     * Any URL that we attempt to process through static publisher should always have any stage=* param removed
+     */
+    private function stripStageParam(string $url): string
+    {
+        // This will safely remove "stage" params, but keep any others. It doesn't matter where in the string "stage="
+        // exists
+        $url = preg_replace('/([?&])stage=[^&]+(&|$)/', '$1', $url);
+        // Trim any trailing "?" or "&".
+        $url = rtrim($url, '&');
+        $url = rtrim($url, '?');
+
+        return $url;
     }
 }

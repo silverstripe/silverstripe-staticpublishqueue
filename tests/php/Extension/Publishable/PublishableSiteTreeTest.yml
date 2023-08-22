@@ -1,0 +1,24 @@
+SilverStripe\CMS\Model\SiteTree:
+  page1:
+    Title: Page 1
+    URLSegment: page-1
+  page2:
+    Title: Page 2
+    URLSegment: page-2
+    ParentID: =>SilverStripe\CMS\Model\SiteTree.page1
+  page3:
+    Title: Page 3
+    URLSegment: page-3
+    ParentID: =>SilverStripe\CMS\Model\SiteTree.page2
+  page4:
+    Title: Page 4
+    URLSegment: page-4
+    ParentID: =>SilverStripe\CMS\Model\SiteTree.page3
+  page5:
+    Title: Page 5
+    URLSegment: page-5
+    ParentID: =>SilverStripe\CMS\Model\SiteTree.page4
+
+SilverStripe\CMS\Model\VirtualPage:
+  page1:
+    CopyContentFrom: =>SilverStripe\CMS\Model\SiteTree.page3

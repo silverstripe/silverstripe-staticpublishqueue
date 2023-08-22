@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\StaticPublishQueue\Test;
+namespace SilverStripe\StaticPublishQueue\Test\Service;
 
 use ReflectionMethod;
 use SilverStripe\Core\Config\Config;
@@ -13,7 +13,6 @@ use SilverStripe\StaticPublishQueue\Service\UrlBundleService;
 class UrlBundleServiceTest extends SapphireTest
 {
     /**
-     * @param string $jobClass
      * @dataProvider jobClasses
      */
     public function testJobsFromDataDefault(string $jobClass): void
@@ -47,7 +46,6 @@ class UrlBundleServiceTest extends SapphireTest
     }
 
     /**
-     * @param string $jobClass
      * @dataProvider jobClasses
      */
     public function testJobsFromDataExplicitUrlsPerJob(string $jobClass): void
@@ -66,8 +64,6 @@ class UrlBundleServiceTest extends SapphireTest
     }
 
     /**
-     * @param string $jobClass
-     * @param int $urlsPerJob
      * @dataProvider urlsPerJobCases
      */
     public function testUrlsPerJob(string $jobClass, int $urlsPerJob): void
@@ -83,8 +79,6 @@ class UrlBundleServiceTest extends SapphireTest
     }
 
     /**
-     * @param string $jobClass
-     * @param int $chunkSize
      * @dataProvider chunkCases
      */
     public function testChunkSize(string $jobClass, int $chunkSize): void
@@ -99,9 +93,6 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertEquals($chunkSize, $method->invoke($job));
     }
 
-    /**
-     * @return array
-     */
     public function jobClasses(): array
     {
         return [
@@ -110,9 +101,6 @@ class UrlBundleServiceTest extends SapphireTest
         ];
     }
 
-    /**
-     * @return array
-     */
     public function urlsPerJobCases(): array
     {
         return [
@@ -127,9 +115,6 @@ class UrlBundleServiceTest extends SapphireTest
         ];
     }
 
-    /**
-     * @return array
-     */
     public function chunkCases(): array
     {
         return [
@@ -140,6 +125,86 @@ class UrlBundleServiceTest extends SapphireTest
             [
                 DeleteStaticCacheJob::class,
                 15,
+            ],
+        ];
+    }
+
+    public function testGetUrls(): void
+    {
+        UrlBundleService::config()->set('strip_stage_param', true);
+
+        $urls = [
+            'http://www.test.com?stage=Stage',
+            'https://www.test.com?test1=1&stage=Live&test2=2'
+        ];
+        $expectedUrls = [
+            'http://www.test.com',
+            'https://www.test.com?test1=1&test2=2',
+        ];
+
+        $urlService = UrlBundleService::create();
+        $urlService->addUrls($urls);
+        $method = new ReflectionMethod($urlService, 'getUrls');
+        $method->setAccessible(true);
+        $resultUrls = $method->invoke($urlService);
+
+        $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
+    }
+
+    public function testGetUrlsDontStripStage(): void
+    {
+        UrlBundleService::config()->set('strip_stage_param', false);
+
+        $urls = [
+            'http://www.test.com?stage=Stage',
+            'https://www.test.com?test1=1&stage=Live&test2=2'
+        ];
+
+        $urlService = UrlBundleService::create();
+        $urlService->addUrls($urls);
+        $method = new ReflectionMethod($urlService, 'getUrls');
+        $method->setAccessible(true);
+        $resultUrls = $method->invoke($urlService);
+
+        $this->assertEqualsCanonicalizing($urls, $resultUrls);
+    }
+
+    /**
+     * @dataProvider provideStripStageParamUrls
+     */
+    public function testStripStageParam(string $url, string $expectedUrl): void
+    {
+        UrlBundleService::config()->set('strip_stage_param', true);
+
+        $urlService = UrlBundleService::create();
+        $method = new ReflectionMethod($urlService, 'stripStageParam');
+        $method->setAccessible(true);
+
+        $this->assertEquals($expectedUrl, $method->invoke($urlService, $url));
+    }
+
+    public function provideStripStageParamUrls(): array
+    {
+        return [
+            // Testing removal of stage=Stage, expect http to remain http
+            [
+                'http://www.test.com?stage=Stage',
+                'http://www.test.com',
+            ],
+            // Testing removal of stage=Live, expect https to remain https
+            [
+                'https://www.test.com?stage=Live',
+                'https://www.test.com',
+            ],
+            // Testing removal of stage=Stage with other params
+            [
+                'https://www.test.com?test1=1&stage=Stage&test2=2',
+                'https://www.test.com?test1=1&test2=2',
+            ],
+            // Testing removal of stage=Live with other params
+            [
+                'https://www.test.com?test1=1&stage=Live&test2=2',
+                'https://www.test.com?test1=1&test2=2',
             ],
         ];
     }

@@ -6,6 +6,7 @@ SilverStripe\Core\Injector\Injector:
     class: SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher
   SilverStripe\StaticPublishQueue\Service\UrlBundleInterface:
     class: SilverStripe\StaticPublishQueue\Service\UrlBundleService
+
 SilverStripe\CMS\Model\SiteTree:
   extensions:
     - SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine

@@ -18,6 +18,7 @@ It generates the cache files using the [QueuedJobs module](https://github.com/sy
 
 [Docs](docs/en/index.md)
 
+
 ## Unit-testing with StaticPublisherState to disable queuedjobs for unit-tests
 
 You can use `StaticPublisherState` to disable queuejobs job queueing and logging in unit-testing to improve performance.
@@ -26,15 +27,15 @@ Add the following yml to your project:
 
 ```yml
 ----
--Name: staticpublishqueue-tests
--Only:
--  classexists:
--    - 'Symbiote\QueuedJobs\Tests\QueuedJobsTest\QueuedJobsTest_Handler'
--    - 'SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService'
+Name: staticpublishqueue-tests
+Only:
+  classexists:
+    - 'Symbiote\QueuedJobs\Tests\QueuedJobsTest\QueuedJobsTest_Handler'
+    - 'SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService'
 ----
--SilverStripe\Core\Injector\Injector:
--  SilverStripe\Dev\State\SapphireTestState:
--    properties:
--      States:
--        staticPublisherState: '%$SilverStripe\StaticPublishQueue\Dev\StaticPublisherState'
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Dev\State\SapphireTestState:
+    properties:
+      States:
+        staticPublisherState: '%$SilverStripe\StaticPublishQueue\Dev\StaticPublisherState'
 ```
