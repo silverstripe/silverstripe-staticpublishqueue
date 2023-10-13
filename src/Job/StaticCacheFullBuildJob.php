@@ -126,11 +126,6 @@ class StaticCacheFullBuildJob extends Job
 
         $this->extend('afterGetAllLivePageURLs', $urls);
 
-        // @TODO look here when integrating subsites
-        // if (class_exists(Subsite::class)) {
-        //     Subsite::disable_subsite_filter(true);
-        // }
-
         return $urls;
     }
 
