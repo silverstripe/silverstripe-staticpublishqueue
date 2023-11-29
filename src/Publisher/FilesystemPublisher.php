@@ -13,6 +13,11 @@ use function SilverStripe\StaticPublishQueue\URLtoPath;
 class FilesystemPublisher extends Publisher
 {
     /**
+     * Status codes that aren't allowed to be statically cached.
+     */
+    private static array $disallowed_status_codes = [];
+
+    /**
      * @var string
      */
     protected $destFolder = 'cache';
@@ -107,6 +112,17 @@ class FilesystemPublisher extends Publisher
         $response = $this->generatePageResponse($url);
         $statusCode = $response->getStatusCode();
         $doPublish = ($forcePublish && $this->getFileExtension() === 'php') || $statusCode < 400;
+
+        // Don't statically cache if the status code is in a deny list
+        if (in_array($statusCode, static::config()->get('disallowed_status_codes'))) {
+            return [
+                'published' => false,
+                // Considering this a "success" since the behaviour is as expected
+                'success' => true,
+                'responsecode' => $statusCode,
+                'url' => $url,
+            ];
+        }
 
         if ($statusCode >= 300 && $statusCode < 400) {
             // publish redirect response

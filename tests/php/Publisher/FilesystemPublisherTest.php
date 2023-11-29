@@ -246,6 +246,17 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'purge-me.php');
     }
 
+    public function testNoPublishOnDisallowedResponseCode(): void
+    {
+        $this->logOut();
+
+        FilesystemPublisher::config()->set('disallowed_status_codes', [404]);
+
+        $this->fsp->publishURL('not_really_there', true);
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'not_really_there.html');
+        $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'not_really_there.php');
+    }
+
     public function testNoErrorPagesWhenHTMLOnly(): void
     {
         $this->logOut();
