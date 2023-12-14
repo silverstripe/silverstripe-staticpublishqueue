@@ -19,7 +19,6 @@ use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
  * an extension via the config system ordering (inject your extension "before" the PublishableSiteTree).
  *
  * @see SiteTreePublishingEngine
- * @method SiteTree|SiteTreePublishingEngine|$this getOwner()
  */
 class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger
 {

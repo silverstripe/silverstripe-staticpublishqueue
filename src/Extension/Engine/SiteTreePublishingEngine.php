@@ -25,7 +25,6 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
  * * action - name of the executed action: publish or unpublish
  *
  * @see PublishableSiteTree
- * @method SiteTree|PublishableSiteTree|$this getOwner()
  */
 class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 {
