@@ -10,6 +10,7 @@ use SilverStripe\Control\HTTPResponse_Exception;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\CoreKernel;
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBDatetime;
@@ -22,6 +23,7 @@ use SilverStripe\View\SSViewer;
 
 abstract class Publisher implements StaticPublisher
 {
+    use Extensible;
     use Injectable;
     use Configurable;
 
