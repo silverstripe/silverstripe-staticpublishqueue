@@ -109,7 +109,11 @@ class FilesystemPublisher extends Publisher
             return;
         }
         $success = false;
+
+        $this->extend('onBeforeGeneratePageResponse', $url);
         $response = $this->generatePageResponse($url);
+        $this->extend('onAfterGeneratePageResponse', $url, $response);
+
         $statusCode = $response->getStatusCode();
         $doPublish = ($forcePublish && $this->getFileExtension() === 'php') || $statusCode < 400;
 
