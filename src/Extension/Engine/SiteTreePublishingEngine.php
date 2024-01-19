@@ -25,6 +25,8 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
  * * action - name of the executed action: publish or unpublish
  *
  * @see PublishableSiteTree
+ *
+ * @extends DataExtension<SiteTree>
  */
 class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
 {
@@ -300,7 +302,6 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $urlsToDelete = $this->getUrlsToDelete();
 
         if ($urlsToUpdate) {
-            /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
             $urlService->addUrls($urlsToUpdate);
 
@@ -314,7 +315,6 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         }
 
         if ($urlsToDelete) {
-            /** @var UrlBundleInterface $urlService */
             $urlService = Injector::inst()->create(UrlBundleInterface::class);
             $urlService->addUrls($urlsToDelete);
 

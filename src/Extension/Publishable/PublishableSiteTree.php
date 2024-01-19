@@ -19,6 +19,8 @@ use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
  * an extension via the config system ordering (inject your extension "before" the PublishableSiteTree).
  *
  * @see SiteTreePublishingEngine
+ *
+ * @extends DataExtension<SiteTree>
  */
 class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger
 {
@@ -36,7 +38,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
     }
 
     /**
-     * @return array|SS_List
+     * @return iterable<SiteTree>
      */
     public function objectsToUpdate($context)
     {
@@ -92,7 +94,7 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
     /**
      * This method controls which caches will be purged
      *
-     * @return array|SS_List
+     * @return iterable<SiteTree>
      */
     public function objectsToDelete($context)
     {
