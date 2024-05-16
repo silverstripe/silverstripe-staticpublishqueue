@@ -172,7 +172,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     /**
      * @param SiteTree|SiteTreePublishingEngine|null $original
      */
-    public function onBeforePublishRecursive($original)
+    protected function onBeforePublishRecursive($original)
     {
         // There is no original object. This might be the first time it has been published
         if (!$original?->exists()) {
@@ -201,7 +201,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     /**
      * @param SiteTree|SiteTreePublishingEngine|null $original
      */
-    public function onAfterPublishRecursive($original)
+    protected function onAfterPublishRecursive($original)
     {
         // Flush any/all changes that we might have collected from onBeforePublishRecursive()
         $this->flushChanges();
@@ -228,7 +228,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $this->flushChanges();
     }
 
-    public function onBeforeUnpublish()
+    protected function onBeforeUnpublish()
     {
         $context = [
             'action' => self::ACTION_UNPUBLISH,
@@ -237,7 +237,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $this->collectChanges($context);
     }
 
-    public function onAfterUnpublish()
+    protected function onAfterUnpublish()
     {
         // Flush any/all changes that we have detected
         $this->flushChanges();
