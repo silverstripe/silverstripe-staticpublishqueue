@@ -39,7 +39,7 @@ class QueuedJobsTestService extends QueuedJobService implements Resettable, Test
 
     public static function reset()
     {
-        self::singleton()->flushJobs();
+        QueuedJobsTestService::singleton()->flushJobs();
     }
 
     /**

@@ -28,9 +28,9 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
     public const REGENERATE_RELATIONS_DIRECT = 'direct';
     public const REGENERATE_RELATIONS_RECURSIVE = 'recursive';
 
-    private static string $regenerate_children = self::REGENERATE_RELATIONS_NONE;
+    private static string $regenerate_children = PublishableSiteTree::REGENERATE_RELATIONS_NONE;
 
-    private static string $regenerate_parents = self::REGENERATE_RELATIONS_DIRECT;
+    private static string $regenerate_parents = PublishableSiteTree::REGENERATE_RELATIONS_DIRECT;
 
     public function getMyVirtualPages()
     {
@@ -66,12 +66,12 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
             $forceRecursiveRegeneration = $context['urlSegmentChanged'] ?? false;
 
             // We've either been configured to regenerate (some level) of children, or the above context has been set
-            if ($regenerateChildren !== self::REGENERATE_RELATIONS_NONE || $forceRecursiveRegeneration) {
+            if ($regenerateChildren !== PublishableSiteTree::REGENERATE_RELATIONS_NONE || $forceRecursiveRegeneration) {
                 // We will want to recursively add all children if our regenerate_children config was set to Recursive,
                 // or if $forceRecursiveRegeneration was set to true
                 // If neither of those conditions are true, then we will only be adding the direct children of this
                 // parent page
-                $recursive = $regenerateChildren === self::REGENERATE_RELATIONS_RECURSIVE || $forceRecursiveRegeneration;
+                $recursive = $regenerateChildren === PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE || $forceRecursiveRegeneration;
 
                 $this->addChildren($list, $siteTree, $recursive);
             }
@@ -81,9 +81,9 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         // 'none' means that we want to include children at some level
         $regenerateParents = SiteTree::config()->get('regenerate_parents');
 
-        if ($regenerateParents !== self::REGENERATE_RELATIONS_NONE) {
+        if ($regenerateParents !== PublishableSiteTree::REGENERATE_RELATIONS_NONE) {
             // You can also choose whether to update only the direct parent, or the entire tree
-            $recursive = $regenerateParents === self::REGENERATE_RELATIONS_RECURSIVE;
+            $recursive = $regenerateParents === PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE;
 
             $this->addParents($list, $siteTree, $recursive);
         }
@@ -128,12 +128,12 @@ class PublishableSiteTree extends DataExtension implements StaticallyPublishable
         $forceRecursiveRegeneration = SiteTree::config()->get('enforce_strict_hierarchy');
 
         // We've either been configured to include (some level) of children, or enforce_strict_hierarchy was true
-        if ($regenerateChildren !== self::REGENERATE_RELATIONS_NONE || $forceRecursiveRegeneration) {
+        if ($regenerateChildren !== PublishableSiteTree::REGENERATE_RELATIONS_NONE || $forceRecursiveRegeneration) {
             // We will want to recursively add all children if our regenerate_children config was set to Recursive,
             // or if $forceRecursiveRegeneration was set to true
             // If neither of those conditions are true, then we will only be adding the direct children of this
             // parent page
-            $recursive = $regenerateChildren === self::REGENERATE_RELATIONS_RECURSIVE || $forceRecursiveRegeneration;
+            $recursive = $regenerateChildren === PublishableSiteTree::REGENERATE_RELATIONS_RECURSIVE || $forceRecursiveRegeneration;
 
             $this->addChildren($list, $siteTree, $recursive);
         }

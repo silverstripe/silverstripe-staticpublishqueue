@@ -189,7 +189,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         ) {
             // We have detected a change to the URL. We need to purge the old URLs for this page and any children
             $context = [
-                'action' => self::ACTION_UNPUBLISH,
+                'action' => SiteTreePublishingEngine::ACTION_UNPUBLISH,
             ];
             // We'll collect these changes now (before the URLs change), but they won't be actioned until the publish
             // action has completed successfully, and onAfterPublishRecursive() has been called. This is because we
@@ -216,7 +216,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
         $urlSegmentChanged = $urlSegment && $original->URLSegment !== $owner->URLSegment;
 
         $context = [
-            'action' => self::ACTION_PUBLISH,
+            'action' => SiteTreePublishingEngine::ACTION_PUBLISH,
             // If a URL change has been detected, then we need to force the recursive regeneration of all child
             // pages
             'urlSegmentChanged' => $parentChanged || $urlSegmentChanged,
@@ -231,7 +231,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
     protected function onBeforeUnpublish()
     {
         $context = [
-            'action' => self::ACTION_UNPUBLISH,
+            'action' => SiteTreePublishingEngine::ACTION_UNPUBLISH,
         ];
         // We'll collect these changes now, but they won't be actioned until onAfterUnpublish()
         $this->collectChanges($context);
@@ -266,7 +266,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             // This is purely because if a page has an unpublished parent, then the LIVE URL will be incorrect (it will
             // be missing the parent slug) - we'd prefer to cache to correct URL (with parentage) even though it'll be
             // a cache of a 404
-            Versioned::set_stage($action === self::ACTION_UNPUBLISH ? Versioned::LIVE: Versioned::DRAFT);
+            Versioned::set_stage($action === SiteTreePublishingEngine::ACTION_UNPUBLISH ? Versioned::LIVE: Versioned::DRAFT);
 
             $owner = $this->getOwner();
 

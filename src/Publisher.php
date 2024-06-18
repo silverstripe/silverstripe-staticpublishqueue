@@ -79,7 +79,7 @@ abstract class Publisher implements StaticPublisher
         Requirements::set_backend(Requirements_Backend::create());
 
         $origThemes = SSViewer::get_themes();
-        $staticThemes = self::config()->get('static_publisher_themes');
+        $staticThemes = static::config()->get('static_publisher_themes');
         if ($staticThemes) {
             SSViewer::set_themes($staticThemes);
         } else {
