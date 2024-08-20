@@ -3,8 +3,8 @@
 namespace SilverStripe\StaticPublishQueue\Extension\Engine;
 
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Resettable;
 use SilverStripe\Dev\Deprecation;
@@ -26,9 +26,9 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
  *
  * @see PublishableSiteTree
  *
- * @extends DataExtension<SiteTree>
+ * @extends Extension<SiteTree>
  */
-class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
+class SiteTreePublishingEngine extends Extension implements Resettable
 {
     public const ACTION_PUBLISH = 'publish';
     public const ACTION_UNPUBLISH = 'unpublish';

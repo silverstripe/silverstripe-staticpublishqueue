@@ -6,7 +6,7 @@ use SilverStripe\CMS\Model\RedirectorPage;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\VirtualPage;
 use SilverStripe\Control\Director;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\ORM\SS_List;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
@@ -20,9 +20,9 @@ use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
  *
  * @see SiteTreePublishingEngine
  *
- * @extends DataExtension<SiteTree>
+ * @extends Extension<SiteTree>
  */
-class PublishableSiteTree extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger
+class PublishableSiteTree extends Extension implements StaticallyPublishable, StaticPublishingTrigger
 {
     public const REGENERATE_RELATIONS_NONE = 'none';
     public const REGENERATE_RELATIONS_DIRECT = 'direct';
