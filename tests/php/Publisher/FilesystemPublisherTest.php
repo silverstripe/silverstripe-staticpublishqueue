@@ -14,6 +14,7 @@ use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Publisher\FilesystemPublisher;
 use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\StaticPublisherTestPage;
 use SilverStripe\View\SSViewer;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Tests for the {@link FilesystemPublisher} class.
@@ -42,7 +43,7 @@ class FilesystemPublisherTest extends SapphireTest
         Config::modify()->set(FilesystemPublisher::class, 'domain_based_caching', false);
         Config::modify()->set(Director::class, 'alternate_base_url', 'http://example.com/');
 
-        $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)->setMethods([
+        $mockFSP = $this->getMockBuilder(FilesystemPublisher::class)->onlyMethods([
             'getHTTPApplication',
         ])->getMock();
 
@@ -326,9 +327,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileDoesNotExist($this->fsp->getDestPath() . 'somewhere-else.php');
     }
 
-    /**
-     * @dataProvider providePathsToURL
-     */
+    #[DataProvider('providePathsToURL')]
     public function testPathToURL($expected, $path): void
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
@@ -341,7 +340,7 @@ class FilesystemPublisherTest extends SapphireTest
         );
     }
 
-    public function providePathsToURL()
+    public static function providePathsToURL()
     {
         return [
             ['http://example.com', 'index.html'],
