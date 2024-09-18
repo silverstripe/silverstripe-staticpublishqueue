@@ -43,7 +43,7 @@ class StaticCacheFullBuildTask extends BuildTask
         $existing = DataList::create(QueuedJobDescriptor::class)->filter($filter)->first();
 
         if ($existing && $existing->exists()) {
-            Deprecation::withNoReplacement(function () use ($existing) {
+            Deprecation::withSuppressedNotice(function () use ($existing) {
                 $this->log(sprintf(
                     'There is already a %s in the queue, added %s %s',
                     StaticCacheFullBuildJob::class,
@@ -74,14 +74,14 @@ class StaticCacheFullBuildTask extends BuildTask
 
             // sanity check that we are in the next 24 hours - prevents some weird stuff sneaking through
             if ($startAfter->getTimestamp() > $thisTimeTomorrow || $startAfter->getTimestamp() < $now->getTimestamp()) {
-                Deprecation::withNoReplacement(function () {
+                Deprecation::withSuppressedNotice(function () {
                     $this->log('Invalid startAfter parameter passed. Please ensure the time format is HHmm e.g. 1300');
                 });
 
                 return false;
             }
 
-            Deprecation::withNoReplacement(function () use ($startAfter, $dayWord) {
+            Deprecation::withSuppressedNotice(function () use ($startAfter, $dayWord) {
                 $this->log(sprintf(
                     '%s queued for %s %s.',
                     StaticCacheFullBuildJob::class,
@@ -91,7 +91,7 @@ class StaticCacheFullBuildTask extends BuildTask
             });
         } else {
             $startAfter = null;
-            Deprecation::withNoReplacement(function () {
+            Deprecation::withSuppressedNotice(function () {
                 $this->log(StaticCacheFullBuildJob::class . ' added to the queue for immediate processing');
             });
         }

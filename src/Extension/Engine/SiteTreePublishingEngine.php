@@ -284,7 +284,7 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             }
 
             // Fetch our objects to be actioned
-            Deprecation::withNoReplacement(function () use ($siteTree, $context): void {
+            Deprecation::withSuppressedNotice(function () use ($siteTree, $context): void {
                 $this->setToUpdate($siteTree->objectsToUpdate($context));
                 $this->setToDelete($siteTree->objectsToDelete($context));
             });
