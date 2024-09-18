@@ -9,12 +9,11 @@ use SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Service\UrlBundleService;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class UrlBundleServiceTest extends SapphireTest
 {
-    /**
-     * @dataProvider jobClasses
-     */
+    #[DataProvider('jobClasses')]
     public function testJobsFromDataDefault(string $jobClass): void
     {
         $urls = [
@@ -45,9 +44,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertStringContainsString($message, $messageData);
     }
 
-    /**
-     * @dataProvider jobClasses
-     */
+    #[DataProvider('jobClasses')]
     public function testJobsFromDataExplicitUrlsPerJob(string $jobClass): void
     {
         Config::modify()->set($jobClass, 'urls_per_job', 1);
@@ -63,9 +60,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertCount(2, $jobs);
     }
 
-    /**
-     * @dataProvider urlsPerJobCases
-     */
+    #[DataProvider('urlsPerJobCases')]
     public function testUrlsPerJob(string $jobClass, int $urlsPerJob): void
     {
         Config::modify()->set($jobClass, 'urls_per_job', $urlsPerJob);
@@ -78,9 +73,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertEquals($urlsPerJob, $method->invoke($job));
     }
 
-    /**
-     * @dataProvider chunkCases
-     */
+    #[DataProvider('chunkCases')]
     public function testChunkSize(string $jobClass, int $chunkSize): void
     {
         Config::modify()->set($jobClass, 'chunk_size', $chunkSize);
@@ -93,7 +86,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertEquals($chunkSize, $method->invoke($job));
     }
 
-    public function jobClasses(): array
+    public static function jobClasses(): array
     {
         return [
             [GenerateStaticCacheJob::class],
@@ -101,7 +94,7 @@ class UrlBundleServiceTest extends SapphireTest
         ];
     }
 
-    public function urlsPerJobCases(): array
+    public static function urlsPerJobCases(): array
     {
         return [
             [
@@ -115,7 +108,7 @@ class UrlBundleServiceTest extends SapphireTest
         ];
     }
 
-    public function chunkCases(): array
+    public static function chunkCases(): array
     {
         return [
             [
@@ -169,9 +162,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertEqualsCanonicalizing($urls, $resultUrls);
     }
 
-    /**
-     * @dataProvider provideStripStageParamUrls
-     */
+    #[DataProvider('provideStripStageParamUrls')]
     public function testStripStageParam(string $url, string $expectedUrl): void
     {
         UrlBundleService::config()->set('strip_stage_param', true);
@@ -183,7 +174,7 @@ class UrlBundleServiceTest extends SapphireTest
         $this->assertEquals($expectedUrl, $method->invoke($urlService, $url));
     }
 
-    public function provideStripStageParamUrls(): array
+    public static function provideStripStageParamUrls(): array
     {
         return [
             // Testing removal of stage=Stage, expect http to remain http
