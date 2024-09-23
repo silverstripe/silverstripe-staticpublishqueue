@@ -2,7 +2,7 @@
 
 namespace SilverStripe\StaticPublishQueue\Contract;
 
-use SilverStripe\ORM\SS_List;
+use SilverStripe\Model\List\SS_List;
 
 /**
  * Describes an object that may wish to trigger updates in other objects as a result of it's own update.
