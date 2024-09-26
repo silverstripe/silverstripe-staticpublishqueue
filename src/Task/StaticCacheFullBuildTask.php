@@ -3,30 +3,32 @@
 namespace SilverStripe\StaticPublishQueue\Task;
 
 use DateTime;
-use SilverStripe\Control\Director;
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
-use SilverStripe\Dev\Deprecation;
+use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\StaticPublishQueue\Job\StaticCacheFullBuildJob;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class StaticCacheFullBuildTask extends BuildTask
 {
-    protected $title = 'Static Cache Full Build';
+    protected static string $commandName = 'static-cache-full-build';
+
+    protected string $title = 'Static Cache Full Build';
+
+    protected static string $description = 'Fully build the static cache for the whole site';
 
     /**
      * Queue up a StaticCacheFullBuildJob
      * Check for startAfter param and do some sanity checking
-     *
-     * @param HTTPRequest $request
-     * @return bool
      */
-    public function run($request)
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         $job = Injector::inst()->create(StaticCacheFullBuildJob::class);
         $signature = $job->getSignature();
@@ -43,22 +45,20 @@ class StaticCacheFullBuildTask extends BuildTask
         $existing = DataList::create(QueuedJobDescriptor::class)->filter($filter)->first();
 
         if ($existing && $existing->exists()) {
-            Deprecation::withSuppressedNotice(function () use ($existing) {
-                $this->log(sprintf(
-                    'There is already a %s in the queue, added %s %s',
-                    StaticCacheFullBuildJob::class,
-                    $existing->Created,
-                    $existing->StartAfter ? 'and set to start after ' . $existing->StartAfter : ''
-                ));
-            });
+            $output->writeln(sprintf(
+                'There is already a %s in the queue, added %s %s',
+                StaticCacheFullBuildJob::class,
+                $existing->Created,
+                $existing->StartAfter ? 'and set to start after ' . $existing->StartAfter : ''
+            ));
 
-            return false;
+            return Command::FAILURE;
         }
 
-        if ($request->getVar('startAfter')) {
+        if ($input->getOption('startAfter')) {
             $now = DBDatetime::now();
             $today = $now->Date();
-            $startTime = $request->getVar('startAfter');
+            $startTime = $input->getOption('startAfter');
 
             // move to tomorrow if the starttime has passed today
             if ($now->Time24() > $startTime) {
@@ -74,26 +74,20 @@ class StaticCacheFullBuildTask extends BuildTask
 
             // sanity check that we are in the next 24 hours - prevents some weird stuff sneaking through
             if ($startAfter->getTimestamp() > $thisTimeTomorrow || $startAfter->getTimestamp() < $now->getTimestamp()) {
-                Deprecation::withSuppressedNotice(function () {
-                    $this->log('Invalid startAfter parameter passed. Please ensure the time format is HHmm e.g. 1300');
-                });
+                $output->writeln('Invalid startAfter parameter passed. Please ensure the time format is HHmm e.g. 1300');
 
-                return false;
+                return Command::INVALID;
             }
 
-            Deprecation::withSuppressedNotice(function () use ($startAfter, $dayWord) {
-                $this->log(sprintf(
-                    '%s queued for %s %s.',
-                    StaticCacheFullBuildJob::class,
-                    $startAfter->format('H:m'),
-                    $dayWord
-                ));
-            });
+            $output->writeln(sprintf(
+                '%s queued for %s %s.',
+                StaticCacheFullBuildJob::class,
+                $startAfter->format('H:m'),
+                $dayWord
+            ));
         } else {
             $startAfter = null;
-            Deprecation::withSuppressedNotice(function () {
-                $this->log(StaticCacheFullBuildJob::class . ' added to the queue for immediate processing');
-            });
+            $output->writeln(StaticCacheFullBuildJob::class . ' added to the queue for immediate processing');
         }
 
         $job->setJobData(0, 0, false, new \stdClass(), [
@@ -101,16 +95,13 @@ class StaticCacheFullBuildTask extends BuildTask
         ]);
         QueuedJobService::singleton()->queueJob($job, $startAfter ? $startAfter->format('Y-m-d H:i:s') : null);
 
-        return true;
+        return Command::SUCCESS;
     }
 
-    /**
-     * @deprecated 6.3.0 Will be replaced with new $output parameter in the run() method
-     */
-    protected function log($message)
+    public function getOptions(): array
     {
-        Deprecation::notice('6.3.0', 'Will be replaced with new $output parameter in the run() method');
-        $newLine = Director::is_cli() ? PHP_EOL : '<br>';
-        echo $message . $newLine;
+        return [
+            new InputOption('startAfter', null, InputOption::VALUE_REQUIRED, 'Delay execution until this time. Must be in 24hr format e.g. <comment>1300</comment>'),
+        ];
     }
 }

@@ -7,7 +7,7 @@ be ready to go.
 You'll need to configure a cron job or equivalent to process the queue (if you haven't already):
 
 ```bash
-* * * * * php /path/to/silverstripe/vendor/bin/sake dev/tasks/ProcessJobQueueTask
+* * * * * php /path/to/silverstripe/vendor/bin/sake tasks:ProcessJobQueueTask
 ```
 
 Which will ensure that the `GenerateStaticCacheJob`s are processed quickly.
