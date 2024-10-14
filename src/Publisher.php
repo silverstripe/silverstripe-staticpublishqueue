@@ -175,11 +175,11 @@ abstract class Publisher implements StaticPublisher
      */
     protected function generateHTMLCacheRedirection($destination)
     {
-        return SSViewer::execute_template(
-            'SilverStripe\\StaticPublishQueue\\HTMLRedirection',
-            ArrayData::create([
-                'URL' => DBField::create_field('Varchar', $destination),
-            ])
-        );
+        $viewer = SSViewer::create('SilverStripe\\StaticPublishQueue\\HTMLRedirection');
+        $viewer->setRewriteHashLinks(false);
+        $viewer->includeRequirements(false);
+        return $viewer->process(ArrayData::create([
+            'URL' => DBField::create_field('Varchar', $destination),
+        ]));
     }
 }
