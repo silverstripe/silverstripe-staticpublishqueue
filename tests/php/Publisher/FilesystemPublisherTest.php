@@ -285,7 +285,7 @@ class FilesystemPublisherTest extends SapphireTest
         $redirectorPage = RedirectorPage::create();
         $redirectorPage->URLSegment = 'somewhere-else';
         $redirectorPage->RedirectionType = 'External';
-        $redirectorPage->ExternalURL = 'silverstripe.org';
+        $redirectorPage->ExternalURL = 'https://example.org/path';
         $redirectorPage->write();
         $redirectorPage->publishRecursive();
 
@@ -301,7 +301,7 @@ class FilesystemPublisherTest extends SapphireTest
         $this->assertFileExists($this->fsp->getDestPath() . 'somewhere-else.php');
         $phpCacheConfig = require $this->fsp->getDestPath() . 'somewhere-else.php';
         $this->assertSame(301, $phpCacheConfig['responseCode']);
-        $this->assertContains('location: http://silverstripe.org', $phpCacheConfig['headers']);
+        $this->assertContains('location: https://example.org/path', $phpCacheConfig['headers']);
     }
 
     public function testRedirectorPageWhenHTMLOnly(): void
