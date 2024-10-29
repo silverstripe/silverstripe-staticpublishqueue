@@ -14,7 +14,7 @@ use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Service\UrlBundleInterface;
-use SilverStripe\Versioned\Versioned;
+use SilverStripe\Versioned\Mode\Versioned;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**

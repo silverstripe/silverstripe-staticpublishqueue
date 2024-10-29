@@ -7,7 +7,7 @@ use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job;
 use SilverStripe\StaticPublishQueue\Publisher;
-use SilverStripe\Versioned\Versioned;
+use SilverStripe\Versioned\Mode\Versioned;
 
 /**
  * Adds all live pages to the queue for caching. Best implemented on a cron via StaticCacheFullBuildTask.
