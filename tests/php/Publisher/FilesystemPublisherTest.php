@@ -140,7 +140,7 @@ class FilesystemPublisherTest extends SapphireTest
 
     public function testMenu2LinkingMode(): void
     {
-        SSViewer::set_themes(null);
+        SSViewer::set_themes([]);
 
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
