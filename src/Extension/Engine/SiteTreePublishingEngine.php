@@ -279,7 +279,10 @@ class SiteTreePublishingEngine extends SiteTreeExtension implements Resettable
             }
 
             // The page does not include the required extension, and it doesn't implement a Trigger
-            if (!$siteTree->hasExtension(PublishableSiteTree::class) && !($siteTree instanceof StaticPublishingTrigger)) {
+            if (!$siteTree->hasExtension(PublishableSiteTree::class)
+                && !$siteTree->hasExtension(StaticPublishingTrigger::class)
+                && !($siteTree instanceof StaticPublishingTrigger)
+            ) {
                 return;
             }
 
