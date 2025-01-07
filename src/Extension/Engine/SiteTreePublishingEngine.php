@@ -7,7 +7,6 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Resettable;
-use SilverStripe\Dev\Deprecation;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
@@ -50,88 +49,6 @@ class SiteTreePublishingEngine extends Extension implements Resettable
      * Queues the urls to be deleted as part of a next flush operation.
      */
     private array $urlsToDelete = [];
-
-    /**
-     * Queues the urls to be flushed into the queue.
-     *
-     * @var array
-     * @deprecated 6.0.0 Use $urlsToDelete instead
-     */
-    private $toUpdate = [];
-
-    /**
-     * Queues the urls to be deleted as part of a next flush operation.
-     *
-     * @var array
-     * @deprecated 6.0.0 Use $urlsToDelete instead
-     */
-    private $toDelete = [];
-
-    /**
-     * @return array
-     * @deprecated 6.0.0 Use getUrlsToUpdate() instead
-     */
-    public function getToUpdate()
-    {
-        Deprecation::notice('6.0.0', 'Use getUrlsToUpdate() instead');
-
-        return $this->toUpdate;
-    }
-
-    /**
-     * @return array
-     * @deprecated 6.0.0 Use getUrlsToDelete() instead
-     */
-    public function getToDelete()
-    {
-        Deprecation::notice('6.0.0', 'Use getUrlsToDelete() instead');
-
-        return $this->toDelete;
-    }
-
-    /**
-     * @param array $toUpdate
-     * @return $this
-     * @deprecated 6.0.0 Use setUrlsToUpdate() instead
-     */
-    public function setToUpdate($toUpdate)
-    {
-        Deprecation::notice('6.0.0', 'Use setUrlsToUpdate() instead');
-
-        $urlsToUpdate = [];
-
-        foreach ($toUpdate as $objectToUpdate) {
-            $urlsToUpdate = array_merge($urlsToUpdate, array_keys($objectToUpdate->urlsToCache()));
-        }
-
-        $this->setUrlsToUpdate($urlsToUpdate);
-        // Legacy support so that getToUpdate() still returns the expected array of DataObjects
-        $this->toUpdate = $toUpdate;
-
-        return $this;
-    }
-
-    /**
-     * @param array $toDelete
-     * @return $this
-     * @deprecated 6.0.0 Use setUrlsToDelete() instead
-     */
-    public function setToDelete($toDelete)
-    {
-        Deprecation::notice('6.0.0', 'Use setUrlsToUpdate() instead');
-
-        $urlsToDelete = [];
-
-        foreach ($toDelete as $objectToDelete) {
-            $urlsToDelete = array_merge($urlsToDelete, array_keys($objectToDelete->urlsToCache()));
-        }
-
-        $this->setUrlsToDelete($urlsToDelete);
-        // Legacy support so that getToDelete() still returns the expected array of DataObjects
-        $this->toDelete = $toDelete;
-
-        return $this;
-    }
 
     public static function reset(): void
     {
@@ -283,11 +200,11 @@ class SiteTreePublishingEngine extends Extension implements Resettable
                 return;
             }
 
-            // Fetch our objects to be actioned
-            Deprecation::withSuppressedNotice(function () use ($siteTree, $context): void {
-                $this->setToUpdate($siteTree->objectsToUpdate($context));
-                $this->setToDelete($siteTree->objectsToDelete($context));
-            });
+            // Fetch our URLs to be actioned
+            $urlsToUpdate = $this->getUrlsFromObjects($siteTree->objectsToUpdate($context));
+            $this->setUrlsToUpdate($urlsToUpdate);
+            $urlsToUpdate = $this->getUrlsFromObjects($siteTree->objectsToDelete($context));
+            $this->setUrlsToDelete($urlsToUpdate);
         });
     }
 
@@ -326,5 +243,14 @@ class SiteTreePublishingEngine extends Extension implements Resettable
 
             $this->setUrlsToDelete([]);
         }
+    }
+
+    private function getUrlsFromObjects(iterable $objects): iterable
+    {
+        $urls = [];
+        foreach ($objects as $object) {
+            $urls = array_merge($urls, array_keys($object->urlsToCache()));
+        }
+        return $urls;
     }
 }
