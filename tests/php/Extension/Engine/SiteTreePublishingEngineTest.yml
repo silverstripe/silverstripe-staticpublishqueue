@@ -22,3 +22,7 @@ SilverStripe\CMS\Model\SiteTree:
     Title: Page 6
     URLSegment: page-6
     ParentID: =>SilverStripe\CMS\Model\SiteTree.page5
+
+
+SilverStripe\StaticPublishQueue\Dev\DataObjectNoTrigger:
+  dataobject1:
