@@ -14,6 +14,8 @@ use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Service\UrlBundleService;
 use SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService;
+use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\ExtensionAddsTrigger;
+use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\DataObjectNoTrigger;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobHandler;
@@ -229,6 +231,39 @@ class SiteTreePublishingEngineTest extends SapphireTest
         $resultUrls = array_keys($deleteJob->getJobData()->jobData->URLsToProcess);
 
         $this->assertInstanceOf(DeleteStaticCacheJob::class, $deleteJob);
+        $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
+    }
+
+    public function testStaticPublishingTriggerOnExtension(): void
+    {
+        // Inclusion of parent/child is tested in PublishableSiteTreeTest
+        SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+        SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
+
+        DataObjectNoTrigger::add_extension(ExtensionAddsTrigger::class);
+        DataObjectNoTrigger::add_extension(SiteTreePublishingEngine::class);
+
+        /** @var QueuedJobsTestService $service */
+        $service = QueuedJobService::singleton();
+
+        $dataObject = DataObjectNoTrigger::create()->write();
+        $dataObject->publishRecursive();
+
+        $jobs = $service->getJobs();
+
+        // We should only have 1 job queued
+        $this->assertCount(1, $jobs);
+
+        // Let's grab the job and inspect the contents
+        /** @var GenerateStaticCacheJob $updateJob */
+        $updateJob = $this->getJobByClassName($jobs, GenerateStaticCacheJob::class);
+
+        $expectedUrls = [
+            'http://example.com/subpage/dataobject-1',
+        ];
+        $resultUrls = array_keys($updateJob->getJobData()->jobData->URLsToProcess);
+
+        $this->assertInstanceOf(GenerateStaticCacheJob::class, $updateJob);
         $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
     }
 
