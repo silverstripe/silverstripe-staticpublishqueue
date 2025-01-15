@@ -1,13 +1,13 @@
 <?php
 
-namespace SilverStripe\StaticPublishQueue\Dev;
+namespace SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model;
 
 use SilverStripe\Dev\TestOnly;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\StaticPublishQueue\Contract\StaticPublishingTrigger;
 use SilverStripe\StaticPublishQueue\Contract\StaticallyPublishable;
 
-class DataExtensionAddsTrigger extends DataExtension implements StaticallyPublishable, StaticPublishingTrigger, TestOnly
+class ExtensionAddsTrigger extends Extension implements StaticallyPublishable, StaticPublishingTrigger, TestOnly
 {
     public function urlsToCache()
     {

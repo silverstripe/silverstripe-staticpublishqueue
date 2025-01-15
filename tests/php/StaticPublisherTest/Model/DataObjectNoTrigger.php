@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\StaticPublishQueue\Dev;
+namespace SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model;
 
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\ORM\DataObject;

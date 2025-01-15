@@ -8,14 +8,14 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataList;
-use SilverStripe\StaticPublishQueue\Dev\DataExtensionAddsTrigger;
-use SilverStripe\StaticPublishQueue\Dev\DataObjectNoTrigger;
 use SilverStripe\StaticPublishQueue\Extension\Engine\SiteTreePublishingEngine;
 use SilverStripe\StaticPublishQueue\Extension\Publishable\PublishableSiteTree;
 use SilverStripe\StaticPublishQueue\Job\DeleteStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Job\GenerateStaticCacheJob;
 use SilverStripe\StaticPublishQueue\Service\UrlBundleService;
 use SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService;
+use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\ExtensionAddsTrigger;
+use SilverStripe\StaticPublishQueue\Test\StaticPublisherTest\Model\DataObjectNoTrigger;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobHandler;
@@ -240,13 +240,13 @@ class SiteTreePublishingEngineTest extends SapphireTest
         SiteTree::config()->set('regenerate_parents', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
         SiteTree::config()->set('regenerate_children', PublishableSiteTree::REGENERATE_RELATIONS_NONE);
 
-        DataObjectNoTrigger::add_extension(DataExtensionAddsTrigger::class);
+        DataObjectNoTrigger::add_extension(ExtensionAddsTrigger::class);
         DataObjectNoTrigger::add_extension(SiteTreePublishingEngine::class);
 
         /** @var QueuedJobsTestService $service */
         $service = QueuedJobService::singleton();
 
-        $dataObject = $this->objFromFixture(DataObjectNoTrigger::class, 'dataobject1');
+        $dataObject = DataObjectNoTrigger::create()->write();
         $dataObject->publishRecursive();
 
         $jobs = $service->getJobs();
