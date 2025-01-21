@@ -26,6 +26,10 @@ class SiteTreePublishingEngineTest extends SapphireTest
 {
     protected static $fixture_file = 'SiteTreePublishingEngineTest.yml';
 
+    protected static $extra_dataobjects = [
+        DataObjectNoTrigger::class,
+    ];
+
     protected static $required_extensions = [
         SiteTree::class => [
             PublishableSiteTree::class,
@@ -246,7 +250,8 @@ class SiteTreePublishingEngineTest extends SapphireTest
         /** @var QueuedJobsTestService $service */
         $service = QueuedJobService::singleton();
 
-        $dataObject = DataObjectNoTrigger::create()->write();
+        $dataObject = DataObjectNoTrigger::create();
+        $dataObject->write();
         $dataObject->publishRecursive();
 
         $jobs = $service->getJobs();
