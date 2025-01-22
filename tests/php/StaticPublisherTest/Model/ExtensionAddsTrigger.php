@@ -24,4 +24,3 @@ class ExtensionAddsTrigger extends Extension implements StaticallyPublishable, S
         return [];
     }
 }
-
