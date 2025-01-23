@@ -16,7 +16,7 @@ class ExtensionAddsTrigger extends Extension implements StaticallyPublishable, S
 
     public function objectsToUpdate($context)
     {
-        return $this->owner;
+        return [$this->owner];
     }
 
     public function objectsToDelete($context)
