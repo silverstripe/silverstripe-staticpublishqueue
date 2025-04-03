@@ -135,6 +135,12 @@ class FilesystemPublisherTest extends SapphireTest
             'domain2.com/parent/child',
             $urlToPath->invokeArgs($this->fsp, [$url])
         );
+
+        $url = 'https://domain2.com/parent/child';
+        $this->assertSame(
+            'domain2.com/parent/child',
+            $urlToPath->invokeArgs($this->fsp, [$url])
+        );
     }
 
     public function testMenu2LinkingMode(): void
@@ -351,7 +357,22 @@ class FilesystemPublisherTest extends SapphireTest
         ];
     }
 
-    public function testGetPublishedURLs(): void
+    public function provideGetPublishedURLs(): array
+    {
+        return [
+            [
+                'baseURL' => 'http://example.com',
+            ],
+            [
+                'baseURL' => 'https://example.com',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideGetPublishedURLs
+     */
+    public function testGetPublishedURLs(string $baseUrl): void
     {
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'find-me';
@@ -368,19 +389,19 @@ class FilesystemPublisherTest extends SapphireTest
 
         $this->fsp->publishURL('find-me', true);
         // We have to redeclare this config because the testkernel wipes it when we generate the page response
-        Director::config()->set('alternate_base_url', 'http://example.com');
+        Director::config()->set('alternate_base_url', $baseUrl);
 
-        $this->assertSame(['http://example.com/find-me'], $this->fsp->getPublishedURLs());
+        $this->assertSame([$baseUrl . '/find-me'], $this->fsp->getPublishedURLs());
 
         $this->fsp->publishURL($level2_1->Link(), true);
-        Director::config()->set('alternate_base_url', 'http://example.com');
+        Director::config()->set('alternate_base_url', $baseUrl);
 
         $urls = $this->fsp->getPublishedURLs();
-        $this->assertContains('http://example.com/find-me', $urls);
-        $this->assertContains('http://example.com/find-me/find-me-child', $urls);
+        $this->assertContains($baseUrl . '/find-me', $urls);
+        $this->assertContains($baseUrl . '/find-me/find-me-child', $urls);
         $this->assertCount(2, $urls);
 
         $this->fsp->purgeURL('find-me');
-        $this->assertSame(['http://example.com/find-me/find-me-child'], $this->fsp->getPublishedURLs());
+        $this->assertSame([$baseUrl . '/find-me/find-me-child'], $this->fsp->getPublishedURLs());
     }
 }

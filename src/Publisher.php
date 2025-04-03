@@ -89,7 +89,7 @@ abstract class Publisher implements StaticPublisher
         }
         try {
             $ssl = Environment::getEnv('SS_STATIC_FORCE_SSL');
-            if (is_null($ssl)) {
+            if (!$ssl) {
                 $ssl = $urlParts['scheme'] == 'https' ? true : false;
             }
 
