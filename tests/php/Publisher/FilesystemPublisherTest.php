@@ -356,21 +356,19 @@ class FilesystemPublisherTest extends SapphireTest
         ];
     }
 
-    public function provideGetPublishedURLs(): array
+    public static function provideGetPublishedURLs(): array
     {
         return [
             [
-                'baseURL' => 'http://example.com',
+                'baseUrl' => 'http://example.com',
             ],
             [
-                'baseURL' => 'https://example.com',
+                'baseUrl' => 'https://example.com',
             ],
         ];
     }
 
-    /**
-     * @dataProvider provideGetPublishedURLs
-     */
+    #[DataProvider('provideGetPublishedURLs')]
     public function testGetPublishedURLs(string $baseUrl): void
     {
         $level1 = new StaticPublisherTestPage();
