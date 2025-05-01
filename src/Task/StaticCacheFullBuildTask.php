@@ -105,11 +105,11 @@ class StaticCacheFullBuildTask extends BuildTask
     }
 
     /**
-     * @deprecated 6.3.0 Will be replaced with new $output parameter in the run() method
+     * @deprecated 6.3.0 Will be replaced with new $output parameter in the run() method in a future major release
      */
     protected function log($message)
     {
-        Deprecation::notice('6.3.0', 'Will be replaced with new $output parameter in the run() method');
+        Deprecation::notice('6.3.0', 'Will be replaced with new $output parameter in the run() method in a future major release');
         $newLine = Director::is_cli() ? PHP_EOL : '<br>';
         echo $message . $newLine;
     }
