@@ -28,6 +28,7 @@
     "require-dev": {
         "silverstripe/recipe-testing": "^3",
         "silverstripe/standards": "^1",
+        "silverstripe/documentation-lint": "^1",
         "phpstan/extension-installer": "^1.3"
     },
     "autoload": {
@@ -43,17 +44,18 @@
         "includes/"
     ],
     "extra": [],
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/recipe-plugin": true,
+            "silverstripe/vendor-plugin": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
     "scripts": {
         "lint": "phpcs -s src/ tests/php/",
         "lint-clean": "phpcbf src/ tests/php/"
     },
     "prefer-stable": true,
-    "minimum-stability": "dev",
-    "config": {
-        "allow-plugins": {
-            "composer/installers": true,
-            "silverstripe/recipe-plugin": true,
-            "silverstripe/vendor-plugin": true
-        }
-    }
+    "minimum-stability": "dev"
 }
