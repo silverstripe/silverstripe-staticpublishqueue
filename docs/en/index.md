@@ -1,9 +1,21 @@
-# Static Publish Queue Documentation
+---
+title: Static Publish Queue
+summary: Improves website performance by generating static HTML content
+icon: rocket
+---
 
-[Basic Configuration](basic_configuration.md)
+# Static publish queue
 
-[Building the Cache](building_the_cache.md)
+The static publish queue module enhances your website's performance by generating static HTML versions of your pages. These pre-generated files are served directly from the webserver, bypassing the need to process requests through PHP and the database, which significantly reduces server load and improves page load times.
 
-[Handling Requests](handling_requests.md)
+## Installation
 
-[Advanced Configuration](advanced_configuration.md)
+```bash
+composer require silverstripe/staticpublishqueue
+```
+
+## GitHub repository
+
+<https://github.com/silverstripe/silverstripe-staticpublishqueue>
+
+[CHILDREN]
