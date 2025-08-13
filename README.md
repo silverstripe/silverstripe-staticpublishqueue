@@ -14,9 +14,9 @@ composer require silverstripe/staticpublishqueue
 This module provides an API for your project to be able to generate a static cache of your pages to enhance
 performance by not booting Silverstripe in order to serve requests.
 
-It generates the cache files using the [QueuedJobs module](https://docs.silverstripe.org/en/optional_features/queued-jobs).
+It generates the cache files using the [QueuedJobs module](https://docs.silverstripe.org/en/optional_features/queuedjobs/).
 
-[Documentation](https://docs.silverstripe.org/en/optional_features/static-publish-queue)
+[Documentation](https://docs.silverstripe.org/en/optional_features/staticpublishqueue/)
 
 ## Unit-testing with StaticPublisherState to disable queuedjobs for unit-tests
 
