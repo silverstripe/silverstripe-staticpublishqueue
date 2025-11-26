@@ -69,7 +69,6 @@ class UrlBundleServiceTest extends SapphireTest
         $job = singleton($jobClass);
 
         $method = new ReflectionMethod(Job::class, 'getUrlsPerJob');
-        $method->setAccessible(true);
         $this->assertEquals($urlsPerJob, $method->invoke($job));
     }
 
@@ -82,7 +81,6 @@ class UrlBundleServiceTest extends SapphireTest
         $job = singleton($jobClass);
 
         $method = new ReflectionMethod(Job::class, 'getChunkSize');
-        $method->setAccessible(true);
         $this->assertEquals($chunkSize, $method->invoke($job));
     }
 
@@ -138,7 +136,6 @@ class UrlBundleServiceTest extends SapphireTest
         $urlService = UrlBundleService::create();
         $urlService->addUrls($urls);
         $method = new ReflectionMethod($urlService, 'getUrls');
-        $method->setAccessible(true);
         $resultUrls = $method->invoke($urlService);
 
         $this->assertEqualsCanonicalizing($expectedUrls, $resultUrls);
@@ -156,7 +153,6 @@ class UrlBundleServiceTest extends SapphireTest
         $urlService = UrlBundleService::create();
         $urlService->addUrls($urls);
         $method = new ReflectionMethod($urlService, 'getUrls');
-        $method->setAccessible(true);
         $resultUrls = $method->invoke($urlService);
 
         $this->assertEqualsCanonicalizing($urls, $resultUrls);
@@ -169,8 +165,6 @@ class UrlBundleServiceTest extends SapphireTest
 
         $urlService = UrlBundleService::create();
         $method = new ReflectionMethod($urlService, 'stripStageParam');
-        $method->setAccessible(true);
-
         $this->assertEquals($expectedUrl, $method->invoke($urlService, $url));
     }
 
