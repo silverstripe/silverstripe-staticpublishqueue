@@ -66,8 +66,6 @@ class FilesystemPublisherTest extends SapphireTest
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
-        $urlToPath->setAccessible(true);
-
         $this->assertSame(
             'index',
             $urlToPath->invokeArgs($this->fsp, ['/'])
@@ -88,8 +86,6 @@ class FilesystemPublisherTest extends SapphireTest
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
-        $urlToPath->setAccessible(true);
-
         $url = Director::absoluteBaseUrl();
         $this->assertSame(
             'index',
@@ -115,8 +111,6 @@ class FilesystemPublisherTest extends SapphireTest
 
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
-        $urlToPath->setAccessible(true);
-
         $this->fsp->setFileExtension('html');
 
         $url = 'http://domain1.com/';
@@ -150,8 +144,6 @@ class FilesystemPublisherTest extends SapphireTest
 
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $urlToPath = $reflection->getMethod('URLtoPath');
-        $urlToPath->setAccessible(true);
-
         $level1 = new StaticPublisherTestPage();
         $level1->URLSegment = 'test-level-1';
         $level1->write();
@@ -338,8 +330,6 @@ class FilesystemPublisherTest extends SapphireTest
     {
         $reflection = new \ReflectionClass(FilesystemPublisher::class);
         $pathToURL = $reflection->getMethod('pathToURL');
-        $pathToURL->setAccessible(true);
-
         $this->assertSame(
             $expected,
             $pathToURL->invoke($this->fsp, $this->fsp->getDestPath() . $path)
