@@ -25,13 +25,13 @@ You can use `StaticPublisherState` to disable queuejobs job queueing and logging
 Add the following yml to your project:
 
 ```yml
-----
+---
 Name: staticpublishqueue-tests
 Only:
   classexists:
     - 'Symbiote\QueuedJobs\Tests\QueuedJobsTest\QueuedJobsTest_Handler'
     - 'SilverStripe\StaticPublishQueue\Test\QueuedJobsTestService'
-----
+---
 SilverStripe\Core\Injector\Injector:
   SilverStripe\Dev\State\SapphireTestState:
     properties:
