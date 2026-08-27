@@ -28,7 +28,7 @@
     "require-dev": {
         "silverstripe/recipe-testing": "^4",
         "silverstripe/standards": "^1",
-        "silverstripe/documentation-lint": "^1",
+        "silverstripe/documentation-lint": "^2",
         "phpstan/extension-installer": "^1.3"
     },
     "autoload": {
