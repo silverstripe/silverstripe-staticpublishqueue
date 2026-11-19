@@ -19,14 +19,14 @@
     ],
     "require": {
         "php": "^8.3",
-        "silverstripe/framework": "^6",
-        "silverstripe/cms": "^6",
-        "silverstripe/config": "^3",
-        "symbiote/silverstripe-queuedjobs": "^6",
-        "silverstripe/versioned": "^3"
+        "silverstripe/framework": "^7",
+        "silverstripe/cms": "^7",
+        "silverstripe/config": "^4",
+        "symbiote/silverstripe-queuedjobs": "^7",
+        "silverstripe/versioned": "^4"
     },
     "require-dev": {
-        "silverstripe/recipe-testing": "^4",
+        "silverstripe/recipe-testing": "^5",
         "silverstripe/standards": "^1",
         "silverstripe/documentation-lint": "^2",
         "phpstan/extension-installer": "^1.3"
